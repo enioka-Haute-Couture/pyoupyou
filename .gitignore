@@ -1,0 +1,8 @@
+*.pyc
+db.sqlite3
+.*.swp
+.idea/
+.project
+.settings
+static/
+venv/
