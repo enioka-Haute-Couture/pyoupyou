@@ -8,13 +8,12 @@ class Subsidiary(models.Model):
     code = models.CharField(_("Code"), max_length=3, unique=True)
 
     def __unicode__(self):
-        return unicode(self.name)
+        return self.name
 
     class Meta:
         verbose_name = _("Subsidiary")
         verbose_name_plural = _("Subsidiaries")
         ordering = ["name", ]
-
 
 
 class Consultant(models.Model):
@@ -25,10 +24,8 @@ class Consultant(models.Model):
     productive = models.BooleanField(_("Productive"), default=True)
     active = models.BooleanField(_("Active"), default=True)
 
-
     def __unicode__(self):
         return self.name
 
     def full_name(self):
         return u"%s (%s)" % (self.name, self.trigramme)
-
