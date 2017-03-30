@@ -7,7 +7,7 @@ class Subsidiary(models.Model):
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     class Meta:
@@ -24,7 +24,7 @@ class Consultant(models.Model):
     productive = models.BooleanField(_("Productive"), default=True)
     active = models.BooleanField(_("Active"), default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def full_name(self):

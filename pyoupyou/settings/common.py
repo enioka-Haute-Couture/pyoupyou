@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'interview.apps.InterviewConfig',
 ]
 
 MIDDLEWARE = [
@@ -115,3 +116,26 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+MEDIA_ROOT = 'media'
+MEDIA_URL = '/media/'
+
+MINUTE_FORMAT = (
+    ('md', 'Markdown'),
+    ('rst', "ReStructured Text"),
+)
+
+DOCUMENT_TYPE = (
+    ('CV', 'CV'),
+    ('CL', 'Cover Letter'),
+    ('OT', 'Others'),
+)
+
+# TODO
+ITW_STATE = (
+    ('PD', 'NEED PLANIFICATION'),
+    ('PL', 'PLANIFIED'),
+    ('GO', 'GO'),
+    ('NO', 'NO'),
+    ('DGO', 'DONE GO'),
+    ('DNO', 'DONE NO'),
+)

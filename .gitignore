@@ -7,3 +7,4 @@ db.sqlite3
 static/
 venv/
 pyoupyou/settings_local.example.py
+media/

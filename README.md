@@ -33,3 +33,11 @@ To contribute do Pull Request against this repository
 We follow [pep8](https://www.python.org/dev/peps/pep-0008/). However we accept line up to 120 characters.
 
 Exception are made for django generated code like migrations.
+
+### Formatting string
+
+To format string using format will be prefered over the % syntax. In order to facilitate translation we will use named placeholder
+
+```
+"This is a {state} example".format(state="good")
+```
