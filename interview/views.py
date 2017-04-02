@@ -57,7 +57,7 @@ def process(request, process_id):
                "documents": documents,
                "interviews_for_process_table": interviews_for_process_table,
                "interviews": interviews}
-    return render(request, "process_detail.html", context)
+    return render(request, "interview/process_detail.html", context)
 
 
 def close_process(request, process_id):
@@ -80,7 +80,7 @@ def processes(request):
 
     context = {"open_processes_table": open_processes_table,
                "recently_closed_processes_table": recently_closed_processes_table}
-    return render(request, "list_processes.html", context)
+    return render(request, "interview/list_processes.html", context)
 
 
 def new_candidate(request):
@@ -108,7 +108,7 @@ def new_candidate(request):
             return HttpResponseRedirect(reverse(processes))
     else:
         form = CandidateForm()
-    return render(request, "new_candidate.html", {'form': form})
+    return render(request, "interview/new_candidate.html", {'form': form})
 
 
 def interview(request, process_id=None, interview_id=None):
@@ -150,7 +150,7 @@ def interview(request, process_id=None, interview_id=None):
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": process.id}))
         else:
-            return render(request, "interview.html", {'form': form,
+            return render(request, "interview/interview.html", {'form': form,
                                                       "interview": interview,
                                                       "process": process})
     else:
@@ -173,7 +173,7 @@ def interview(request, process_id=None, interview_id=None):
     else:
         process = Process.objects.get(id=process_id)
 
-    return render(request, "interview.html", {'form': form,
+    return render(request, "interview/interview.html", {'form': form,
                                               "interview": interview,
                                               "process": process})
 
@@ -213,6 +213,6 @@ def minute(request, interview_id=None):
                                             "next_state": interview.next_state,
                                             "interviewer": interviewer})
 
-    return render(request, "interview_minute.html", {'form': form,
+    return render(request, "interview/interview_minute.html", {'form': form,
                                                      "process": interview.process,
                                                      "interview": interview})
