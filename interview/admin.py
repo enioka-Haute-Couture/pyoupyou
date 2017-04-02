@@ -23,7 +23,7 @@ class DocumentAdmin(admin.ModelAdmin):
         'created_date',
         'candidate',
         'document_type',
-        'document',
+        'content',
         'still_valid',
     )
     list_filter = ('created_date', 'candidate', 'still_valid')

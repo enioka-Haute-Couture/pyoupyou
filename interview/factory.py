@@ -2,6 +2,8 @@ import factory
 import factory.faker
 
 from ref.factory import SubsidiaryFactory
+
+
 class CandidateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'interview.Candidate'

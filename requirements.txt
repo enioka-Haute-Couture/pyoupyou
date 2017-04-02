@@ -3,3 +3,4 @@ django-bootstrap-static>=3.3.7,<3.4
 django-crispy-forms>=1.6.0,<1.7
 Django-Select2>=5.8.9,<5.9
 django-extensions>=1.7.7,<1.8
+django-tables2>=1.4.2,<1.5

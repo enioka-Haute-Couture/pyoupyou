@@ -34,7 +34,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'interview.apps.InterviewConfig',
+    'crispy_forms',
+    'django_tables2',
+    'interview.apps.InterviewConfig'
 ]
 
 MIDDLEWARE = [
@@ -60,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.request'
             ],
         },
     },
@@ -111,6 +114,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
@@ -131,6 +135,7 @@ DOCUMENT_TYPE = (
 )
 
 # TODO
+# Difference between GO/NO and DONE GO/DONE NO ?
 ITW_STATE = (
     ('PD', 'NEED PLANIFICATION'),
     ('PL', 'PLANIFIED'),
