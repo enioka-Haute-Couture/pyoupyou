@@ -17,8 +17,17 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
 
+from interview import views
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^processes/$', views.processes, name="process-list"),
+    url(r'^candidate/', views.new_candidate, name="candidate-new"),
+    url(r'^process/(?P<process_id>\d+)/$', views.process, name="process-details"),
+    url(r'^process/(?P<process_id>\d+)/close/$', views.close_process, name="process-close"),
+    url(r'^process/(?P<process_id>\d+)/interview/', views.interview, name="process-new-interview"),
+    url(r'^interview/(?P<interview_id>\d*)$', views.interview, name="interview-plan"),
+    url(r'^interview/(?P<interview_id>\d+)/minute/', views.minute, name="interview-minute")
 ]
 
 if settings.HAS_DDT:

@@ -1,0 +1,13 @@
+{% extends 'index.html' %}
+{% load crispy_forms_tags %}
+{% load admin_urls %}
+
+{% block content %}
+<div class="container">
+
+    <div class="lead">
+        Compte rendu d'entretien pour le <a href="{% url 'process-details' process_id=process.id %}">processus</a> concernant <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> pour {{ process.subsidiary.name }}
+    </div>
+    {% crispy form %}
+</div>
+{% endblock %}`

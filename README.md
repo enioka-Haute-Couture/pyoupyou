@@ -34,6 +34,8 @@ We follow [pep8](https://www.python.org/dev/peps/pep-0008/). However we accept l
 
 Exception are made for django generated code like migrations.
 
+`pycodestyle --config=.pep8 .`
+
 ### Formatting string
 
 To format string using format will be prefered over the % syntax. In order to facilitate translation we will use named placeholder
