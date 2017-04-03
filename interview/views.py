@@ -24,7 +24,8 @@ class ProcessTable(tables.Table):
 
     class Meta:
         model = Process
-        attrs = {'class': 'paleblue'}
+        template = 'django_tables2/bootstrap.html'
+        attrs = {'class': 'table table-striped table-bordered'}
         sequence = ("candidate", "late", "subsidiary", "start_date", "contract_type", "edit")
         fields = sequence
         order_by = "start_date"
@@ -40,7 +41,8 @@ class InterviewTable(tables.Table):
 
     class Meta:
         model = Interview
-        attrs = {"class": "paleblue"}
+        template = 'django_tables2/bootstrap.html'
+        attrs = {"class": "table table-striped table-bordered"}
         sequence = ("edit", "change", "needs_attention", "planned_date", "interviewers", "next_state")
         fields = sequence
         order_by = "planned_date"
@@ -141,7 +143,7 @@ def interview(request, process_id=None, interview_id=None):
                 # previous_interview_interviewer.interview.next_state
                 # in
                 previous_interview_interviewer.delete()
-            except ObjectDoesNotExist:
+            except InterviewInterviewer.DoesNotExist:
                 pass
 
             interview_interviewer = InterviewInterviewer(interviewer=form.cleaned_data["interviewer"],
@@ -199,7 +201,7 @@ def minute(request, interview_id=None):
         interview = Interview.objects.get(id=interview_id)
         try:
             interview_interviewer = InterviewInterviewer.objects.get(interview=interview)
-        except ObjectDoesNotExist:
+        except InterviewInterviewer.DoesNotExist:
             pass
         if interview_interviewer is not None:
             minute = interview_interviewer.minute
