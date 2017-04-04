@@ -132,7 +132,7 @@ class Interview(models.Model):
                     return True
                 if "" == interview_interviewer.minute:
                     return True
-            except ObjectDoesNotExist:
+            except InterviewInterviewer.DoesNotExist:
                 return True
         return False
 

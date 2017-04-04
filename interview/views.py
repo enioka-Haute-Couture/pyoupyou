@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -48,6 +49,7 @@ class InterviewTable(tables.Table):
         order_by = "planned_date"
 
 
+@login_required
 def process(request, process_id):
     process = Process.objects.get(id=process_id)
     interviews = Interview.objects.filter(process=process)
@@ -62,6 +64,7 @@ def process(request, process_id):
     return render(request, "interview/process_detail.html", context)
 
 
+@login_required
 def close_process(request, process_id):
     process_obj = Process.objects.get(id=process_id)
     process_obj.end_date = datetime.date.today()
@@ -69,6 +72,7 @@ def close_process(request, process_id):
     return process(request, process_id)
 
 
+@login_required
 def processes(request):
     open_processes = [p for p in Process.objects.all() if p.is_active]
     recently_closed_processes = Process.objects.filter(end_date__isnull=False).order_by("end_date")
@@ -85,6 +89,7 @@ def processes(request):
     return render(request, "interview/list_processes.html", context)
 
 
+@login_required
 def new_candidate(request):
     if request.method == 'POST':
         form = CandidateForm(request.POST)
@@ -180,6 +185,7 @@ def interview(request, process_id=None, interview_id=None):
                                               "process": process})
 
 
+@login_required
 def minute(request, interview_id=None):
     interview = None
     if request.method == 'POST':
@@ -218,3 +224,8 @@ def minute(request, interview_id=None):
     return render(request, "interview/interview_minute.html", {'form': form,
                                                      "process": interview.process,
                                                      "interview": interview})
+
+
+@login_required
+def dashboard(request):
+    return render(request, "interview/dashboard.html")

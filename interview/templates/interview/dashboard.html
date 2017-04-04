@@ -1,8 +1,9 @@
 {% extends 'interview/base.html' %}
 {% load crispy_forms_tags %}
+{% load admin_urls %}
 
 {% block content %}
 <div class="container">
-    {% crispy form %}
+Dashboard for: {{ user }}
 </div>
 {% endblock %}
