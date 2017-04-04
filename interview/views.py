@@ -228,4 +228,15 @@ def minute(request, interview_id=None):
 
 @login_required
 def dashboard(request):
-    return render(request, "interview/dashboard.html")
+    related_processes = Process.objects.filter(interview__interviewinterviewer__interviewer__user=request.user).distinct()
+    related_processes_table = ProcessTable(related_processes)
+
+    subsidiary_processes = Process.objects.filter(subsidiary=request.user.consultant.company)
+    subsidiary_processes_table = ProcessTable(subsidiary_processes)
+
+    # RequestConfig(request).configure(open_processes_table)
+
+    context = {"subsidiary_processes_table": subsidiary_processes_table,
+               "related_processes_table": related_processes_table}
+
+    return render(request, "interview/dashboard.html", context)
