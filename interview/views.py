@@ -186,7 +186,7 @@ def interview(request, process_id=None, interview_id=None):
 
 
 @login_required
-def minute(request, interview_id=None):
+def minute(request, interview_id):
     interview = None
     if request.method == 'POST':
         form = InterviewMinuteForm(request.POST)
@@ -201,7 +201,6 @@ def minute(request, interview_id=None):
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": interview.process.id}))
 
-    interview = Interview.objects.get(id=interview_id)
     interview_interviewer = None
     if interview_id is not None:
         interview = Interview.objects.get(id=interview_id)
