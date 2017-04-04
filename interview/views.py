@@ -25,7 +25,7 @@ class ProcessTable(tables.Table):
 
     class Meta:
         model = Process
-        template = 'django_tables2/bootstrap.html'
+        template = 'interview/_tables.html'
         attrs = {'class': 'table table-striped table-bordered'}
         sequence = ("candidate", "late", "subsidiary", "start_date", "contract_type", "edit")
         fields = sequence
@@ -42,7 +42,7 @@ class InterviewTable(tables.Table):
 
     class Meta:
         model = Interview
-        template = 'django_tables2/bootstrap.html'
+        template = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-bordered"}
         sequence = ("edit", "change", "needs_attention", "planned_date", "interviewers", "next_state")
         fields = sequence
