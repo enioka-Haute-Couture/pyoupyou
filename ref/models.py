@@ -22,6 +22,35 @@ class Subsidiary(models.Model):
 
 
 class PyouPyouUserManager(BaseUserManager):
+    def _create_user(self, trigramme, email, password, **extra_fields):
+        """
+        Creates and saves a User with the given username, email and password.
+        """
+        if not trigramme:
+            raise ValueError('The given trigramme must be set')
+        email = self.normalize_email(email)
+        trigramme = self.model.normalize_username(trigramme)
+        user = self.model(trigramme=trigramme, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, trigramme, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(trigramme, email, password, **extra_fields)
+
+    def create_superuser(self, trigramme, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(trigramme, email, password, **extra_fields)
+
     def get_by_natural_key(self, trigramme):
         return self.get(trigramme__iexact=trigramme)
 
@@ -68,11 +97,20 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
+class ConsultantManager(models.Manager):
+    def create_consultant(self, trigramme, email, company):
+        user = PyouPyouUser.objects.create_user(trigramme, email)
+        consultant = self.model(user=user, company=company, productive=True)
+        return consultant
+
+
 class Consultant(models.Model):
     """A consultant that can do recruitment meeting"""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
     productive = models.BooleanField(_("Productive"), default=True)
+
+    objects = ConsultantManager()
 
     def __str__(self):
         return self.user.get_full_name()
