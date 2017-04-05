@@ -9,6 +9,7 @@ from django.template import loader
 from django.core import urlresolvers
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import ugettext as _
 
 import django_tables2 as tables
 from django_tables2 import RequestConfig
@@ -21,7 +22,7 @@ from pyoupyou.settings import DOCUMENT_TYPE
 
 class ProcessTable(tables.Table):
     edit = tables.LinkColumn('process-details', text="Détails", kwargs={"process_id": A('pk')}, orderable=False)
-    late = tables.TemplateColumn("{% if record.is_late %} <b>LATE</b> {% endif %}")
+    late = tables.TemplateColumn("{% if record.is_late %} <b>" + _("late") + "</b> {% endif %}")
 
     class Meta:
         model = Process

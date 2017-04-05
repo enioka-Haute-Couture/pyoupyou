@@ -2,6 +2,7 @@
 {% load render_table from django_tables2 %}
 {% load static %}
 {% load admin_urls %}
+{% load i18n %}
 
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
@@ -9,24 +10,24 @@
 
 {% block content %}
 <div class="container">
-    <h1> Candidat : <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> </h1>
+    <h1> {% trans "Candidate:" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> </h1>
     {% if process.end_date %}
-    Ce processus est terminé
+    {% trans "This process is closed" %}
     {% else %}
-    Ce processus est en cours
+    {% trans "This process is in progress" %}
     {% endif %}
-    <h1>Documents</h1>
+    <h1>{% trans "Documents" %}</h1>
     <ul>
     {% for d in documents %}
         <li> <a href="{{ d.content.url }}" > {{ d.document_type }}</a>
     {% endfor %}
     </ul>
-    <h1> Entretiens de ce processus </h1>
+    <h1> {% trans "Interviews for this process" %}</h1>
     {% render_table interviews_for_process_table %}
 
     <div>
-        <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn">Ajouter un entretien</a>
-        <a href="{% url 'process-close' process_id=process.id %}" class="btn">Cloturer le processus</a>
+        <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn">{% trans "Add an interview" %}</a>
+        <a href="{% url 'process-close' process_id=process.id %}" class="btn">{% trans "Close this process" %}</a>
     </div>
 </div>
 {% endblock %}

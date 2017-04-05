@@ -1,15 +1,16 @@
 {% extends 'interview/base.html' %}
 {% load render_table from django_tables2 %}
+{% load i18n %}
 
 {% block content %}
 <div class="container">
     <div class="row">
         <div class="col-md-6">
-            <h2>Related processes</h2>
+            <h2>{% trans "Related processes" %}</h2>
             {% render_table related_processes_table %}
         </div>
         <div class="col-md-6">
-            <h2>{{user.consultant.company}} processes</h2>
+            <h2>{{user.consultant.company}} {% trans "processes" %}</h2>
             {% render_table subsidiary_processes_table %}
         </div>
     </div>
