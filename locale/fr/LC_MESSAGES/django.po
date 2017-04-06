@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-05 18:02+0000\n"
-"PO-Revision-Date: 2017-04-05 20:07+0200\n"
+"POT-Creation-Date: 2017-04-06 06:54+0000\n"
+"PO-Revision-Date: 2017-04-06 08:54+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -26,8 +26,6 @@ msgid "Phone"
 msgstr "Téléphone"
 
 #: interview/models.py:55
-#, fuzzy
-#| msgid "start date"
 msgid "Start date"
 msgstr "Date de démarrage"
 
@@ -44,6 +42,7 @@ msgid "Contract duration in month"
 msgstr "Durée du contrat en mois"
 
 #: interview/models.py:67
+#: interview/templates/interview/interview_minute.html:10
 msgid "for subsidiary"
 msgstr "pour"
 
@@ -60,20 +59,14 @@ msgid "Planned date"
 msgstr "Date prévue"
 
 #: interview/models.py:143
-#, fuzzy
-#| msgid "interview"
 msgid "Interview"
 msgstr "Entretien"
 
 #: interview/models.py:144
-#, fuzzy
-#| msgid "interviewer"
 msgid "Interviewer"
 msgstr "Resp. entretien"
 
 #: interview/models.py:145
-#, fuzzy
-#| msgid "minute"
 msgid "Minute"
 msgstr "CR"
 
@@ -116,32 +109,20 @@ msgid "processes"
 msgstr "processus"
 
 #: interview/templates/interview/interview_minute.html:10
-#, fuzzy
-#| msgid "interviewer"
 msgid "Interview minute"
-msgstr "Resp. entretien"
+msgstr "Compte rendu d'entretien"
 
 #: interview/templates/interview/interview_minute.html:10
-#, fuzzy
-#| msgid "processes"
 msgid "for process"
-msgstr "processus"
+msgstr "pour le processus"
 
 #: interview/templates/interview/interview_minute.html:10
 msgid "concerning"
 msgstr "pour"
 
-#: interview/templates/interview/interview_minute.html:10
-#, fuzzy
-#| msgid "New candidate"
-msgid "for candidate"
-msgstr "Nouveau candidat"
-
 #: interview/templates/interview/list_processes.html:17
-#, fuzzy
-#| msgid "Related processes"
 msgid "Recently closed processes"
-msgstr "Mes processus"
+msgstr "Processus récemment terminés"
 
 #: interview/templates/interview/process_detail.html:13
 msgid "Candidate:"
@@ -230,3 +211,8 @@ msgstr "Utilisateurs"
 #: ref/models.py:75
 msgid "Productive"
 msgstr "Productif"
+
+#, fuzzy
+#~| msgid "New candidate"
+#~ msgid "for candidate"
+#~ msgstr "Nouveau candidat"

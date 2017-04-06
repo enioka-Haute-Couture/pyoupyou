@@ -7,7 +7,7 @@
 <div class="container">
 
     <div class="lead">
-        {% trans "Interview minute" %} <a href="{% url 'process-details' process_id=process.id %}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> {% trans "for candidate" %} {{ process.subsidiary.name }}
+        {% trans "Interview minute" %} <a href="{% url 'process-details' process_id=process.id %}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
     {% crispy form %}
 </div>
