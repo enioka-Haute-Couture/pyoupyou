@@ -1,4 +1,6 @@
 {% load static %}
+{% load i18n %}
+
 <!doctype html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
 <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
@@ -28,9 +30,9 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li class="active" ><a href="{% url 'process-list' %}">Liste des processus en cours</a></li>
-                    <li><a href="{% url 'candidate-new' %}">Déclarer un candidat</a></li>
-                    <li><a href="{% url 'admin:index' %}">Écrans d'admin</a></li>
+                    <li class="active" ><a href="{% url 'process-list' %}">{% trans "Ongoing processes" %}</a></li>
+                    <li><a href="{% url 'candidate-new' %}">{% trans "New candidate" %}</a></li>
+                    <li><a href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
                </ul>
             </div><!--/.nav-collapse -->
         </div>

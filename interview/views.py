@@ -9,6 +9,7 @@ from django.template import loader
 from django.core import urlresolvers
 from django.urls import reverse
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import ugettext as _
 
 import django_tables2 as tables
 from django_tables2 import RequestConfig
@@ -21,7 +22,7 @@ from pyoupyou.settings import DOCUMENT_TYPE
 
 class ProcessTable(tables.Table):
     edit = tables.LinkColumn('process-details', text="Détails", kwargs={"process_id": A('pk')}, orderable=False)
-    late = tables.TemplateColumn("{% if record.is_late %} <b>LATE</b> {% endif %}")
+    late = tables.TemplateColumn("{% if record.is_late %} <b>" + _("late") + "</b> {% endif %}")
 
     class Meta:
         model = Process
@@ -186,7 +187,7 @@ def interview(request, process_id=None, interview_id=None):
 
 
 @login_required
-def minute(request, interview_id=None):
+def minute(request, interview_id):
     interview = None
     if request.method == 'POST':
         form = InterviewMinuteForm(request.POST)
@@ -201,7 +202,6 @@ def minute(request, interview_id=None):
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": interview.process.id}))
 
-    interview = Interview.objects.get(id=interview_id)
     interview_interviewer = None
     if interview_id is not None:
         interview = Interview.objects.get(id=interview_id)

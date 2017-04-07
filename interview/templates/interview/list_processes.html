@@ -1,6 +1,7 @@
 {% extends "interview/base.html" %}
 {% load render_table from django_tables2 %}
 {% load static %}
+{% load i18n %}
 
 {% block more_css %}
 
@@ -9,11 +10,11 @@
 
 {% block content %}
 <div class="container">
-    <h1> Processus en cours </h1>
+    <h1> {% trans "Ongoing processes" %} </h1>
 
     {% render_table open_processes_table %}
 
-    <h1> Processus récemment terminés </h1>
+    <h1> {% trans "Recently closed processes" %} </h1>
 
     {% render_table recently_closed_processes_table %}
 

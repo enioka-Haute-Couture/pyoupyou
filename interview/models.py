@@ -27,7 +27,7 @@ class Candidate(models.Model):
     model_name = 'candidate'
 
     def __str__(self):
-        return _("{name}").format(name=self.name)
+        return ("{name}").format(name=self.name)
 
 
 def document_path(instance, filename):
@@ -46,14 +46,14 @@ class Document(models.Model):
     still_valid = models.BooleanField(default=True)
 
     def __str__(self):
-        return _("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
+        return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
 
 
 class Process(models.Model):
     candidate = models.ForeignKey(Candidate)
     subsidiary = models.ForeignKey(Subsidiary)
-    start_date = models.DateField(verbose_name=_("start date"), auto_now_add=True)
-    end_date = models.DateField(verbose_name=_("end date"), null=True, blank=True)
+    start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
+    end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
     contract_type = models.ForeignKey(ContractType, null=True)
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
@@ -63,7 +63,9 @@ class Process(models.Model):
         return self.interview_set.last().next_state
 
     def __str__(self):
-        return _("{candidate} for {subsidiary}").format(candidate=self.candidate, subsidiary=self.subsidiary)
+        return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,
+                                                                    for_subsidiary = _("for subsidiary"),
+                                                                    subsidiary=self.subsidiary)
 
     @property
     def is_active(self):
@@ -98,11 +100,11 @@ class Interview(models.Model):
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     # TODO editable false and auto generate when saving first time
-    rank = models.IntegerField(verbose_name=_("rank"), blank=True, null=True)
-    planned_date = models.DateTimeField(verbose_name=_("planned date"), blank=True, null=True)
+    rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
+    planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
 
     def __str__(self):
-        return _("#{rank} - {process}").format(process=self.process, rank=self.rank)
+        return "#{rank} - {process}".format(process=self.process, rank=self.rank)
 
     def save(self, *args, **kwargs):
         if self.rank is None:
@@ -138,13 +140,13 @@ class Interview(models.Model):
 
 
 class InterviewInterviewer(models.Model):
-    interview = models.ForeignKey(Interview, verbose_name=_("interview"))
-    interviewer = models.ForeignKey(Consultant, verbose_name=_("interviewer"))
-    minute = models.TextField(verbose_name=_("minute"), blank=True)
+    interview = models.ForeignKey(Interview, verbose_name=_("Interview"))
+    interviewer = models.ForeignKey(Consultant, verbose_name=_("Interviewer"))
+    minute = models.TextField(verbose_name=_("Minute"), blank=True)
     minute_format = models.CharField(max_length=3,
                                      choices=MINUTE_FORMAT,
                                      default=MINUTE_FORMAT[0][0])
-    suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("suggested interviewer"),
+    suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
                                               related_name='suggested_interview_for', null=True, blank=True)
 
     class Meta:
@@ -152,4 +154,4 @@ class InterviewInterviewer(models.Model):
         pass
 
     def __str__(self):
-        return _("{interviewer}").format(interviewer=self.interviewer)
+        return "{interviewer}".format(interviewer=self.interviewer)

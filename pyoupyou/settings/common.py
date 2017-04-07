@@ -118,6 +118,9 @@ USE_L10N = True
 
 USE_TZ = True
 
+LANGUAGE_CODE = 'fr-fr'
+LOCALE_PATHS = ("locale/",)
+
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
 # Static files (CSS, JavaScript, Images)

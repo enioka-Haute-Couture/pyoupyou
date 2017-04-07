@@ -1,0 +1,218 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-04-06 06:54+0000\n"
+"PO-Revision-Date: 2017-04-06 08:54+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: interview/models.py:13 interview/models.py:21 ref/models.py:12
+msgid "Name"
+msgstr "Nom"
+
+#: interview/models.py:23
+msgid "Phone"
+msgstr "Téléphone"
+
+#: interview/models.py:55
+msgid "Start date"
+msgstr "Date de démarrage"
+
+#: interview/models.py:56
+msgid "End date"
+msgstr "Date de fin"
+
+#: interview/models.py:58
+msgid "Salary expectation (k€)"
+msgstr "Salaire demandé (k€)"
+
+#: interview/models.py:59
+msgid "Contract duration in month"
+msgstr "Durée du contrat en mois"
+
+#: interview/models.py:67
+#: interview/templates/interview/interview_minute.html:10
+msgid "for subsidiary"
+msgstr "pour"
+
+#: interview/models.py:101
+msgid "next state"
+msgstr "Status"
+
+#: interview/models.py:103
+msgid "Rank"
+msgstr "Ordre"
+
+#: interview/models.py:104
+msgid "Planned date"
+msgstr "Date prévue"
+
+#: interview/models.py:143
+msgid "Interview"
+msgstr "Entretien"
+
+#: interview/models.py:144
+msgid "Interviewer"
+msgstr "Resp. entretien"
+
+#: interview/models.py:145
+msgid "Minute"
+msgstr "CR"
+
+#: interview/models.py:149
+msgid "Suggested interviewer"
+msgstr "Resp. entretien suggéré"
+
+#: interview/templates/interview/_tables.html:61
+msgid "previous"
+msgstr "précédent"
+
+#: interview/templates/interview/_tables.html:69
+#, python-format
+msgid "Page %(current)s of %(total)s"
+msgstr "Page %(current)s sur %(total)s"
+
+#: interview/templates/interview/_tables.html:77
+msgid "next"
+msgstr "suivant"
+
+#: interview/templates/interview/base.html:33
+#: interview/templates/interview/list_processes.html:13
+msgid "Ongoing processes"
+msgstr "Processus en cours"
+
+#: interview/templates/interview/base.html:34
+msgid "New candidate"
+msgstr "Nouveau candidat"
+
+#: interview/templates/interview/base.html:35
+msgid "Admin"
+msgstr "Administration"
+
+#: interview/templates/interview/dashboard.html:9
+msgid "Related processes"
+msgstr "Mes processus"
+
+#: interview/templates/interview/dashboard.html:13
+msgid "processes"
+msgstr "processus"
+
+#: interview/templates/interview/interview_minute.html:10
+msgid "Interview minute"
+msgstr "Compte rendu d'entretien"
+
+#: interview/templates/interview/interview_minute.html:10
+msgid "for process"
+msgstr "pour le processus"
+
+#: interview/templates/interview/interview_minute.html:10
+msgid "concerning"
+msgstr "pour"
+
+#: interview/templates/interview/list_processes.html:17
+msgid "Recently closed processes"
+msgstr "Processus récemment terminés"
+
+#: interview/templates/interview/process_detail.html:13
+msgid "Candidate:"
+msgstr "Candidat :"
+
+#: interview/templates/interview/process_detail.html:15
+msgid "This process is closed"
+msgstr "Ce processus est terminé"
+
+#: interview/templates/interview/process_detail.html:17
+msgid "This process is in progress"
+msgstr "Ce processus suit sont cours"
+
+#: interview/templates/interview/process_detail.html:19
+msgid "Documents"
+msgstr "Documents"
+
+#: interview/templates/interview/process_detail.html:25
+msgid "Interviews for this process"
+msgstr "Entretiens de ce processus"
+
+#: interview/templates/interview/process_detail.html:29
+msgid "Add an interview"
+msgstr "Ajouter un entretien"
+
+#: interview/templates/interview/process_detail.html:30
+msgid "Close this process"
+msgstr "Terminer ce processus"
+
+#: interview/views.py:25
+msgid "late"
+msgstr "Retard"
+
+#: ref/models.py:13
+msgid "Code"
+msgstr "Code"
+
+#: ref/models.py:19 ref/models.py:74
+msgid "Subsidiary"
+msgstr "Entité"
+
+#: ref/models.py:20
+msgid "Subsidiaries"
+msgstr "Entitées"
+
+#: ref/models.py:31
+msgid "full name"
+msgstr "Nom"
+
+#: ref/models.py:32
+msgid "email address"
+msgstr "Adresse e-mail"
+
+#: ref/models.py:35
+msgid "staff status"
+msgstr "Membre du staff"
+
+#: ref/models.py:37
+msgid "Designates whether the user can log into this admin site."
+msgstr "Signifie que l'utilisateur peut se connecter au site d'administration."
+
+#: ref/models.py:40
+msgid "active"
+msgstr "Actif"
+
+#: ref/models.py:43
+msgid ""
+"Designates whether this user should be treated as active. Unselect this "
+"instead of deleting accounts."
+msgstr ""
+"Signifie que l'utilisateur est actif. Il vaut mieux décocher cette\n"
+"case que de supprimer le compte."
+
+#: ref/models.py:47
+msgid "date joined"
+msgstr "Date d'arrivée"
+
+#: ref/models.py:55
+msgid "user"
+msgstr "Utilisateur"
+
+#: ref/models.py:56
+msgid "users"
+msgstr "Utilisateurs"
+
+#: ref/models.py:75
+msgid "Productive"
+msgstr "Productif"
+
+#, fuzzy
+#~| msgid "New candidate"
+#~ msgid "for candidate"
+#~ msgstr "Nouveau candidat"
