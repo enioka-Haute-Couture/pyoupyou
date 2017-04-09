@@ -33,6 +33,13 @@ urlpatterns = [
     url(r'^select2/', include('django_select2.urls')),
 ]
 
+if settings.DEBUG:
+    from django.contrib.staticfiles import views as static
+
+    urlpatterns += [
+        url(r'^static/(?P<path>.*)$', static.serve),
+    ]
+
 if settings.HAS_DDT:
     import debug_toolbar
     urlpatterns = [
