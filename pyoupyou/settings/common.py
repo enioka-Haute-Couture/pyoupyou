@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django_tables2',
     'bootstrap',
     'fontawesome',
-    'interview.apps.InterviewConfig'
+    'django_select2',
+    'interview.apps.InterviewConfig',
 ]
 
 MIDDLEWARE = [

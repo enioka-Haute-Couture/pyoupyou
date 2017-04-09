@@ -10,13 +10,18 @@
 
 {% block content %}
 <div class="container">
-    <h1> {% trans "Ongoing processes" %} </h1>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{% trans "Ongoing processes" %}</div>
+        </div>
+        {% render_table open_processes_table %}
+    </div>
 
-    {% render_table open_processes_table %}
-
-    <h1> {% trans "Recently closed processes" %} </h1>
-
-    {% render_table recently_closed_processes_table %}
-
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{% trans "Recently closed processes" %}</div>
+        </div>
+        {% render_table recently_closed_processes_table %}
+    </div>
 </div>
 {% endblock %}

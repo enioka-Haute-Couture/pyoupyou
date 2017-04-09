@@ -39,7 +39,7 @@ class ProcessAdmin(admin.ModelAdmin):
         'end_date',
         'contract_type',
         'salary_expectation',
-        'duration',
+        'contract_duration',
     )
     list_filter = (
         'candidate',

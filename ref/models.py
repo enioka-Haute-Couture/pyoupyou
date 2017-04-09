@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import User, PermissionsMixin, UserManager
 from django.core.mail import send_mail
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -11,6 +11,7 @@ class Subsidiary(models.Model):
     """Internal company / organisation unit"""
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
+    responsible = models.ForeignKey('Consultant', null=True )
 
     def __str__(self):
         return self.name
@@ -32,7 +33,7 @@ class PyouPyouUserManager(BaseUserManager):
         trigramme = self.model.normalize_username(trigramme)
         user = self.model(trigramme=trigramme, email=email, **extra_fields)
         user.set_password(password)
-        user.save(using=self._db)
+        user.save()
         return user
 
     def create_user(self, trigramme, email=None, password=None, **extra_fields):
@@ -98,9 +99,11 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
 
 
 class ConsultantManager(models.Manager):
+    @transaction.atomic
     def create_consultant(self, trigramme, email, company):
         user = PyouPyouUser.objects.create_user(trigramme, email)
         consultant = self.model(user=user, company=company, productive=True)
+        consultant.save()
         return consultant
 
 

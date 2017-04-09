@@ -18,6 +18,7 @@
 
         {% block more_css %}
         {% endblock %}
+        {{ form.media.css }}
 
         <!--[if lt IE 9]>
             <script src="js/vendor/html5-3.6-respond-1.4.2.min.js"></script>
@@ -31,6 +32,7 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li class="active" ><a href="{% url 'process-list' %}">{% trans "Ongoing processes" %}</a></li>
+                    <li class="active" ><a href="{% url 'process-closed-list' %}">{% trans "Closed processes" %}</a></li>
                     <li><a href="{% url 'candidate-new' %}">{% trans "New candidate" %}</a></li>
                     <li><a href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
                </ul>
@@ -47,5 +49,6 @@
 
         <script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
         <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
+    {{ form.media.js }}
     </body>
 </html>

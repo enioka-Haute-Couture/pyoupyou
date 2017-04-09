@@ -23,12 +23,14 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.dashboard, name="dashboard"),
     url(r'^processes/$', views.processes, name="process-list"),
+    url(r'^processes/closed$', views.closed_processes, name="process-closed-list"),
     url(r'^candidate/$', views.new_candidate, name="candidate-new"),
     url(r'^process/(?P<process_id>\d+)/$', views.process, name="process-details"),
     url(r'^process/(?P<process_id>\d+)/close/$', views.close_process, name="process-close"),
     url(r'^process/(?P<process_id>\d+)/interview/$', views.interview, name="process-new-interview"),
-    url(r'^interview/(?P<interview_id>\d*)$', views.interview, name="interview-plan"),
-    url(r'^interview/(?P<interview_id>\d+)/minute/', views.minute, name="interview-minute")
+    url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)$', views.interview, name="interview-plan"),
+    url(r'^interview/(?P<interview_id>\d+)/minute/', views.minute, name="interview-minute"),
+    url(r'^select2/', include('django_select2.urls')),
 ]
 
 if settings.HAS_DDT:

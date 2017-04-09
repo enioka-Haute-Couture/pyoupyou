@@ -17,6 +17,21 @@ class ContractType(models.Model):
         return self.name
 
 
+class SourcesCategory(models.Model):
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+
+class Sources(models.Model):
+    name = models.CharField(max_length=50)
+    category = models.ForeignKey(SourcesCategory)
+
+    def __str__(self):
+        return self.name
+
+
 class Candidate(models.Model):
     name = models.CharField(_("Name"), max_length=200)
     email = models.EmailField(blank=True)
@@ -56,11 +71,28 @@ class Process(models.Model):
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
     contract_type = models.ForeignKey(ContractType, null=True)
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
-    duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
+    contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
+    contract_start_date = models.DateField(null=True, blank=True)
+    sources = models.ForeignKey(Sources, null=True)
 
     @property
     def state(self):
-        return self.interview_set.last().next_state
+        last_itw = self.interview_set.last()
+        if last_itw:
+            return self.interview_set.last().next_state
+        return None
+
+    @property
+    def next_action_display(self):
+        if self.state:
+            return dict(ITW_STATE)[self.state]
+        return _('Pick up next interviewer')
+
+    @property
+    def next_action_responsible(self):
+        if self.state in (Interview.NEED_PLANIFICATION, Interview.PLANNED):
+            return self.interview_set.last().interviewers
+        return self.subsidiary.responsible
 
     def __str__(self):
         return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,
@@ -84,9 +116,8 @@ class Process(models.Model):
         last_interview = self.interview_set.last()
         if last_interview is None:
             return False
-        if last_interview.planned_date.date() < datetime.date.today():
-            return True
-
+        if last_interview.planned_date.date() > datetime.date.today():
+            return False
         return True
 
     @property
@@ -97,11 +128,23 @@ class Process(models.Model):
 
 
 class Interview(models.Model):
+    NEED_PLANIFICATION = 'NP'
+    PLANNED = 'PL'
+    GO = 'GO'
+    NO_GO = 'NO'
+
+    ITW_STATE = (
+        (NEED_PLANIFICATION, _('NEED PLANIFICATION')),
+        (PLANNED, _('PLANIFIED')),
+        (GO, _('GO')),
+        (NO_GO, _('NO')),
+    )
+
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
-    # TODO editable false and auto generate when saving first time
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
+    interviewers = models.ManyToManyField(Consultant, through='InterviewInterviewer', through_fields=('interview', 'interviewer'))
 
     def __str__(self):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
@@ -111,37 +154,34 @@ class Interview(models.Model):
             # Rank is based on the number of interviews during the
             # same process that occured before the interview, or the
             # total number of interview already in the list
-            self.rank = Interview.objects.filter(process=self.process).count() + 1
+            self.rank = Interview.objects.filter(process=self.process).order_by('rank').last().rank + 1
+        if self.id is None:
+            self.next_state = self.next_state or Interview.NEED_PLANIFICATION
         super(Interview, self).save(*args, **kwargs)
 
     class Meta:
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
 
-    @property
-    def interviewers(self):
-        interview_interviewers = InterviewInterviewer.objects.filter(interview=self.id).first()
-        return(interview_interviewers)
+    # @property
+    # def interviewers(self):
+    #     interview_interviewers = InterviewInterviewer.objects.filter(interview=self.id).first()
+    #     return interview_interviewers
 
     @property
     def needs_attention(self):
         if self.planned_date.date() < datetime.date.today():
-            if self.next_state in ["PD", "PL"]:
+            if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return True
-            try:
-                interview_interviewer = InterviewInterviewer.objects.get(interview=self)
-                if interview_interviewer.minute is None:
-                    return True
-                if "" == interview_interviewer.minute:
-                    return True
-            except InterviewInterviewer.DoesNotExist:
+            nb_minute = InterviewInterviewer.objects.filter(interview=self, minute__in=("", None)).count()
+            if nb_minute == 0:
                 return True
         return False
 
 
 class InterviewInterviewer(models.Model):
-    interview = models.ForeignKey(Interview, verbose_name=_("Interview"))
-    interviewer = models.ForeignKey(Consultant, verbose_name=_("Interviewer"))
+    interview = models.ForeignKey(Interview, verbose_name=_("Interview"), on_delete=models.CASCADE)
+    interviewer = models.ForeignKey(Consultant, verbose_name=_("Interviewer"), on_delete=models.CASCADE)
     minute = models.TextField(verbose_name=_("Minute"), blank=True)
     minute_format = models.CharField(max_length=3,
                                      choices=MINUTE_FORMAT,
@@ -150,8 +190,7 @@ class InterviewInterviewer(models.Model):
                                               related_name='suggested_interview_for', null=True, blank=True)
 
     class Meta:
-        unique_together = (('interview',))
-        pass
+        unique_together = (('interview','interviewer'))
 
     def __str__(self):
-        return "{interviewer}".format(interviewer=self.interviewer)
+        return "{candidate} - {interviewer}".format(candidate=self.interview.process.candidate, interviewer=self.interviewer)

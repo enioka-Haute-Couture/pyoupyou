@@ -2,58 +2,76 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.template import loader
-from django.core import urlresolvers
 from django.urls import reverse
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext as _
 
 import django_tables2 as tables
+from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
-from django_tables2.utils import A
 
 from interview.models import Process, Candidate, Document, Interview, InterviewInterviewer
 from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm
 from pyoupyou.settings import DOCUMENT_TYPE
 
+from ref.models import Consultant
+
+# move to file
+
+PROCESS_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'process-details\' process_id=record.pk %}">' \
+                        '<i class="fa fa-folder-open" aria-hidden="true"></i> Show' \
+                        '</a>'
+
+INTERVIEW_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'interview-minute\' interview_id=record.pk %}">' \
+                          '<i class="fa fa-file-text-o" aria-hidden="true"></i> Compte-Rendu' \
+                          '</a>&nbsp;' \
+                          '<a class="btn btn-info btn-xs" href="{% url \'interview-plan\' record.process_id record.pk %}">' \
+                          '<i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit' \
+                          '</a>'
 
 class ProcessTable(tables.Table):
-    edit = tables.LinkColumn('process-details', text="Détails", kwargs={"process_id": A('pk')}, orderable=False)
     late = tables.TemplateColumn("{% if record.is_late %} <b>" + _("late") + "</b> {% endif %}")
+    next_action_display = tables.Column(verbose_name=_("Next action"))
+    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=PROCESS_TABLE_ACTIONS)
 
+    def render_next_action_responsible(self, value):
+        if isinstance(value, Consultant):
+            return value
+        return ', '.join(str(c) for c in value.all())
     class Meta:
         model = Process
         template = 'interview/_tables.html'
-        attrs = {'class': 'table table-striped table-bordered'}
-        sequence = ("candidate", "late", "subsidiary", "start_date", "contract_type", "edit")
+        attrs = {'class': 'table table-striped table-condensed'}
+        sequence = ("candidate", "subsidiary", "start_date", "contract_type", "next_action_display", "next_action_responsible", "late", "actions")
         fields = sequence
         order_by = "start_date"
-
+        empty_text = _('No data')
 
 class InterviewTable(tables.Table):
-    interviewers = tables.TemplateColumn("{{ record.interviewers }}")
-    edit = tables.LinkColumn(text="Compte-rendu", viewname="interview-minute",
-                             kwargs={"interview_id": A('id')})
-    change = tables.LinkColumn(text="Éditer", viewname="interview-plan",
-                               kwargs={"interview_id": A('id')})
-    needs_attention = tables.TemplateColumn("{% if record.needs_attention %} <b>Attention</b> {% endif %}")
+    rank = tables.Column(verbose_name='#')
+    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=INTERVIEW_TABLE_ACTIONS)
+
+    def render_interviewers(self, value):
+        return ', '.join(str(c) for c in value.all())
 
     class Meta:
         model = Interview
         template = 'interview/_tables.html'
-        attrs = {"class": "table table-striped table-bordered"}
-        sequence = ("edit", "change", "needs_attention", "planned_date", "interviewers", "next_state")
+        attrs = {"class": "table table-striped table-condensed"}
+        sequence = ("rank", "interviewers", "planned_date", "next_state", "actions")
         fields = sequence
-        order_by = "planned_date"
+        order_by = "rank"
+        empty_text = _('No data')
+        row_attrs = {
+            'class': lambda record: 'danger' if record.needs_attention else None
+        }
 
 
 @login_required
 def process(request, process_id):
     process = Process.objects.get(id=process_id)
-    interviews = Interview.objects.filter(process=process)
+    interviews = Interview.objects.filter(process=process).prefetch_related('process__candidate', 'interviewers')
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
 
@@ -74,16 +92,33 @@ def close_process(request, process_id):
 
 
 @login_required
+def closed_processes(request):
+    closed_processes = Process.objects.filter(end_date__isnull=False).select_related('candidate', 'contract_type')
+
+    closed_processes_table = ProcessTable(closed_processes, prefix='c')
+
+    config = RequestConfig(request)
+    config.configure(closed_processes_table)
+
+    context = {
+        'title': _('Closed processes'),
+        'table': closed_processes_table,
+    }
+
+    return render(request, "interview/single_table.html", context)
+
+
+@login_required
 def processes(request):
     open_processes = [p for p in Process.objects.all() if p.is_active]
     recently_closed_processes = Process.objects.filter(end_date__isnull=False).order_by("end_date")
-    # TODO Slice recent processes
-    # recently_closed_processes = recently_closed_processes[:5]
 
-    open_processes_table = ProcessTable(open_processes)
-    recently_closed_processes_table = ProcessTable(recently_closed_processes)
+    open_processes_table = ProcessTable(open_processes, prefix='o')
+    recently_closed_processes_table = ProcessTable(recently_closed_processes, prefix='c')
 
-    RequestConfig(request).configure(open_processes_table)
+    config = RequestConfig(request)
+    config.configure(open_processes_table)
+    config.configure(recently_closed_processes_table)
 
     context = {"open_processes_table": open_processes_table,
                "recently_closed_processes_table": recently_closed_processes_table}
@@ -119,71 +154,42 @@ def new_candidate(request):
     return render(request, "interview/new_candidate.html", {'form': form})
 
 
+@require_http_methods(["GET", "POST"])
+@login_required
 def interview(request, process_id=None, interview_id=None):
-    form = None
-    interview = None
+    """
+    Insert or update an interview. Date and Interviewers
+    """
     if request.method == 'POST':
         form = InterviewForm(request.POST)
+
         if form.is_valid():
-            if interview_id is not None:
-                interview = Interview.objects.get(id=interview_id)
-            else:
-                interview = Interview()
-                interview.process = Process.objects.get(id=process_id)
+            interview, created = Interview.objects.update_or_create(id=interview_id,
+                                                                    process_id=process_id,
+                                                                    planned_date=form.cleaned_data["planned_date"])
+            interviewers = form.cleaned_data["interviewers"]
+            # TODO manage to allow to delete not only add
+            for interviewer in interviewers.all():
+                InterviewInterviewer.objects.get_or_create(interview=interview, interviewer=interviewer)
 
-            if process_id is None:
-                process = interview.process
-            else:
-                process = Process.objects.get(id=process_id)
-                interview.process = process
-
-            interview.planned_date = form.cleaned_data["date"]
-
-            interview.save()
-            try:
-                previous_interview_interviewer = InterviewInterviewer.objects.get(interview=interview)
-                # TODO : do not change that if state has been set to go/no go , done*
-                # if
-                # previous_interview_interviewer.interview.next_state
-                # is not None and
-                # previous_interview_interviewer.interview.next_state
-                # in
-                previous_interview_interviewer.delete()
-            except InterviewInterviewer.DoesNotExist:
-                pass
-
-            interview_interviewer = InterviewInterviewer(interviewer=form.cleaned_data["interviewer"],
-                                                         interview=interview)
-            interview_interviewer.save()
             return HttpResponseRedirect(reverse(viewname="process-details",
-                                                kwargs={"process_id": process.id}))
-        else:
-            return render(request, "interview/interview.html", {'form': form,
-                                                      "interview": interview,
-                                                      "process": process})
+                                                kwargs={"process_id": process_id}))
+
     else:
-        interviewInterviewer = None
+
         if interview_id is not None:
             interview = Interview.objects.get(id=interview_id)
-            interviewInterviewer = InterviewInterviewer.objects.filter(interview=interview).first()
         else:
             interview = Interview()
-            interview.process = Process.objects.get(id=process_id)
+            interview.process_id = process_id
             interview.planned_date = datetime.date.today()
 
-        interviewer = interviewInterviewer.interviewer if interviewInterviewer else None
-        form = InterviewForm(initial={"date": interview.planned_date,
-                                      "process": interview.process,
-                                      "interviewer": interviewer})
+        form = InterviewForm(instance=interview)
 
-    if process_id is None:
-        process = interview.process
-    else:
-        process = Process.objects.get(id=process_id)
+    process = Process.objects.get(id=process_id)
 
     return render(request, "interview/interview.html", {'form': form,
-                                              "interview": interview,
-                                              "process": process})
+                                                        'process': process})
 
 
 @login_required

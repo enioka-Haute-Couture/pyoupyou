@@ -22,11 +22,18 @@
         <li> <a href="{{ d.content.url }}" > {{ d.document_type }}</a>
     {% endfor %}
     </ul>
-    <h1> {% trans "Interviews for this process" %}</h1>
-    {% render_table interviews_for_process_table %}
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{% trans "Interviews for this process" %}</div>
+        </div>
+        {% render_table interviews_for_process_table %}
+        <div class="panel-footer clearfix">
+            <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn btn-default pull-right"><i class="fa fa-plus" aria-hidden="true"></i> {% trans "Add an interview" %}</a>
+        </div>
+    </div>
 
     <div>
-        <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn">{% trans "Add an interview" %}</a>
         <a href="{% url 'process-close' process_id=process.id %}" class="btn">{% trans "Close this process" %}</a>
     </div>
 </div>

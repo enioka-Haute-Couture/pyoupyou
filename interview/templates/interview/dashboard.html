@@ -4,15 +4,17 @@
 
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="col-md-6">
-            <h2>{% trans "Related processes" %}</h2>
-            {% render_table related_processes_table %}
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{% trans "Related processes" %}</div>
         </div>
-        <div class="col-md-6">
-            <h2>{{user.consultant.company}} {% trans "processes" %}</h2>
-            {% render_table subsidiary_processes_table %}
+        {% render_table related_processes_table %}
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{% blocktrans with subsidiary=user.consultant.company %} {{subsidiary}} processes{% endblocktrans %}</div>
         </div>
+        {% render_table subsidiary_processes_table  %}
     </div>
 </div>
 {% endblock %}
