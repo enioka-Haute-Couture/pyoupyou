@@ -1,0 +1,11 @@
+th.orderable .sort-icon::before {
+    content: "\f0dc";
+}
+
+th.desc .sort-icon::before {
+    content: "\f0dd";
+}
+
+th.asc .sort-icon::before {
+    content: "\f0de";
+}
