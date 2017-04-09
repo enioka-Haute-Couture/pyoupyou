@@ -3,7 +3,6 @@ import datetime
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
-from os.path import join
 
 from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT, ITW_STATE
 from ref.models import Consultant, Subsidiary
@@ -116,7 +115,7 @@ class Process(models.Model):
         last_interview = self.interview_set.last()
         if last_interview is None:
             return False
-        if last_interview.planned_date.date() > datetime.date.today():
+        if last_interview.planned_date and last_interview.planned_date.date() > datetime.date.today():
             return False
         return True
 
