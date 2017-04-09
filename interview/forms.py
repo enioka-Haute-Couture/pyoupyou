@@ -36,14 +36,11 @@ class CandidateForm(forms.Form):
 class InterviewForm(forms.ModelForm):
     class Meta:
         model = Interview
-        # TODO hide process
-        fields = ['planned_date', 'interviewers', 'process']
+        fields = ['planned_date', 'interviewers']
 
         widgets = {
             'interviewers': MultipleConsultantWidget,
         }
-
-    # planned_date = forms.DateField(label="Date", initial=datetime.date.today)
 
     helper = FormHelper()
     helper.form_method = 'POST'
