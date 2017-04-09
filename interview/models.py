@@ -169,7 +169,7 @@ class Interview(models.Model):
 
     @property
     def needs_attention(self):
-        if self.planned_date.date() < datetime.date.today():
+        if self.planned_date and self.planned_date.date() < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return True
             nb_minute = InterviewInterviewer.objects.filter(interview=self, minute__in=("", None)).count()
