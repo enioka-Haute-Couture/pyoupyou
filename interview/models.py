@@ -105,19 +105,31 @@ class Process(models.Model):
         return self.end_date > datetime.date.today()
 
     @property
-    def is_late(self):
+    def needs_attention(self):
         # Is late:
         # - is_active
         # - last interview past and no minute
         # - no next interview planned
         if not self.is_active:
-            return False
+            return (False, "")
         last_interview = self.interview_set.last()
         if last_interview is None:
-            return False
-        if last_interview.planned_date and last_interview.planned_date.date() > datetime.date.today():
-            return False
-        return True
+            return (False, "")
+        if last_interview.planned_date and last_interview.planned_date.date() < datetime.date.today():
+            for i in self.interview_set.all():
+                if i.needs_attention_bool:
+                    return (True, _("Last interview needs attention"))
+            else:
+                return (False, "")
+        return (True, "?")
+
+    @property
+    def needs_attention_bool(self):
+        return self.needs_attention[0]
+
+    @property
+    def needs_attention_reason(self):
+        return self.needs_attention[1]
 
     @property
     def is_recently_closed(self):
@@ -164,16 +176,25 @@ class Interview(models.Model):
 
     @property
     def needs_attention(self):
+        if self.planned_date is None:
+            return (True, _("Interview must be planned"))
         if self.planned_date and self.planned_date.date() < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
-                return True
+                return (True, _("Interview result hasn't been submited"))
             nb_minute = InterviewInterviewer.objects.filter(interview=self)\
-                .exclude(minute__isnull=True)\
-                .exclude(minute__exact='').count()
+                                                    .exclude(minute__isnull=True)\
+                                                    .exclude(minute__exact='').count()
             if nb_minute == 0:
-                return True
-        return False
+                return (True, _("No minute has been written for this interview"))
+        return (False, "")
 
+    @property
+    def needs_attention_bool(self):
+        return self.needs_attention[0]
+
+    @property
+    def needs_attention_reason(self):
+        return self.needs_attention[1]
 
 class InterviewInterviewer(models.Model):
     interview = models.ForeignKey(Interview, verbose_name=_("Interview"), on_delete=models.CASCADE)

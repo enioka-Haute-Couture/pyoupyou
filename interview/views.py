@@ -32,7 +32,8 @@ INTERVIEW_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'intervi
                           '</a>'
 
 class ProcessTable(tables.Table):
-    late = tables.TemplateColumn("{% if record.is_late %} <p class='glyphicon glyphicon-warning-sign' title='toto'></p> {% endif %}", verbose_name=_("Late"))
+    needs_attention = tables.TemplateColumn("{% if record.needs_attention_bool %} <p class='glyphicon glyphicon-warning-sign' title='{{ record.needs_attention_reason }}'></p> {% endif %}",
+                                 verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"))
     actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=PROCESS_TABLE_ACTIONS)
 
@@ -44,14 +45,19 @@ class ProcessTable(tables.Table):
         model = Process
         template = 'interview/_tables.html'
         attrs = {'class': 'table table-striped table-condensed'}
-        sequence = ("candidate", "subsidiary", "start_date", "contract_type", "next_action_display", "next_action_responsible", "late", "actions")
+        sequence = ("needs_attention", "candidate", "subsidiary", "start_date", "contract_type", "next_action_display", "next_action_responsible", "actions")
         fields = sequence
         order_by = "start_date"
         empty_text = _('No data')
+        row_attrs = {
+            'class': lambda record: 'danger' if record.needs_attention_bool else None
+        }
 
 class InterviewTable(tables.Table):
-    rank = tables.Column(verbose_name='#')
+    #rank = tables.Column(verbose_name='#')
     actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=INTERVIEW_TABLE_ACTIONS)
+    needs_attention = tables.TemplateColumn("{% if record.needs_attention_bool %} <p class='glyphicon glyphicon-warning-sign' title='{{ record.needs_attention_reason }}'></p> {% endif %}",
+                                            verbose_name="", orderable=False)
 
     def render_interviewers(self, value):
         return ', '.join(str(c) for c in value.all())
@@ -60,12 +66,12 @@ class InterviewTable(tables.Table):
         model = Interview
         template = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
-        sequence = ("rank", "interviewers", "planned_date", "next_state", "actions")
+        sequence = ("needs_attention", "interviewers", "planned_date", "next_state", "actions")
         fields = sequence
-        order_by = "rank"
+        order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
+            'class': lambda record: 'danger' if record.needs_attention_bool else None
         }
 
 

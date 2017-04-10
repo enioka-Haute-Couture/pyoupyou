@@ -69,11 +69,11 @@ class InterviewForm(forms.ModelForm):
 
 class InterviewMinuteForm(forms.Form):
     date = forms.DateField(label="Date", initial=datetime.date.today)
-    interviewer = forms.ModelChoiceField(label="Personne en charge de l'interview", required=False,
+    interviewer = forms.ModelChoiceField(label=_("Interviewer"), required=False,
                                          queryset=Consultant.objects.all(), disabled=True)
-    minute = forms.CharField(label="Compte-rendu",
+    minute = forms.CharField(label=_("Minute"),
                              widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
-    next_state = forms.ChoiceField(label="Issue de l'interview", required=True,
+    next_state = forms.ChoiceField(label=_("Result"), required=True,
                                    choices=ITW_STATE)
     helper = FormHelper()
     helper.form_method = 'POST'

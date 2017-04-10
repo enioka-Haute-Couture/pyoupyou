@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-10 20:03+0000\n"
-"PO-Revision-Date: 2017-04-10 22:03+0200\n"
+"POT-Creation-Date: 2017-04-10 20:44+0000\n"
+"PO-Revision-Date: 2017-04-10 22:44+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -21,6 +21,18 @@ msgstr ""
 #: interview/templates/interview/new_candidate.html:10
 msgid "Save"
 msgstr "Enregistrer"
+
+#: interview/forms.py:72 interview/models.py:201
+msgid "Interviewer"
+msgstr "Resp. entretien"
+
+#: interview/forms.py:74 interview/models.py:202
+msgid "Minute"
+msgstr "CR"
+
+#: interview/forms.py:76
+msgid "Result"
+msgstr "Résultat"
 
 #: interview/models.py:12 interview/models.py:35 ref/models.py:12
 msgid "Name"
@@ -51,47 +63,55 @@ msgstr "Durée du contrat en mois"
 msgid "for subsidiary"
 msgstr "pour"
 
-#: interview/models.py:136
+#: interview/models.py:121
+msgid "Last interview needs attention"
+msgstr "Le dernier entretien demande une intervention"
+
+#: interview/models.py:148
 msgid "NEED PLANIFICATION"
 msgstr "En attente de planification"
 
-#: interview/models.py:137
+#: interview/models.py:149
 msgid "PLANNED"
 msgstr "PLANIFIÉ"
 
-#: interview/models.py:138
+#: interview/models.py:150
 msgid "GO"
 msgstr "GO"
 
-#: interview/models.py:139
+#: interview/models.py:151
 msgid "NO"
 msgstr "NON"
 
-#: interview/models.py:143
+#: interview/models.py:155
 msgid "next state"
 msgstr "Status"
 
-#: interview/models.py:144
+#: interview/models.py:156
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:145
+#: interview/models.py:157
 msgid "Planned date"
 msgstr "Date prévue"
 
-#: interview/models.py:179
+#: interview/models.py:180
+msgid "Interview must be planned"
+msgstr "Cet entretien doit être planifié"
+
+#: interview/models.py:183
+msgid "Interview result hasn't been submited"
+msgstr "Le résultat de cet entretien doit être renseigné"
+
+#: interview/models.py:188
+msgid "No minute has been written for this interview"
+msgstr "Cet entretien n'a pas de compte-rendu"
+
+#: interview/models.py:200
 msgid "Interview"
 msgstr "Entretien"
 
-#: interview/models.py:180
-msgid "Interviewer"
-msgstr "Resp. entretien"
-
-#: interview/models.py:181
-msgid "Minute"
-msgstr "CR"
-
-#: interview/models.py:185
+#: interview/models.py:206
 msgid "Suggested interviewer"
 msgstr "Resp. entretien suggéré"
 
@@ -113,7 +133,7 @@ msgstr "suivant"
 msgid "Ongoing processes"
 msgstr "Processus en cours"
 
-#: interview/templates/interview/base.html:36 interview/views.py:105
+#: interview/templates/interview/base.html:36 interview/views.py:111
 msgid "Closed processes"
 msgstr "Processus terminés"
 
@@ -186,15 +206,11 @@ msgstr "Ajouter un entretien"
 msgid "Close this process"
 msgstr "Terminer ce processus"
 
-#: interview/views.py:35
-msgid "Late"
-msgstr "Retard"
-
-#: interview/views.py:36
+#: interview/views.py:37
 msgid "Next action"
 msgstr "Prochaine action"
 
-#: interview/views.py:50 interview/views.py:66
+#: interview/views.py:51 interview/views.py:72
 msgid "No data"
 msgstr "Pas de donnée"
 
@@ -265,6 +281,9 @@ msgstr "Utilisateurs"
 #: ref/models.py:114
 msgid "Productive"
 msgstr "Productif"
+
+#~ msgid "Late"
+#~ msgstr "Retard"
 
 #~ msgid "Pick up next interviewer"
 #~ msgstr "Resp. entretien suggéré"
