@@ -85,7 +85,7 @@ class Process(models.Model):
     def next_action_display(self):
         if self.state:
             return dict(ITW_STATE)[self.state]
-        return _('Pick up next interviewer')
+        return 'Pick up next interviewer'
 
     @property
     def next_action_responsible(self):
@@ -134,7 +134,7 @@ class Interview(models.Model):
 
     ITW_STATE = (
         (NEED_PLANIFICATION, _('NEED PLANIFICATION')),
-        (PLANNED, _('PLANIFIED')),
+        (PLANNED, _('PLANNED')),
         (GO, _('GO')),
         (NO_GO, _('NO')),
     )

@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
             name='Interview',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('next_state', models.CharField(choices=[('PD', 'NEED PLANIFICATION'), ('PL', 'PLANIFIED'), ('GO', 'GO'), ('NO', 'NO'), ('DGO', 'DONE GO'), ('DNO', 'DONE NO')], max_length=3, verbose_name='next state')),
+                ('next_state', models.CharField(choices=[('PD', 'NEED PLANIFICATION'), ('PL', 'PLANNED'), ('GO', 'GO'), ('NO', 'NO'), ('DGO', 'DONE GO'), ('DNO', 'DONE NO')], max_length=3, verbose_name='next state')),
                 ('rank', models.IntegerField(blank=True, null=True, verbose_name='rank')),
                 ('planned_date', models.DateTimeField(blank=True, null=True, verbose_name='planned date')),
             ],
