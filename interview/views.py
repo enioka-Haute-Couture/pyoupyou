@@ -20,15 +20,17 @@ from ref.models import Consultant
 
 # move to file
 
-PROCESS_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'process-details\' process_id=record.pk %}">' \
-                        '<i class="fa fa-folder-open" aria-hidden="true"></i> Show' \
+PROCESS_TABLE_ACTIONS = '{% load i18n %}' \
+                        '<a class="btn btn-info btn-xs" href="{% url \'process-details\' process_id=record.pk %}">' \
+                        '<i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}' \
                         '</a>'
 
-INTERVIEW_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'interview-minute\' interview_id=record.pk %}">' \
-                          '<i class="fa fa-file-text-o" aria-hidden="true"></i> Compte-Rendu' \
+INTERVIEW_TABLE_ACTIONS = '{% load i18n %}' \
+                          '<a class="btn btn-info btn-xs" href="{% url \'interview-minute\' interview_id=record.pk %}">' \
+                          '<i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "Minute" %}' \
                           '</a>&nbsp;' \
                           '<a class="btn btn-info btn-xs" href="{% url \'interview-plan\' record.process_id record.pk %}">' \
-                          '<i class="fa fa-pencil-square-o" aria-hidden="true"></i> Edit' \
+                          '<i class="fa fa-pencil-square-o" aria-hidden="true"></i> {% trans "Edit" %}' \
                           '</a>'
 
 class ProcessTable(tables.Table):
@@ -36,7 +38,7 @@ class ProcessTable(tables.Table):
                                  verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"))
     actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=PROCESS_TABLE_ACTIONS)
-
+    candidate = tables.Column(attrs={"td": {"style":"font-weight: bold"}})
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
             return value

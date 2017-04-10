@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-10 20:44+0000\n"
+"POT-Creation-Date: 2017-04-10 21:09+0000\n"
 "PO-Revision-Date: 2017-04-10 22:44+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -133,7 +133,7 @@ msgstr "suivant"
 msgid "Ongoing processes"
 msgstr "Processus en cours"
 
-#: interview/templates/interview/base.html:36 interview/views.py:111
+#: interview/templates/interview/base.html:36 interview/views.py:113
 msgid "Closed processes"
 msgstr "Processus terminés"
 
@@ -206,11 +206,11 @@ msgstr "Ajouter un entretien"
 msgid "Close this process"
 msgstr "Terminer ce processus"
 
-#: interview/views.py:37
+#: interview/views.py:39
 msgid "Next action"
 msgstr "Prochaine action"
 
-#: interview/views.py:51 interview/views.py:72
+#: interview/views.py:53 interview/views.py:74
 msgid "No data"
 msgstr "Pas de donnée"
 
@@ -281,6 +281,12 @@ msgstr "Utilisateurs"
 #: ref/models.py:114
 msgid "Productive"
 msgstr "Productif"
+
+#~ msgid "Show"
+#~ msgstr "Détails"
+
+#~ msgid "Edit"
+#~ msgstr "Éditer"
 
 #~ msgid "Late"
 #~ msgstr "Retard"
