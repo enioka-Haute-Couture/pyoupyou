@@ -1,6 +1,7 @@
 from django.contrib import admin
 
-from interview.models import ContractType, Candidate, Document, Process, Interview, InterviewInterviewer
+from interview.models import ContractType, Candidate, Document, Process, Interview, InterviewInterviewer, \
+    SourcesCategory, Sources
 
 
 @admin.register(ContractType)
@@ -67,3 +68,16 @@ class InterviewInterviewerAdmin(admin.ModelAdmin):
         'suggested_interviewer',
     )
     list_filter = ('interview', 'interviewer', 'suggested_interviewer')
+
+
+@admin.register(SourcesCategory)
+class SourcesCategoryAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name')
+    search_fields = ('name',)
+
+
+@admin.register(Sources)
+class SourcesAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'category')
+    list_filter = ('category',)
+    search_fields = ('name',)

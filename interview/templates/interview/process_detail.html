@@ -10,7 +10,14 @@
 
 {% block content %}
 <div class="container">
-    <h1> {% trans "Candidate:" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> </h1>
+    <h3> {% trans "Candidate:" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}] </h3>
+    <dl class="dl-vertical">
+        <dt>{% trans "phone" %}</dt>
+        <dd>{{ process.candidate.phone }}</dd>
+        <dt>{% trans "mail" %}</dt>
+        <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
+    </dl>
+    </address>
     {% if process.end_date %}
     {% trans "This process is closed" %}
     {% else %}

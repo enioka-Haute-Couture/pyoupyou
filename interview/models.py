@@ -68,11 +68,11 @@ class Process(models.Model):
     subsidiary = models.ForeignKey(Subsidiary)
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
-    contract_type = models.ForeignKey(ContractType, null=True)
+    contract_type = models.ForeignKey(ContractType, null=True, blank=True)
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
-    sources = models.ForeignKey(Sources, null=True)
+    sources = models.ForeignKey(Sources, null=True, blank=True)
 
     @property
     def state(self):
@@ -143,7 +143,8 @@ class Interview(models.Model):
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
-    interviewers = models.ManyToManyField(Consultant, through='InterviewInterviewer', through_fields=('interview', 'interviewer'))
+    interviewers = models.ManyToManyField(Consultant, through='InterviewInterviewer',
+                                          through_fields=('interview', 'interviewer'))
 
     def __str__(self):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
@@ -151,9 +152,8 @@ class Interview(models.Model):
     def save(self, *args, **kwargs):
         if self.rank is None:
             # Rank is based on the number of interviews during the
-            # same process that occured before the interview, or the
-            # total number of interview already in the list
-            self.rank = Interview.objects.filter(process=self.process).order_by('rank').last().rank + 1
+            # same process that occured before the interview
+            self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
         super(Interview, self).save(*args, **kwargs)
@@ -162,17 +162,14 @@ class Interview(models.Model):
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
 
-    # @property
-    # def interviewers(self):
-    #     interview_interviewers = InterviewInterviewer.objects.filter(interview=self.id).first()
-    #     return interview_interviewers
-
     @property
     def needs_attention(self):
         if self.planned_date and self.planned_date.date() < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return True
-            nb_minute = InterviewInterviewer.objects.filter(interview=self, minute__in=("", None)).count()
+            nb_minute = InterviewInterviewer.objects.filter(interview=self)\
+                .exclude(minute__isnull=True)\
+                .exclude(minute__exact='').count()
             if nb_minute == 0:
                 return True
         return False

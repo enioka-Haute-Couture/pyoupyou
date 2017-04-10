@@ -2,6 +2,7 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -12,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
 from interview.models import Process, Candidate, Document, Interview, InterviewInterviewer
-from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm
+from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm, ProcessForm
 from pyoupyou.settings import DOCUMENT_TYPE
 
 from ref.models import Consultant
@@ -124,34 +125,24 @@ def processes(request):
                "recently_closed_processes_table": recently_closed_processes_table}
     return render(request, "interview/list_processes.html", context)
 
-
 @login_required
 def new_candidate(request):
     if request.method == 'POST':
-        form = CandidateForm(request.POST)
-        if form.is_valid():
-            c = Candidate()
-            c.name = form.cleaned_data["name"]
-            c.email = form.cleaned_data["email"]
-            c.phone = form.cleaned_data["phone"]
-
-            c.save()
-            if request.FILES and request.FILES["cv"] is not None:
-                p = Process()
-                p.candidate = c
-                p.subsidiary = form.cleaned_data["subsidiary"]
-                p.save()
-
-                d = Document()
-                d.candidate = c
-                d.content = request.FILES["cv"]
-                d.document_type = "CV"
-                d.save()
-
+        candidate_form = CandidateForm(data=request.POST, files=request.FILES)
+        process_form = ProcessForm(data=request.POST)
+        if candidate_form.is_valid() and process_form.is_valid():
+            candidate = candidate_form.save()
+            Document.objects.create(document_type='CV',
+                                    content=request.FILES["cv"],
+                                    candidate=candidate)
+            process = process_form.save(commit=False)
+            process.candidate = candidate
+            process.save()
             return HttpResponseRedirect(reverse(processes))
     else:
-        form = CandidateForm()
-    return render(request, "interview/new_candidate.html", {'form': form})
+        candidate_form = CandidateForm()
+        process_form = ProcessForm()
+    return render(request, "interview/new_candidate.html", {"candidate_form": candidate_form, "process_form": process_form})
 
 
 @require_http_methods(["GET", "POST"])
