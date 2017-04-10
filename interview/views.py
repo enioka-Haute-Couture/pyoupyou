@@ -32,7 +32,7 @@ INTERVIEW_TABLE_ACTIONS = '<a class="btn btn-info btn-xs" href="{% url \'intervi
                           '</a>'
 
 class ProcessTable(tables.Table):
-    late = tables.TemplateColumn("{% if record.is_late %} <b>" + _("late") + "</b> {% endif %}")
+    late = tables.TemplateColumn("{% if record.is_late %} <p class='glyphicon glyphicon-warning-sign' title='toto'></p> {% endif %}", verbose_name=_("Late"))
     next_action_display = tables.Column(verbose_name=_("Next action"))
     actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=PROCESS_TABLE_ACTIONS)
 
