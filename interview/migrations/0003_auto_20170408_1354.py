@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='interview',
             name='next_state',
-            field=models.CharField(choices=[('NP', 'NEED PLANIFICATION'), ('PL', 'PLANIFIED'), ('GO', 'GO'), ('NO', 'NO')], max_length=3, verbose_name='next state'),
+            field=models.CharField(choices=[('NP', 'NEED PLANIFICATION'), ('PL', 'PLANNED'), ('GO', 'GO'), ('NO', 'NO')], max_length=3, verbose_name='next state'),
         ),
         migrations.AlterField(
             model_name='interview',

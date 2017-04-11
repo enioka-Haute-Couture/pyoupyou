@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-04-06 06:54+0000\n"
-"PO-Revision-Date: 2017-04-06 08:54+0200\n"
+"POT-Creation-Date: 2017-04-10 21:09+0000\n"
+"PO-Revision-Date: 2017-04-10 22:44+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
@@ -17,60 +17,101 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: interview/models.py:13 interview/models.py:21 ref/models.py:12
+#: interview/forms.py:67 interview/forms.py:80
+#: interview/templates/interview/new_candidate.html:10
+msgid "Save"
+msgstr "Enregistrer"
+
+#: interview/forms.py:72 interview/models.py:201
+msgid "Interviewer"
+msgstr "Resp. entretien"
+
+#: interview/forms.py:74 interview/models.py:202
+msgid "Minute"
+msgstr "CR"
+
+#: interview/forms.py:76
+msgid "Result"
+msgstr "Résultat"
+
+#: interview/models.py:12 interview/models.py:35 ref/models.py:12
 msgid "Name"
 msgstr "Nom"
 
-#: interview/models.py:23
+#: interview/models.py:37
 msgid "Phone"
 msgstr "Téléphone"
 
-#: interview/models.py:55
+#: interview/models.py:69
 msgid "Start date"
 msgstr "Date de démarrage"
 
-#: interview/models.py:56
+#: interview/models.py:70
 msgid "End date"
 msgstr "Date de fin"
 
-#: interview/models.py:58
+#: interview/models.py:72
 msgid "Salary expectation (k€)"
 msgstr "Salaire demandé (k€)"
 
-#: interview/models.py:59
+#: interview/models.py:73
 msgid "Contract duration in month"
 msgstr "Durée du contrat en mois"
 
-#: interview/models.py:67
+#: interview/models.py:98
 #: interview/templates/interview/interview_minute.html:10
 msgid "for subsidiary"
 msgstr "pour"
 
-#: interview/models.py:101
+#: interview/models.py:121
+msgid "Last interview needs attention"
+msgstr "Le dernier entretien demande une intervention"
+
+#: interview/models.py:148
+msgid "NEED PLANIFICATION"
+msgstr "En attente de planification"
+
+#: interview/models.py:149
+msgid "PLANNED"
+msgstr "PLANIFIÉ"
+
+#: interview/models.py:150
+msgid "GO"
+msgstr "GO"
+
+#: interview/models.py:151
+msgid "NO"
+msgstr "NON"
+
+#: interview/models.py:155
 msgid "next state"
 msgstr "Status"
 
-#: interview/models.py:103
+#: interview/models.py:156
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:104
+#: interview/models.py:157
 msgid "Planned date"
 msgstr "Date prévue"
 
-#: interview/models.py:143
+#: interview/models.py:180
+msgid "Interview must be planned"
+msgstr "Cet entretien doit être planifié"
+
+#: interview/models.py:183
+msgid "Interview result hasn't been submited"
+msgstr "Le résultat de cet entretien doit être renseigné"
+
+#: interview/models.py:188
+msgid "No minute has been written for this interview"
+msgstr "Cet entretien n'a pas de compte-rendu"
+
+#: interview/models.py:200
 msgid "Interview"
 msgstr "Entretien"
 
-#: interview/models.py:144
-msgid "Interviewer"
-msgstr "Resp. entretien"
-
-#: interview/models.py:145
-msgid "Minute"
-msgstr "CR"
-
-#: interview/models.py:149
+#: interview/models.py:206
 msgid "Suggested interviewer"
 msgstr "Resp. entretien suggéré"
 
@@ -87,16 +128,20 @@ msgstr "Page %(current)s sur %(total)s"
 msgid "next"
 msgstr "suivant"
 
-#: interview/templates/interview/base.html:33
-#: interview/templates/interview/list_processes.html:13
+#: interview/templates/interview/base.html:35
+#: interview/templates/interview/list_processes.html:15
 msgid "Ongoing processes"
 msgstr "Processus en cours"
 
-#: interview/templates/interview/base.html:34
+#: interview/templates/interview/base.html:36 interview/views.py:113
+msgid "Closed processes"
+msgstr "Processus terminés"
+
+#: interview/templates/interview/base.html:37
 msgid "New candidate"
 msgstr "Nouveau candidat"
 
-#: interview/templates/interview/base.html:35
+#: interview/templates/interview/base.html:38
 msgid "Admin"
 msgstr "Administration"
 
@@ -104,9 +149,10 @@ msgstr "Administration"
 msgid "Related processes"
 msgstr "Mes processus"
 
-#: interview/templates/interview/dashboard.html:13
-msgid "processes"
-msgstr "processus"
+#: interview/templates/interview/dashboard.html:15
+#, python-format
+msgid " %(subsidiary)s processes"
+msgstr "Processus de  %(subsidiary)s"
 
 #: interview/templates/interview/interview_minute.html:10
 msgid "Interview minute"
@@ -120,7 +166,7 @@ msgstr "pour le processus"
 msgid "concerning"
 msgstr "pour"
 
-#: interview/templates/interview/list_processes.html:17
+#: interview/templates/interview/list_processes.html:22
 msgid "Recently closed processes"
 msgstr "Processus récemment terminés"
 
@@ -129,66 +175,90 @@ msgid "Candidate:"
 msgstr "Candidat :"
 
 #: interview/templates/interview/process_detail.html:15
+msgid "phone"
+msgstr "Téléphone"
+
+#: interview/templates/interview/process_detail.html:17
+msgid "mail"
+msgstr "e-mail"
+
+#: interview/templates/interview/process_detail.html:22
 msgid "This process is closed"
 msgstr "Ce processus est terminé"
 
-#: interview/templates/interview/process_detail.html:17
+#: interview/templates/interview/process_detail.html:24
 msgid "This process is in progress"
 msgstr "Ce processus suit sont cours"
 
-#: interview/templates/interview/process_detail.html:19
+#: interview/templates/interview/process_detail.html:26
 msgid "Documents"
 msgstr "Documents"
 
-#: interview/templates/interview/process_detail.html:25
+#: interview/templates/interview/process_detail.html:35
 msgid "Interviews for this process"
 msgstr "Entretiens de ce processus"
 
-#: interview/templates/interview/process_detail.html:29
+#: interview/templates/interview/process_detail.html:39
 msgid "Add an interview"
 msgstr "Ajouter un entretien"
 
-#: interview/templates/interview/process_detail.html:30
+#: interview/templates/interview/process_detail.html:44
 msgid "Close this process"
 msgstr "Terminer ce processus"
 
-#: interview/views.py:25
-msgid "late"
-msgstr "Retard"
+#: interview/views.py:39
+msgid "Next action"
+msgstr "Prochaine action"
+
+#: interview/views.py:53 interview/views.py:74
+msgid "No data"
+msgstr "Pas de donnée"
+
+#: ref/admin.py:12
+msgid "Personal info"
+msgstr "Informations personnelles"
+
+#: ref/admin.py:13
+msgid "Permissions"
+msgstr "Drois d'accès"
+
+#: ref/admin.py:15
+msgid "Important dates"
+msgstr "Dates importantes"
 
 #: ref/models.py:13
 msgid "Code"
 msgstr "Code"
 
-#: ref/models.py:19 ref/models.py:74
+#: ref/models.py:20 ref/models.py:113
 msgid "Subsidiary"
 msgstr "Entité"
 
-#: ref/models.py:20
+#: ref/models.py:21
 msgid "Subsidiaries"
 msgstr "Entitées"
 
-#: ref/models.py:31
+#: ref/models.py:61
 msgid "full name"
 msgstr "Nom"
 
-#: ref/models.py:32
+#: ref/models.py:62
 msgid "email address"
 msgstr "Adresse e-mail"
 
-#: ref/models.py:35
+#: ref/models.py:65
 msgid "staff status"
 msgstr "Membre du staff"
 
-#: ref/models.py:37
+#: ref/models.py:67
 msgid "Designates whether the user can log into this admin site."
 msgstr "Signifie que l'utilisateur peut se connecter au site d'administration."
 
-#: ref/models.py:40
+#: ref/models.py:70
 msgid "active"
 msgstr "Actif"
 
-#: ref/models.py:43
+#: ref/models.py:73
 msgid ""
 "Designates whether this user should be treated as active. Unselect this "
 "instead of deleting accounts."
@@ -196,21 +266,39 @@ msgstr ""
 "Signifie que l'utilisateur est actif. Il vaut mieux décocher cette\n"
 "case que de supprimer le compte."
 
-#: ref/models.py:47
+#: ref/models.py:77
 msgid "date joined"
 msgstr "Date d'arrivée"
 
-#: ref/models.py:55
+#: ref/models.py:85
 msgid "user"
 msgstr "Utilisateur"
 
-#: ref/models.py:56
+#: ref/models.py:86
 msgid "users"
 msgstr "Utilisateurs"
 
-#: ref/models.py:75
+#: ref/models.py:114
 msgid "Productive"
 msgstr "Productif"
+
+#~ msgid "Show"
+#~ msgstr "Détails"
+
+#~ msgid "Edit"
+#~ msgstr "Éditer"
+
+#~ msgid "Late"
+#~ msgstr "Retard"
+
+#~ msgid "Pick up next interviewer"
+#~ msgstr "Resp. entretien suggéré"
+
+#~ msgid "late"
+#~ msgstr "Retard"
+
+#~ msgid "processes"
+#~ msgstr "processus"
 
 #, fuzzy
 #~| msgid "New candidate"
