@@ -100,8 +100,8 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
 
 class ConsultantManager(models.Manager):
     @transaction.atomic
-    def create_consultant(self, trigramme, email, company):
-        user = PyouPyouUser.objects.create_user(trigramme, email)
+    def create_consultant(self, trigramme, email, company, full_name):
+        user = PyouPyouUser.objects.create_user(trigramme, email, full_name=full_name)
         consultant = self.model(user=user, company=company, productive=True)
         consultant.save()
         return consultant
