@@ -117,7 +117,7 @@ class Process(models.Model):
         last_interview = self.interview_set.last()
         if last_interview is None:
             return (True, _("No interview has been planned yet"))
-        if last_interview.planned_date and last_interview.planned_date.date() < datetime.date.today():
+        if last_interview.planned_date and last_interview.planned_date < datetime.date.today():
             for i in self.interview_set.all():
                 if i.needs_attention_bool:
                     return (True, _("Last interview needs attention"))
@@ -156,7 +156,7 @@ class Interview(models.Model):
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
-    planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
+    planned_date = models.DateField(verbose_name=_("Planned date"), blank=True, null=True)
     interviewers = models.ManyToManyField(Consultant, through='InterviewInterviewer',
                                           through_fields=('interview', 'interviewer'))
 
@@ -187,7 +187,7 @@ class Interview(models.Model):
     def needs_attention(self):
         if self.planned_date is None:
             return (True, _("Interview must be planned"))
-        if self.planned_date and self.planned_date.date() < datetime.date.today():
+        if self.planned_date and self.planned_date < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return (True, _("Interview result hasn't been submited"))
             nb_minute = InterviewInterviewer.objects.filter(interview=self)\
