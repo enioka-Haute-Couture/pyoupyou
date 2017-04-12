@@ -7,6 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import ugettext as _
+from django.db import transaction
 
 import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
@@ -159,6 +160,7 @@ def new_candidate(request):
 
 @require_http_methods(["GET", "POST"])
 @login_required
+@transaction.atomic
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -177,7 +179,8 @@ def interview(request, process_id=None, interview_id=None, action=None):
             interview.save()
             if "interviewers" in form.cleaned_data:
                 interviewers = form.cleaned_data["interviewers"]
-                # TODO manage to allow to delete not only add
+                if not created:
+                    interview.interviewers.clear()
 
                 for interviewer in interviewers.all():
                     InterviewInterviewer.objects.get_or_create(interview=interview, interviewer=interviewer)
