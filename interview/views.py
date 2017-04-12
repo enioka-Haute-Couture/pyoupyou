@@ -2,8 +2,7 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.forms import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import ugettext as _
@@ -13,10 +12,8 @@ import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
-from interview.models import Process, Candidate, Document, Interview, InterviewInterviewer
-from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, InterviewFormEditInterviewers
-
-from pyoupyou.settings import DOCUMENT_TYPE
+from interview.models import Process, Document, Interview, InterviewInterviewer
+from interview.forms import CandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, InterviewFormEditInterviewers, SourceForm
 
 from ref.models import Consultant
 
@@ -155,7 +152,10 @@ def new_candidate(request):
     else:
         candidate_form = CandidateForm()
         process_form = ProcessForm()
-    return render(request, "interview/new_candidate.html", {"candidate_form": candidate_form, "process_form": process_form})
+    source_form = SourceForm(prefix='source')
+    return render(request, "interview/new_candidate.html", {"candidate_form": candidate_form,
+                                                            "process_form": process_form,
+                                                            "source_form": source_form})
 
 
 @require_http_methods(["GET", "POST"])
@@ -170,7 +170,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
             form = InterviewFormEditInterviewers(request.POST)
         else:
             form = InterviewFormPlan(request.POST)
-
         if form.is_valid():
             interview, created = Interview.objects.update_or_create(id=interview_id,
                                                                     process_id=process_id)
@@ -260,3 +259,17 @@ def dashboard(request):
                "related_processes_table": related_processes_table}
 
     return render(request, "interview/dashboard.html", context)
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_source_ajax(request):
+    form = SourceForm(request.POST, prefix='source')
+    if form.is_valid():
+        form.save()
+        data = {}
+        return JsonResponse(data)
+    else:
+        data = {'error': form.errors}
+        return JsonResponse(data)
+

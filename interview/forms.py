@@ -2,14 +2,17 @@
 import datetime
 
 from django import forms
+from django.forms import Select
+from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
-from django_select2.forms import ModelSelect2MultipleWidget
+from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
-from interview.models import Subsidiary, Consultant, Interview, Candidate, Process
+from interview.models import Subsidiary, Consultant, Interview, Candidate, Process, Sources, SourcesCategory
 from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
@@ -19,6 +22,12 @@ class MultipleConsultantWidget(ModelSelect2MultipleWidget):
         'user__full_name__icontains',
     ]
 
+
+class SourcesWidget(ModelSelect2Widget):
+    model = Sources
+    search_fields = [
+        'name__icontains',
+    ]
 
 class CandidateForm(forms.ModelForm):
     class Meta:
@@ -32,25 +41,31 @@ class CandidateForm(forms.ModelForm):
     helper.form_tag = False
 
 
+class SelectOrCreate(SourcesWidget):
+    def render(self, name, value, attrs=None):
+        output = [super().render(name, value, attrs),]
+        output.append(render_to_string('interview/select_or_create_source.html'))
+        return mark_safe('\n'.join(output))
+
+
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
         exclude = ['candidate', 'start_date', 'end_date']
 
+        widgets = {
+            'sources': SelectOrCreate
+        }
     helper = FormHelper()
     helper.form_tag = False
 
-# class CandidateForm(forms.Form):
-#     name = forms.CharField(label="Name", required=True)
-#     email = forms.CharField(label="email", required=False)
-#     phone = forms.CharField(label="Phone", required=False)
-#
-#     cv = forms.FileField(label="CV (pour une candidature)", required=False)
-#     subsidiary = forms.ModelChoiceField(label="Filliale", required=False,
-#                                         queryset=Subsidiary.objects.all())
-#     helper = FormHelper()
-#     helper.form_method = 'POST'
-#     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
+
+class SourceForm(forms.ModelForm):
+    class Meta:
+        model = Sources
+        fields = ['category', 'name']
+    helper = FormHelper()
+    helper.form_tag = False
 
 
 class InterviewForm(forms.ModelForm):
