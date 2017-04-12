@@ -66,6 +66,19 @@ class InterviewForm(forms.ModelForm):
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
 
+class InterviewFormPlan(InterviewForm):
+    class Meta:
+        model = Interview
+        fields = ['planned_date']
+
+class InterviewFormEditInterviewers(InterviewForm):
+    class Meta:
+        model = Interview
+        fields = ['interviewers']
+        widgets = {
+            'interviewers': MultipleConsultantWidget,
+        }
+
 
 class InterviewMinuteForm(forms.Form):
     date = forms.DateField(label="Date", initial=datetime.date.today)

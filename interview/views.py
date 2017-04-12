@@ -13,7 +13,8 @@ from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
 from interview.models import Process, Candidate, Document, Interview, InterviewInterviewer
-from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm, ProcessForm
+from interview.forms import CandidateForm, InterviewForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, InterviewFormEditInterviewers
+
 from pyoupyou.settings import DOCUMENT_TYPE
 
 from ref.models import Consultant
@@ -26,10 +27,13 @@ PROCESS_TABLE_ACTIONS = '{% load i18n %}' \
                         '</a>'
 
 INTERVIEW_TABLE_ACTIONS = '{% load i18n %}' \
+                          '<a class="btn btn-info btn-xs" href="{% url \'interview-plan\' record.process_id record.pk %}">' \
+                          '<i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}' \
+                          '</a>&nbsp;' \
                           '<a class="btn btn-info btn-xs" href="{% url \'interview-minute\' interview_id=record.pk %}">' \
                           '<i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "Minute" %}' \
                           '</a>&nbsp;' \
-                          '<a class="btn btn-info btn-xs" href="{% url \'interview-plan\' record.process_id record.pk %}">' \
+                          '<a class="btn btn-info btn-xs" href="{% url \'interview-edit\' record.process_id record.pk %}">' \
                           '<i class="fa fa-pencil-square-o" aria-hidden="true"></i> {% trans "Edit" %}' \
                           '</a>'
 
@@ -155,28 +159,33 @@ def new_candidate(request):
 
 @require_http_methods(["GET", "POST"])
 @login_required
-def interview(request, process_id=None, interview_id=None):
+def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
     """
     if request.method == 'POST':
-        form = InterviewForm(request.POST)
+        if "edit" == action:
+            form = InterviewFormEditInterviewers(request.POST)
+        else:
+            form = InterviewFormPlan(request.POST)
 
         if form.is_valid():
             interview, created = Interview.objects.update_or_create(id=interview_id,
                                                                     process_id=process_id)
-            interview.planned_date=form.cleaned_data["planned_date"]
+            if "planned_date" in form.cleaned_data:
+                interview.planned_date=form.cleaned_data["planned_date"]
             interview.save()
-            interviewers = form.cleaned_data["interviewers"]
-            # TODO manage to allow to delete not only add
-            for interviewer in interviewers.all():
-                InterviewInterviewer.objects.get_or_create(interview=interview, interviewer=interviewer)
+            if "interviewers" in form.cleaned_data:
+                interviewers = form.cleaned_data["interviewers"]
+                # TODO manage to allow to delete not only add
+
+                for interviewer in interviewers.all():
+                    InterviewInterviewer.objects.get_or_create(interview=interview, interviewer=interviewer)
 
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": process_id}))
 
     else:
-
         if interview_id is not None:
             interview = Interview.objects.get(id=interview_id)
         else:
@@ -184,13 +193,15 @@ def interview(request, process_id=None, interview_id=None):
             interview.process_id = process_id
             interview.planned_date = datetime.date.today()
 
-        form = InterviewForm(instance=interview)
+        if "edit" == action:
+            form = InterviewFormEditInterviewers(instance=interview)
+        else:
+            form = InterviewFormPlan(instance=interview)
 
     process = Process.objects.get(id=process_id)
 
     return render(request, "interview/interview.html", {'form': form,
                                                         'process': process})
-
 
 @login_required
 def minute(request, interview_id):
