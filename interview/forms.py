@@ -10,7 +10,7 @@ from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 from django_select2.forms import ModelSelect2MultipleWidget
 
 from interview.models import Subsidiary, Consultant, Interview, Candidate, Process
-from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT, ITW_STATE
+from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
@@ -74,7 +74,7 @@ class InterviewMinuteForm(forms.Form):
     minute = forms.CharField(label=_("Minute"),
                              widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
     next_state = forms.ChoiceField(label=_("Result"), required=True,
-                                   choices=ITW_STATE)
+                                   choices=Interview.ITW_STATE)
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))

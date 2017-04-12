@@ -4,7 +4,7 @@ from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
-from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT, ITW_STATE
+from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
 from ref.models import Consultant, Subsidiary
 
 
@@ -86,7 +86,7 @@ class Process(models.Model):
     @property
     def next_action_display(self):
         if self.state:
-            return dict(ITW_STATE)[self.state]
+            return dict(Interview.ITW_STATE)[self.state]
         return 'Pick up next interviewer'
 
     @property

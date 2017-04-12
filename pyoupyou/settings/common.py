@@ -142,10 +142,3 @@ DOCUMENT_TYPE = (
     ('CL', 'Cover Letter'),
     ('OT', 'Others'),
 )
-
-ITW_STATE = (
-    ('PD', 'NEED PLANIFICATION'),
-    ('PL', 'PLANNED'),
-    ('GO', 'GO'),
-    ('NO', 'NO'),
-)
