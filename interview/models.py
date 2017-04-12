@@ -45,12 +45,14 @@ class Candidate(models.Model):
 
 
 def document_path(instance, filename):
-    # TODO : remove filename and only keep extension
-    return "{}/{}_{}/{}".format(instance.document_type,
-                                instance.candidate.id,
-                                slugify(instance.candidate.name),
-                                filename)
+    filename = filename.encode()
+    extension = filename.split(b'.')[-1]
+    filename = str(slugify(instance.candidate.name)).encode() + '.'.encode() + extension
 
+    return "{}/{}_{}/{}".format(instance.document_type,
+                                  instance.candidate.id,
+                                  slugify(instance.candidate.name),
+                                  filename.decode())
 
 class Document(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
