@@ -143,13 +143,9 @@ DOCUMENT_TYPE = (
     ('OT', 'Others'),
 )
 
-# TODO
-# Difference between GO/NO and DONE GO/DONE NO ?
 ITW_STATE = (
     ('PD', 'NEED PLANIFICATION'),
     ('PL', 'PLANNED'),
     ('GO', 'GO'),
     ('NO', 'NO'),
-    ('DGO', 'DONE GO'),
-    ('DNO', 'DONE NO'),
 )
