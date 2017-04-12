@@ -164,8 +164,9 @@ def interview(request, process_id=None, interview_id=None):
 
         if form.is_valid():
             interview, created = Interview.objects.update_or_create(id=interview_id,
-                                                                    process_id=process_id,
-                                                                    planned_date=form.cleaned_data["planned_date"])
+                                                                    process_id=process_id)
+            interview.planned_date=form.cleaned_data["planned_date"]
+            interview.save()
             interviewers = form.cleaned_data["interviewers"]
             # TODO manage to allow to delete not only add
             for interviewer in interviewers.all():
