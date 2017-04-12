@@ -116,14 +116,14 @@ class Process(models.Model):
             return (False, "")
         last_interview = self.interview_set.last()
         if last_interview is None:
-            return (False, "")
+            return (True, _("No interview has been planned yet"))
         if last_interview.planned_date and last_interview.planned_date.date() < datetime.date.today():
             for i in self.interview_set.all():
                 if i.needs_attention_bool:
                     return (True, _("Last interview needs attention"))
             else:
                 return (False, "")
-        return (True, "?")
+        return (False, "")
 
     @property
     def needs_attention_bool(self):
