@@ -170,6 +170,13 @@ class Interview(models.Model):
             self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
+
+        if self.planned_date is None:
+            self.next_state = self.NEED_PLANIFICATION
+        else:
+            if self.next_state == self.NEED_PLANIFICATION:
+                self.next_state = self.PLANNED
+
         super(Interview, self).save(*args, **kwargs)
 
     class Meta:
