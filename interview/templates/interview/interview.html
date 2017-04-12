@@ -2,8 +2,34 @@
 {% load crispy_forms_tags %}
 {% load admin_urls %}
 {% load i18n %}
+{% load static %}
+
+{% block more_css %}
+
+<script src ="{% static 'interview/js/bootstrap-datepicker.min.js' %}"></script>
+<script src ="{% static 'interview/js/bootstrap-datepicker.fr.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'interview/css/bootstrap-datepicker3.standalone.min.css' %}">
+
+
+<script type="text/javascript">
+
+ $(function () {
+     $('.dateinput').datepicker({
+         weekStart: 1,
+         startDate: 0,
+         maxViewMode: 2,
+         clearBtn: true,
+         language: "fr",
+         todayHighlight: true,
+         toggleActive: true,
+         format: 'dd/mm/yyyy'})
+ });
+</script>
+
+{% endblock %}
 
 {% block content %}
+
 <div class="container">
     <div class="lead">
         Interview pour le processus concernant <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> pour {{ process.subsidiary.name }}

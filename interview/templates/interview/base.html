@@ -16,6 +16,8 @@
         <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
         <link rel="stylesheet" href="{% static 'fontawesome/css/font-awesome.min.css' %}">
         <link rel="stylesheet" href="{% static 'interview/css/theme.css' %}">
+        <script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
+        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
 
         {% block more_css %}
         {% endblock %}
@@ -48,8 +50,6 @@
             <a href="https://github.com/bport/pyoupyou">PyouPyou</a>
         </footer>
 
-        <script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
-        <script src="{% static 'bootstrap/js/bootstrap.min.js' %}"></script>
     {{ form.media.js }}
     </body>
 </html>

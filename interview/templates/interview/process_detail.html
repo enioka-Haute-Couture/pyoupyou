@@ -11,18 +11,31 @@
 {% block content %}
 <div class="container">
     <h3> {% trans "Candidate:" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}] </h3>
-    <dl class="dl-vertical">
-        <dt>{% trans "phone" %}</dt>
-        <dd>{{ process.candidate.phone }}</dd>
-        <dt>{% trans "mail" %}</dt>
-        <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
-    </dl>
-    </address>
     {% if process.end_date %}
-    {% trans "This process is closed" %}
+    <h5> {% trans "This process is closed" %} </h5>
     {% else %}
-    {% trans "This process is in progress" %}
+    <h5> {% trans "This process is in progress" %} </h5>
     {% endif %}
+    {% if process.candidate.phone or process.candidate.email %}
+    <div class="bs-callout">
+        <h4> {% trans 'Contact' %}</h4>
+        <p>
+            {% if process.candidate.phone %}
+            <p>
+            <dt>{% trans "phone" %}</dt>
+            <dd>{{ process.candidate.phone }}</dd>
+            </p>
+            {% endif %}
+            {% if process.candidate.email %}
+            <p>
+            <dt>{% trans "mail" %}</dt>
+            <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
+            </p>
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
     <h1>{% trans "Documents" %}</h1>
     <ul>
     {% for d in documents %}
