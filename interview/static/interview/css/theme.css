@@ -10,6 +10,16 @@ th.asc .sort-icon::before {
     content: "\f0de";
 }
 
+/* responsive select2 add important to prevent use of width in the element style */
+.select2-container {
+    width: 100% !important;
+}
+
+.row-action {
+    margin-left: 5px;
+}
+
+
 /* Base styles (regardless of theme) */
 .bs-callout {
     margin: 20px 0;
