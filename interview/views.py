@@ -13,43 +13,38 @@ from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
 from interview.models import Process, Document, Interview, InterviewInterviewer
-from interview.forms import CandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, InterviewFormEditInterviewers, SourceForm
+from interview.forms import CandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan,\
+    InterviewFormEditInterviewers, SourceForm
 
 from ref.models import Consultant
 
-# move to file
-
-PROCESS_TABLE_ACTIONS = '{% load i18n %}' \
-                        '<a class="btn btn-info btn-xs" href="{% url \'process-details\' process_id=record.pk %}">' \
-                        '<i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}' \
-                        '</a>'
-
-INTERVIEW_TABLE_ACTIONS = '{% load i18n %}' \
-                          '<a class="btn btn-info btn-xs" href="{% url \'interview-plan\' record.process_id record.pk %}">' \
-                          '<i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}' \
-                          '</a>&nbsp;' \
-                          '<a class="btn btn-info btn-xs" href="{% url \'interview-minute\' interview_id=record.pk %}">' \
-                          '<i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "Minute" %}' \
-                          '</a>&nbsp;' \
-                          '<a class="btn btn-info btn-xs" href="{% url \'interview-edit\' record.process_id record.pk %}">' \
-                          '<i class="fa fa-pencil-square-o" aria-hidden="true"></i> {% trans "Edit" %}' \
-                          '</a>'
 
 class ProcessTable(tables.Table):
-    needs_attention = tables.TemplateColumn("{% if record.needs_attention_bool %} <p class='glyphicon glyphicon-warning-sign' title='{{ record.needs_attention_reason }}'></p> {% endif %}",
+    needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                  verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"))
-    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=PROCESS_TABLE_ACTIONS)
+    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style":"font-weight: bold"}})
+
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
             return value
         return ', '.join(str(c) for c in value.all())
+
     class Meta:
         model = Process
         template = 'interview/_tables.html'
         attrs = {'class': 'table table-striped table-condensed'}
-        sequence = ("needs_attention", "candidate", "subsidiary", "start_date", "contract_type", "next_action_display", "next_action_responsible", "actions")
+        sequence = (
+            "needs_attention",
+            "candidate",
+            "subsidiary",
+            "start_date",
+            "contract_type",
+            "next_action_display",
+            "next_action_responsible",
+            "actions"
+        )
         fields = sequence
         order_by = "start_date"
         empty_text = _('No data')
@@ -57,10 +52,11 @@ class ProcessTable(tables.Table):
             'class': lambda record: 'danger' if record.needs_attention_bool else None
         }
 
+
 class InterviewTable(tables.Table):
     #rank = tables.Column(verbose_name='#')
-    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_code=INTERVIEW_TABLE_ACTIONS)
-    needs_attention = tables.TemplateColumn("{% if record.needs_attention_bool %} <p class='glyphicon glyphicon-warning-sign' title='{{ record.needs_attention_reason }}'></p> {% endif %}",
+    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_name='interview/tables/interview_actions.html')
+    needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
 
     def render_interviewers(self, value):

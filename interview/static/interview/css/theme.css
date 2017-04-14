@@ -15,6 +15,10 @@ th.asc .sort-icon::before {
     width: 100% !important;
 }
 
+.row-action {
+    margin-left: 5px;
+}
+
 
 /* Base styles (regardless of theme) */
 .bs-callout {
