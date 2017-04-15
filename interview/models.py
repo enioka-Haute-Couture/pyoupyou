@@ -157,8 +157,14 @@ class Interview(models.Model):
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateField(verbose_name=_("Planned date"), blank=True, null=True)
-    interviewers = models.ManyToManyField(Consultant, through='InterviewInterviewer',
-                                          through_fields=('interview', 'interviewer'))
+    interviewers = models.ManyToManyField(Consultant)
+
+    minute = models.TextField(verbose_name=_("Minute"), blank=True)
+    minute_format = models.CharField(max_length=3,
+                                     choices=MINUTE_FORMAT,
+                                     default=MINUTE_FORMAT[0][0])
+    suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
+                                              related_name='suggested_interview_for', null=True, blank=True)
 
     def __str__(self):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
@@ -190,10 +196,7 @@ class Interview(models.Model):
         if self.planned_date and self.planned_date < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return (True, _("Interview result hasn't been submited"))
-            nb_minute = InterviewInterviewer.objects.filter(interview=self)\
-                                                    .exclude(minute__isnull=True)\
-                                                    .exclude(minute__exact='').count()
-            if nb_minute == 0:
+            if not self.minute:
                 return (True, _("No minute has been written for this interview"))
         return (False, "")
 
@@ -204,19 +207,3 @@ class Interview(models.Model):
     @property
     def needs_attention_reason(self):
         return self.needs_attention[1]
-
-class InterviewInterviewer(models.Model):
-    interview = models.ForeignKey(Interview, verbose_name=_("Interview"), on_delete=models.CASCADE)
-    interviewer = models.ForeignKey(Consultant, verbose_name=_("Interviewer"), on_delete=models.CASCADE)
-    minute = models.TextField(verbose_name=_("Minute"), blank=True)
-    minute_format = models.CharField(max_length=3,
-                                     choices=MINUTE_FORMAT,
-                                     default=MINUTE_FORMAT[0][0])
-    suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
-                                              related_name='suggested_interview_for', null=True, blank=True)
-
-    class Meta:
-        unique_together = (('interview','interviewer'))
-
-    def __str__(self):
-        return "{candidate} - {interviewer}".format(candidate=self.interview.process.candidate, interviewer=self.interviewer)

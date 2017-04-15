@@ -95,14 +95,11 @@ class InterviewFormEditInterviewers(InterviewForm):
         }
 
 
-class InterviewMinuteForm(forms.Form):
-    date = forms.DateField(label="Date", initial=datetime.date.today)
-    interviewer = forms.ModelChoiceField(label=_("Interviewer"), required=False,
-                                         queryset=Consultant.objects.all(), disabled=True)
-    minute = forms.CharField(label=_("Minute"),
-                             widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}))
-    next_state = forms.ChoiceField(label=_("Result"), required=True,
-                                   choices=Interview.ITW_STATE)
+class InterviewMinuteForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ['minute', 'suggested_interviewer', 'next_state', ]
+
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
