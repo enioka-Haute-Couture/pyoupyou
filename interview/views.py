@@ -199,7 +199,7 @@ def minute(request, interview_id):
 
 @login_required
 def dashboard(request):
-    related_processes = Process.objects.filter(interview__interviewinterviewer__interviewer__user=request.user).distinct()
+    related_processes = Process.objects.filter(interview__interviewers__user=request.user).distinct()
     related_processes_table = ProcessTable(related_processes)
 
     subsidiary_processes = Process.objects.filter(subsidiary=request.user.consultant.company)
