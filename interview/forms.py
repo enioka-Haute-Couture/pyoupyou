@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
+from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column, Fieldset
 from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
@@ -81,10 +81,23 @@ class InterviewForm(forms.ModelForm):
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
 
+
 class InterviewFormPlan(InterviewForm):
     class Meta:
         model = Interview
         fields = ['planned_date']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper.layout = Layout(
+            Div(
+                Column(
+                    'planned_date',
+                ),
+                css_class='relative'
+            )
+        )
 
 class InterviewFormEditInterviewers(InterviewForm):
     class Meta:
@@ -98,7 +111,7 @@ class InterviewFormEditInterviewers(InterviewForm):
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ['minute', 'suggested_interviewer', 'next_state', ]
+        fields = ['minute', 'suggested_interviewer', 'next_interview_goal', 'next_state', ]
 
     helper = FormHelper()
     helper.form_method = 'POST'

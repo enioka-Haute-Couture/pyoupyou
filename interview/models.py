@@ -156,7 +156,7 @@ class Interview(models.Model):
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
-    planned_date = models.DateField(verbose_name=_("Planned date"), blank=True, null=True)
+    planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
     interviewers = models.ManyToManyField(Consultant)
 
     minute = models.TextField(verbose_name=_("Minute"), blank=True)
@@ -165,7 +165,7 @@ class Interview(models.Model):
                                      default=MINUTE_FORMAT[0][0])
     suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
                                               related_name='suggested_interview_for', null=True, blank=True)
-
+    next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
     def __str__(self):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
 
