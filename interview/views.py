@@ -12,7 +12,7 @@ import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
-from interview.models import Process, Document, Interview, InterviewInterviewer
+from interview.models import Process, Document, Interview
 from interview.forms import CandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan,\
     InterviewFormEditInterviewers, SourceForm
 
@@ -161,40 +161,19 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
     """
+    InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
+    if interview_id is not None:
+        interview = Interview.objects.get(id=interview_id)
+    else:
+        interview = Interview(process_id=process_id)
     if request.method == 'POST':
-        if "edit" == action:
-            form = InterviewFormEditInterviewers(request.POST)
-        else:
-            form = InterviewFormPlan(request.POST)
+        form = InterviewForm(request.POST, instance=interview)
         if form.is_valid():
-            interview, created = Interview.objects.update_or_create(id=interview_id,
-                                                                    process_id=process_id)
-            if "planned_date" in form.cleaned_data:
-                interview.planned_date=form.cleaned_data["planned_date"]
-            interview.save()
-            if "interviewers" in form.cleaned_data:
-                interviewers = form.cleaned_data["interviewers"]
-                if not created:
-                    interview.interviewers.clear()
-
-                for interviewer in interviewers.all():
-                    InterviewInterviewer.objects.get_or_create(interview=interview, interviewer=interviewer)
-
+            form.save()
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": process_id}))
-
     else:
-        if interview_id is not None:
-            interview = Interview.objects.get(id=interview_id)
-        else:
-            interview = Interview()
-            interview.process_id = process_id
-            interview.planned_date = datetime.date.today()
-
-        if "edit" == action:
-            form = InterviewFormEditInterviewers(instance=interview)
-        else:
-            form = InterviewFormPlan(instance=interview)
+        form = InterviewForm(instance=interview)
 
     process = Process.objects.get(id=process_id)
 
@@ -203,47 +182,24 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 def minute(request, interview_id):
-    interview = None
+    interview = Interview.objects.get(id=interview_id)
     if request.method == 'POST':
-        form = InterviewMinuteForm(request.POST)
-        interview = Interview.objects.get(id=interview_id)
+        form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
-            interviewInterviewer = InterviewInterviewer.objects.filter(interview=interview).first()
-            interview.planned_date = form.cleaned_data["date"]
-            interview.next_state = form.cleaned_data["next_state"]
-            interviewInterviewer.minute = form.cleaned_data["minute"]
-            interview.save()
-            interviewInterviewer.save()
+            form.save()
             return HttpResponseRedirect(reverse(viewname="process-details",
                                                 kwargs={"process_id": interview.process.id}))
-
-    interview_interviewer = None
-    if interview_id is not None:
-        interview = Interview.objects.get(id=interview_id)
-        try:
-            interview_interviewer = InterviewInterviewer.objects.get(interview=interview)
-        except InterviewInterviewer.DoesNotExist:
-            pass
-        if interview_interviewer is not None:
-            minute = interview_interviewer.minute
-            interviewer = interview_interviewer.interviewer
-        else:
-            minute = None
-            interviewer = None
-        form = InterviewMinuteForm(initial={"date": interview.planned_date,
-                                            "process": interview.process,
-                                            "minute": minute,
-                                            "next_state": interview.next_state,
-                                            "interviewer": interviewer})
+    else:
+        form = InterviewMinuteForm(instance=interview)
 
     return render(request, "interview/interview_minute.html", {'form': form,
-                                                     "process": interview.process,
-                                                     "interview": interview})
+                                                               "process": interview.process,
+                                                               "interview": interview})
 
 
 @login_required
 def dashboard(request):
-    related_processes = Process.objects.filter(interview__interviewinterviewer__interviewer__user=request.user).distinct()
+    related_processes = Process.objects.filter(interview__interviewers__user=request.user).distinct()
     related_processes_table = ProcessTable(related_processes)
 
     subsidiary_processes = Process.objects.filter(subsidiary=request.user.consultant.company)

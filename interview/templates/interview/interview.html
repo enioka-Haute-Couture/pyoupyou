@@ -5,27 +5,27 @@
 {% load static %}
 
 {% block more_css %}
-
-<script src ="{% static 'interview/js/bootstrap-datepicker.min.js' %}"></script>
-<script src ="{% static 'interview/js/bootstrap-datepicker.fr.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'interview/css/bootstrap-datepicker3.standalone.min.css' %}">
-
-
-<script type="text/javascript">
-
- $(function () {
-     $('.dateinput').datepicker({
-         weekStart: 1,
-         startDate: 0,
-         maxViewMode: 2,
-         clearBtn: true,
-         language: "fr",
-         todayHighlight: true,
-         toggleActive: true,
-         format: 'dd/mm/yyyy'})
- });
-</script>
-
+    <script type="application/javascript">
+    $(function () {
+        $('#id_planned_date').datetimepicker({
+            locale: 'fr',
+            format: "DD/MM/YYYY HH:mm",
+            tooltips: {
+                selectMonth: 'Sélection du mois',
+                prevMonth: 'Mois précédent',
+                nextMonth: 'Mois suivant',
+                selectYear: "Sélection de l'année",
+                prevYear: 'Année précédente',
+                nextYear: 'Année suivante',
+                selectDecade: 'Sélection de la décennie',
+                prevDecade: 'Décennie précédente',
+                nextDecade: 'Décennie suivante',
+                prevCentury: 'Siècle précédent',
+                nextCentury: 'Siècle suivant'
+            }
+        });
+    });
+    </script>
 {% endblock %}
 
 {% block content %}

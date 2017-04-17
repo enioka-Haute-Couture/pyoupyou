@@ -19,6 +19,9 @@ th.asc .sort-icon::before {
     margin-left: 5px;
 }
 
+.relative {
+    position: relative;
+}
 
 /* Base styles (regardless of theme) */
 .bs-callout {

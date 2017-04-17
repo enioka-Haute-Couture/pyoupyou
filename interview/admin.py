@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from interview.models import ContractType, Candidate, Document, Process, Interview, InterviewInterviewer, \
+from interview.models import ContractType, Candidate, Document, Process, Interview, \
     SourcesCategory, Sources
 
 
@@ -55,19 +55,6 @@ class ProcessAdmin(admin.ModelAdmin):
 class InterviewAdmin(admin.ModelAdmin):
     list_display = ('id', 'process', 'next_state', 'rank', 'planned_date')
     list_filter = ('process', 'planned_date')
-
-
-@admin.register(InterviewInterviewer)
-class InterviewInterviewerAdmin(admin.ModelAdmin):
-    list_display = (
-        'id',
-        'interview',
-        'interviewer',
-        'minute',
-        'minute_format',
-        'suggested_interviewer',
-    )
-    list_filter = ('interview', 'interviewer', 'suggested_interviewer')
 
 
 @admin.register(SourcesCategory)
