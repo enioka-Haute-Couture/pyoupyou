@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
-from django.contrib.auth.models import User, PermissionsMixin, UserManager
+from django.contrib.auth.models import User, PermissionsMixin
 from django.core.mail import send_mail
 from django.db import models, transaction
 from django.utils import timezone
@@ -11,7 +11,7 @@ class Subsidiary(models.Model):
     """Internal company / organisation unit"""
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
-    responsible = models.ForeignKey('Consultant', null=True )
+    responsible = models.ForeignKey('Consultant', null=True)
 
     def __str__(self):
         return self.name

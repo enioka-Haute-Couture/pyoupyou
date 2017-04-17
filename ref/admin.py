@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserCreationForm
 from django.utils.translation import ugettext_lazy as _
 
 from ref.models import Subsidiary, Consultant, PyouPyouUser
@@ -25,6 +24,7 @@ class PyouPyouUserAdmin(UserAdmin):
     list_display = ('trigramme', 'email', 'full_name', 'is_staff')
     search_fields = ('trigramme', 'full_name', 'email')
     ordering = ('trigramme',)
+
 
 admin.site.register(Subsidiary)
 admin.site.register(Consultant)

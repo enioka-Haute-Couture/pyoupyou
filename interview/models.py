@@ -50,9 +50,10 @@ def document_path(instance, filename):
     filename = str(slugify(instance.candidate.name)).encode() + '.'.encode() + extension
 
     return "{}/{}_{}/{}".format(instance.document_type,
-                                  instance.candidate.id,
-                                  slugify(instance.candidate.name),
-                                  filename.decode())
+                                instance.candidate.id,
+                                slugify(instance.candidate.name),
+                                filename.decode())
+
 
 class Document(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
@@ -97,7 +98,7 @@ class Process(models.Model):
 
     def __str__(self):
         return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,
-                                                                    for_subsidiary = _("for subsidiary"),
+                                                                    for_subsidiary=_("for subsidiary"),
                                                                     subsidiary=self.subsidiary)
 
     @property
@@ -166,6 +167,7 @@ class Interview(models.Model):
     suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
                                               related_name='suggested_interview_for', null=True, blank=True)
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
+
     def __str__(self):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
 

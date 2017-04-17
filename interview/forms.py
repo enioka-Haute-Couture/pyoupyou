@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-import datetime
-
 from django import forms
-from django.forms import Select
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field, Column, Fieldset
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
+from crispy_forms.layout import Layout, Div, Submit, Column
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
-from interview.models import Subsidiary, Consultant, Interview, Candidate, Process, Sources, SourcesCategory
-from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
+from interview.models import Consultant, Interview, Candidate, Process, Sources
+
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
@@ -29,6 +25,7 @@ class SourcesWidget(ModelSelect2Widget):
         'name__icontains',
     ]
 
+
 class CandidateForm(forms.ModelForm):
     class Meta:
         model = Candidate
@@ -43,7 +40,7 @@ class CandidateForm(forms.ModelForm):
 
 class SelectOrCreate(SourcesWidget):
     def render(self, name, value, attrs=None):
-        output = [super().render(name, value, attrs),]
+        output = [super().render(name, value, attrs), ]
         output.append(render_to_string('interview/select_or_create_source.html'))
         return mark_safe('\n'.join(output))
 
@@ -98,6 +95,7 @@ class InterviewFormPlan(InterviewForm):
                 css_class='relative'
             )
         )
+
 
 class InterviewFormEditInterviewers(InterviewForm):
     class Meta:

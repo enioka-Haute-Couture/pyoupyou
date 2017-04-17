@@ -21,10 +21,11 @@ from ref.models import Consultant
 
 class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
-                                 verbose_name="", orderable=False)
+                                            verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"))
-    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_name='interview/tables/process_actions.html')
-    candidate = tables.Column(attrs={"td": {"style":"font-weight: bold"}})
+    actions = tables.TemplateColumn(verbose_name='', orderable=False,
+                                    template_name='interview/tables/process_actions.html')
+    candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}})
 
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
@@ -55,7 +56,8 @@ class ProcessTable(tables.Table):
 
 class InterviewTable(tables.Table):
     #rank = tables.Column(verbose_name='#')
-    actions = tables.TemplateColumn(verbose_name='', orderable=False, template_name='interview/tables/interview_actions.html')
+    actions = tables.TemplateColumn(verbose_name='', orderable=False,
+                                    template_name='interview/tables/interview_actions.html')
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
 
@@ -131,6 +133,7 @@ def processes(request):
                "recently_closed_processes_table": recently_closed_processes_table}
     return render(request, "interview/list_processes.html", context)
 
+
 @login_required
 def new_candidate(request):
     if request.method == 'POST':
@@ -180,6 +183,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     return render(request, "interview/interview.html", {'form': form,
                                                         'process': process})
 
+
 @login_required
 def minute(request, interview_id):
     interview = Interview.objects.get(id=interview_id)
@@ -224,4 +228,3 @@ def create_source_ajax(request):
     else:
         data = {'error': form.errors}
         return JsonResponse(data)
-
