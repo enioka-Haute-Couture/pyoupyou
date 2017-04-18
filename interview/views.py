@@ -12,9 +12,9 @@ import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
-from interview.models import Process, Document, Interview
-from interview.forms import CandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan,\
-    InterviewFormEditInterviewers, SourceForm
+from interview.models import Process, Document, Interview, Candidate
+from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
+    InterviewFormEditInterviewers, SourceForm, CandidateForm
 
 from ref.models import Consultant
 
@@ -141,7 +141,7 @@ def processes(request):
 @login_required
 def new_candidate(request):
     if request.method == 'POST':
-        candidate_form = CandidateForm(data=request.POST, files=request.FILES)
+        candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
         process_form = ProcessForm(data=request.POST)
         if candidate_form.is_valid() and process_form.is_valid():
             candidate = candidate_form.save()
@@ -153,7 +153,7 @@ def new_candidate(request):
             process.save()
             return HttpResponseRedirect(reverse(processes))
     else:
-        candidate_form = CandidateForm()
+        candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
     source_form = SourceForm(prefix='source')
     return render(request, "interview/new_candidate.html", {"candidate_form": candidate_form,
@@ -234,3 +234,17 @@ def create_source_ajax(request):
     else:
         data = {'error': form.errors}
         return JsonResponse(data)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def edit_candidate(request, candidate_id):
+    if request.method == 'POST':
+        form = CandidateForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return
+    else:
+        candidate = Candidate.objects.get(pk=candidate_id)
+        form = CandidateForm(instance=candidate)
+    return render(request, "interview/candidate.html", {"form": form})

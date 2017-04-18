@@ -1,0 +1,13 @@
+{% extends "interview/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="lead">
+        {% trans "Candidate details" %}
+    </div>
+    {% crispy form %}
+</div>
+{% endblock %}

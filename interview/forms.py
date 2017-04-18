@@ -26,7 +26,7 @@ class SourcesWidget(ModelSelect2Widget):
     ]
 
 
-class CandidateForm(forms.ModelForm):
+class ProcessCandidateForm(forms.ModelForm):
     class Meta:
         model = Candidate
         helper = FormHelper()
@@ -110,6 +110,16 @@ class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ['minute', 'suggested_interviewer', 'next_interview_goal', 'next_state', ]
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
+
+
+class CandidateForm(forms.ModelForm):
+    class Meta:
+        model = Candidate
+        fields = ['name', 'email', 'phone']
 
     helper = FormHelper()
     helper.form_method = 'POST'

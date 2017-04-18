@@ -10,7 +10,7 @@
 
 {% block content %}
 <div class="container">
-    <h3> {% trans "Candidate:" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}] </h3>
+    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}] </h3>
     {% if process.end_date %}
     <h5> {% trans "This process is closed" %} </h5>
     {% else %}
