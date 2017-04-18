@@ -78,6 +78,7 @@ class InterviewTable(tables.Table):
 
 
 @login_required
+@require_http_methods(["GET"])
 def process(request, process_id):
     process = Process.objects.get(id=process_id)
     interviews = Interview.objects.filter(process=process).prefetch_related('process__candidate', 'interviewers')
@@ -93,6 +94,7 @@ def process(request, process_id):
 
 
 @login_required
+@require_http_methods(["GET"])
 def close_process(request, process_id):
     process_obj = Process.objects.get(id=process_id)
     process_obj.end_date = datetime.date.today()
@@ -101,6 +103,7 @@ def close_process(request, process_id):
 
 
 @login_required
+@require_http_methods(["GET"])
 def closed_processes(request):
     closed_processes = Process.objects.filter(end_date__isnull=False).select_related('candidate', 'contract_type')
 
@@ -118,6 +121,7 @@ def closed_processes(request):
 
 
 @login_required
+@require_http_methods(["GET"])
 def processes(request):
     open_processes = [p for p in Process.objects.all() if p.is_active]
     recently_closed_processes = Process.objects.filter(end_date__isnull=False).order_by("end_date")
@@ -185,6 +189,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def minute(request, interview_id):
     interview = Interview.objects.get(id=interview_id)
     if request.method == 'POST':
@@ -202,6 +207,7 @@ def minute(request, interview_id):
 
 
 @login_required
+@require_http_methods(["GET"])
 def dashboard(request):
     related_processes = Process.objects.filter(interview__interviewers__user=request.user).distinct()
     related_processes_table = ProcessTable(related_processes)
