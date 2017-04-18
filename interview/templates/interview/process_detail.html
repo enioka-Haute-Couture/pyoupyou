@@ -10,31 +10,62 @@
 
 {% block content %}
 <div class="container">
-    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}] </h3>
+    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}]</h3>
     {% if process.end_date %}
     <h5> {% trans "This process is closed" %} </h5>
     {% else %}
     <h5> {% trans "This process is in progress" %} </h5>
     {% endif %}
-    {% if process.candidate.phone or process.candidate.email %}
-    <div class="bs-callout">
-        <h4> {% trans 'Contact' %}</h4>
-        <p>
-            {% if process.candidate.phone %}
-            <p>
-            <dt>{% trans "phone" %}</dt>
-            <dd>{{ process.candidate.phone }}</dd>
-            </p>
-            {% endif %}
-            {% if process.candidate.email %}
-            <p>
-            <dt>{% trans "mail" %}</dt>
-            <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
-            </p>
-            {% endif %}
-        </p>
-    </div>
-    {% endif %}
+        <div class="row">
+            <div class="col-md-6">
+                {% if process.candidate.phone or process.candidate.email %}
+                <div class="bs-callout">
+                    <h4> {% trans 'Contact' %}</h4>
+                    <p>
+                        {% if process.candidate.phone %}
+                        <p>
+                        <dt>{% trans "phone" %}</dt>
+                        <dd>{{ process.candidate.phone }}</dd>
+                        </p>
+                        {% endif %}
+                        {% if process.candidate.email %}
+                        <p>
+                        <dt>{% trans "mail" %}</dt>
+                        <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
+                        </p>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                {% if process.contract_start_date or process.contract_duration or process.contract_type %}
+                <div class="bs-callout">
+                    <h4> {% trans 'Contract information' %}</h4>
+                    <p>
+                        {% if process.contract_type %}
+                        <p>
+                        <dt>{% trans "Contract type" %}</dt>
+                        <dd>{{ process.contract_type }}</dd>
+                        </p>
+                        {% endif %}
+                        {% if process.contract_duration %}
+                        <p>
+                        <dt>{% trans "Contract duration" %}</dt>
+                        <dd>{{ process.contract_duration }}</dd>
+                        </p>
+                        {% endif %}
+                        {% if process.contract_start_date %}
+                        <p>
+                        <dt>{% trans "Contract start date" %}</dt>
+                        <dd>{{ process.contract_start_date }}</dd>
+                        </p>
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
 
     <h1>{% trans "Documents" %}</h1>
     <ul>
