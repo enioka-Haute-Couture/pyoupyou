@@ -109,11 +109,10 @@ class InterviewFormEditInterviewers(InterviewForm):
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ['minute', 'suggested_interviewer', 'next_interview_goal', 'next_state', ]
+        fields = ['minute', 'suggested_interviewer', 'next_interview_goal', ]
 
     helper = FormHelper()
-    helper.form_method = 'POST'
-    helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
+    helper.form_tag = False
 
 
 class CandidateForm(forms.ModelForm):

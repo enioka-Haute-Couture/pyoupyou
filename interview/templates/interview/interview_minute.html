@@ -5,10 +5,17 @@
 
 {% block content %}
 <div class="container">
-
     <div class="lead">
         {% trans "Interview minute" %} <a href="{% url 'process-details' process_id=process.id %}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
-    {% crispy form %}
+    <form method="post" id="itw-minute">
+        {% crispy form %}
+        <div class="form-group">
+            <div clas="controls">
+                <input type="submit" name="itw-go" value="{% trans "GO" %}" class="btn btn-success pull-right" id="submit-id-summit">
+                <input type="submit" name="itw-no" value="{% trans "NO" %}" class="btn btn-danger pull-right no-go" id="submit-id-summit">
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

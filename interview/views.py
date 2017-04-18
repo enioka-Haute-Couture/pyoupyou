@@ -193,6 +193,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
 def minute(request, interview_id):
     interview = Interview.objects.get(id=interview_id)
     if request.method == 'POST':
+        if 'itw-go' in request.POST:
+            interview.next_state = Interview.GO
+        elif 'itw-no' in request.POST:
+            interview.next_state = Interview.NO_GO
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
