@@ -53,3 +53,7 @@ th.asc .sort-icon::before {
     background-color: #f0f7fd;
     border-color: #d0e3f0;
 }
+
+.no-go {
+    margin-right: 10px;
+}
