@@ -179,10 +179,10 @@ class Interview(models.Model):
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
 
-        if self.planned_date is None:
+        if self.planned_date is None and self.next_state is None:
             self.next_state = self.NEED_PLANIFICATION
         else:
-            if self.next_state == self.NEED_PLANIFICATION:
+            if self.next_state == self.NEED_PLANIFICATION and self.planned_date is not None:
                 self.next_state = self.PLANNED
 
         super(Interview, self).save(*args, **kwargs)
