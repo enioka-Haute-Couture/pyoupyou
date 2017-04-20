@@ -87,8 +87,12 @@ class Process(models.Model):
     @property
     def next_action_display(self):
         if self.state:
+            if self.state == Interview.GO:
+                return _("Pick up next interviewer")
+            if self.state == Interview.NO_GO and self.end_date is None: #FIXME: candidate not informed
+                return _("Inform candidate")
             return dict(Interview.ITW_STATE)[self.state]
-        return 'Pick up next interviewer'
+        return _("Pick up next interviewer")
 
     @property
     def next_action_responsible(self):
