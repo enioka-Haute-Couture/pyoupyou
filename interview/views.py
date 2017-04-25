@@ -214,12 +214,14 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     related_processes = Process.objects.filter(interview__interviewers__user=request.user).distinct()
-    related_processes_table = ProcessTable(related_processes)
+    related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.filter(subsidiary=request.user.consultant.company)
-    subsidiary_processes_table = ProcessTable(subsidiary_processes)
+    subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
-    # RequestConfig(request).configure(open_processes_table)
+    config = RequestConfig(request)
+    config.configure(related_processes_table)
+    config.configure(subsidiary_processes_table)
 
     context = {"subsidiary_processes_table": subsidiary_processes_table,
                "related_processes_table": related_processes_table}
