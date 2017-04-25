@@ -22,10 +22,12 @@ from ref.models import Consultant
 class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
-    next_action_display = tables.Column(verbose_name=_("Next action"))
+    next_action_display = tables.Column(verbose_name=_("Next action"), orderable=False)
+    next_action_responsible = tables.Column(orderable=False)
     actions = tables.TemplateColumn(verbose_name='', orderable=False,
                                     template_name='interview/tables/process_actions.html')
-    candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}})
+    candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
+    contract_type = tables.Column(order_by=('contract_type__name',))
 
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
