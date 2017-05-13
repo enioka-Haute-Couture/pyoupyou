@@ -87,8 +87,12 @@ class Process(models.Model):
     @property
     def next_action_display(self):
         if self.state:
+            if self.state == Interview.GO:
+                return _("Pick up next interviewer")
+            if self.state == Interview.NO_GO and self.end_date is None: #FIXME: candidate not informed
+                return _("Inform candidate")
             return dict(Interview.ITW_STATE)[self.state]
-        return 'Pick up next interviewer'
+        return _("Pick up next interviewer")
 
     @property
     def next_action_responsible(self):
@@ -179,10 +183,10 @@ class Interview(models.Model):
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
 
-        if self.planned_date is None:
+        if self.planned_date is None and self.next_state is None:
             self.next_state = self.NEED_PLANIFICATION
         else:
-            if self.next_state == self.NEED_PLANIFICATION:
+            if self.next_state == self.NEED_PLANIFICATION and self.planned_date is not None:
                 self.next_state = self.PLANNED
 
         super(Interview, self).save(*args, **kwargs)
