@@ -14,7 +14,7 @@ from django_tables2 import RequestConfig
 
 from interview.models import Process, Document, Interview, Candidate
 from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
-    InterviewFormEditInterviewers, SourceForm, CandidateForm
+    InterviewFormEditInterviewers, SourceForm, CandidateForm, CloseForm
 
 from ref.models import Consultant
 
@@ -86,22 +86,38 @@ def process(request, process_id):
     interviews = Interview.objects.filter(process=process).prefetch_related('process__candidate', 'interviewers')
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
+    close_form = CloseForm(instance=process)
 
     documents = Document.objects.filter(candidate=process.candidate)
     context = {"process": process,
                "documents": documents,
                "interviews_for_process_table": interviews_for_process_table,
-               "interviews": interviews}
+               "interviews": interviews,
+               "close_form": close_form}
     return render(request, "interview/process_detail.html", context)
 
 
 @login_required
-@require_http_methods(["GET"])
+@require_http_methods(["POST"])
 def close_process(request, process_id):
-    process_obj = Process.objects.get(id=process_id)
-    process_obj.end_date = datetime.date.today()
-    process_obj.save()
-    return process(request, process_id)
+    process = Process.objects.get(pk=process_id)
+    form = CloseForm(request.POST, instance=process)
+    if form.is_valid():
+        form.instance.end_date = datetime.date.today()
+        form.save()
+    # TODO manage errors
+    return HttpResponseRedirect(process.get_absolute_url())
+
+
+@login_required
+@require_http_methods(["GET"])
+def reopen_process(request, process_id):
+    process = Process.objects.get(id=process_id)
+    process.end_date = None
+    process.closed_reason = Process.OPEN
+    process.closed_comment = ''
+    process.save()
+    return HttpResponseRedirect(process.get_absolute_url())
 
 
 @login_required

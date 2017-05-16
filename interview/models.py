@@ -67,6 +67,23 @@ class Document(models.Model):
 
 
 class Process(models.Model):
+    OPEN = 'OP'
+    NO_GO = 'NG'
+    CANDIDATE_DECLINED = 'CD'
+    HIRED = 'HI'
+    OTHER = 'NO'
+
+    CLOSED_STATE = (
+        (NO_GO, _('Last interviewer interupt process')),
+        (CANDIDATE_DECLINED, _('Candidate declined our offer')),
+        (HIRED, _('Candidate accepted our offer')),
+        (OTHER, _('Closed - other reason')),
+    )
+
+    PROCESS_STATE = (
+        (OPEN, _('Open')),
+    ) + CLOSED_STATE
+
     candidate = models.ForeignKey(Candidate)
     subsidiary = models.ForeignKey(Subsidiary)
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
@@ -76,6 +93,8 @@ class Process(models.Model):
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True)
+    closed_reason = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=OPEN)
+    closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -83,26 +102,35 @@ class Process(models.Model):
 
     @property
     def state(self):
-        last_itw = self.interview_set.last()
-        if last_itw:
-            return self.interview_set.last().next_state
-        return None
+        if self.closed_reason == Process.OPEN:
+            last_itw = self.interview_set.last()
+            if last_itw:
+                return self.interview_set.last().next_state
+            return None
+        else:
+            return self.closed_reason
 
     @property
     def next_action_display(self):
-        if self.state:
-            if self.state == Interview.GO:
-                return _("Pick up next interviewer")
-            if self.state == Interview.NO_GO and self.end_date is None: #FIXME: candidate not informed
-                return _("Inform candidate")
-            return dict(Interview.ITW_STATE)[self.state]
-        return _("Pick up next interviewer")
+        if self.closed_reason == Process.OPEN:
+            if self.state:
+                if self.state == Interview.GO:
+                    return _("Pick up next interviewer")
+                if self.state == Interview.NO_GO:
+                    return _("Inform candidate")
+                return dict(Interview.ITW_STATE)[self.state]
+            return _("Pick up next interviewer")
+        else:
+            return self.closed_reason
 
     @property
     def next_action_responsible(self):
         if self.state in (Interview.NEED_PLANIFICATION, Interview.PLANNED):
             return self.interview_set.last().interviewers
         return self.subsidiary.responsible
+
+    def is_open(self):
+        return self.closed_reason == Process.OPEN
 
     def __str__(self):
         return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,

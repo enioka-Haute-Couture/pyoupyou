@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^candidate/$', views.new_candidate, name="candidate-new"),
     url(r'^process/(?P<process_id>\d+)/$', views.process, name="process-details"),
     url(r'^process/(?P<process_id>\d+)/close/$', views.close_process, name="process-close"),
+    url(r'^process/(?P<process_id>\d+)/reopen/$', views.reopen_process, name="process-reopen"),
     url(r'^process/(?P<process_id>\d+)/interview/$', views.interview, {"action":"edit"}, name="process-new-interview"),
     url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/plan$', views.interview, {"action":"plan"}, name="interview-plan"),
     url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$', views.interview, {"action":"edit"}, name="interview-edit"),

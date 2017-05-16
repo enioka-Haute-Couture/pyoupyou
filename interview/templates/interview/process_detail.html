@@ -3,6 +3,7 @@
 {% load static %}
 {% load admin_urls %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
@@ -84,8 +85,32 @@
         </div>
     </div>
 
+    <div id="close-process" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" action="{% url 'process-close' process_id=process.id %}">
+                    <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Close Process</h4>
+                    </div>
+                    <div class="modal-body">
+                      {%  crispy close_form %}
+                    </div>
+                    <div class="modal-footer">
+                    <input type="submit" name="summit" value="{% trans "Close Process" %}" class="btn btn-error" id="submit-id-summit">
+                    </div>
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div>
+
+
     <div>
-        <a href="{% url 'process-close' process_id=process.id %}" class="btn">{% trans "Close this process" %}</a>
+        {% if process.is_open %}
+            <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>
+        {% else %}
+            <a href="{% url 'process-reopen' process_id=process.id %}" class="btn btn-success"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reopen this process" %}</a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

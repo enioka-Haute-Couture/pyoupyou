@@ -123,3 +123,20 @@ class CandidateForm(forms.ModelForm):
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
+
+
+class CloseForm(forms.ModelForm):
+    class Meta:
+        model = Process
+        fields = ['closed_reason', 'closed_comment']
+    # we remove open choice
+    closed_reason = forms.ChoiceField(choices=Process.CLOSED_STATE)
+    helper = FormHelper()
+    helper.form_tag = False
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        default_choice = Process.NO_GO
+        if self.instance.interview_set.last() and self.instance.interview_set.last().next_state == Interview.GO:
+            default_choice = Process.HIRED
+        self.fields['closed_reason'].initial = default_choice
