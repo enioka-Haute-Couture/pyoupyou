@@ -250,8 +250,9 @@ def edit_candidate(request, candidate_id):
     if request.method == 'POST':
         form = CandidateForm(request.POST)
         if form.is_valid():
+            form.instance.id = candidate_id
             form.save()
-            return
+            return render(request, "interview/candidate.html", {"form": form})
     else:
         candidate = Candidate.objects.get(pk=candidate_id)
         form = CandidateForm(instance=candidate)
