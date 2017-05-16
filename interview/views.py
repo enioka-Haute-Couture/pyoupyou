@@ -247,13 +247,14 @@ def create_source_ajax(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_candidate(request, candidate_id):
+    candidate = Candidate.objects.get(pk=candidate_id)
+
     if request.method == 'POST':
-        form = CandidateForm(request.POST)
+        form = CandidateForm(request.POST, instance=candidate)
         if form.is_valid():
             form.instance.id = candidate_id
             form.save()
-            return render(request, "interview/candidate.html", {"form": form})
+            return HttpResponseRedirect(candidate.process_set.last().get_absolute_url())
     else:
-        candidate = Candidate.objects.get(pk=candidate_id)
         form = CandidateForm(instance=candidate)
     return render(request, "interview/candidate.html", {"form": form})

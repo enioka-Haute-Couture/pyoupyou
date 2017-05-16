@@ -77,6 +77,10 @@ class Process(models.Model):
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('process-details', args=[str(self.id)])
+
     @property
     def state(self):
         last_itw = self.interview_set.last()
