@@ -12,10 +12,11 @@
 {% block content %}
 <div class="container">
     <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}]</h3>
-    {% if process.end_date %}
-    <h5> {% trans "This process is closed" %} </h5>
+    {% if process.is_open %}
+        <h5> {% trans "This process is in progress" %} </h5>
     {% else %}
-    <h5> {% trans "This process is in progress" %} </h5>
+        <h5> {% trans "This process is closed" %} - {{ process.get_closed_reason_display }} </h5>
+        <span>{{ process.closed_comment }}</span>
     {% endif %}
         <div class="row">
             <div class="col-md-6">

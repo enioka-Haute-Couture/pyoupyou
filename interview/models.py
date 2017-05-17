@@ -121,7 +121,7 @@ class Process(models.Model):
                 return dict(Interview.ITW_STATE)[self.state]
             return _("Pick up next interviewer")
         else:
-            return self.closed_reason
+            return self.get_closed_reason_display()
 
     @property
     def next_action_responsible(self):
