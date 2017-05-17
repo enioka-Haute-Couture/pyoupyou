@@ -18,7 +18,6 @@ HAS_DDT = True
 INSTALLED_APPS += [
     'debug_toolbar',
     'debug_toolbar_user_panel',
-    'django_extensions',
 ]
 
 MIDDLEWARE += [
