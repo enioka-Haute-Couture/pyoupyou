@@ -48,7 +48,7 @@ class SelectOrCreate(SourcesWidget):
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        exclude = ['candidate', 'start_date', 'end_date']
+        exclude = ['candidate', 'start_date', 'end_date', 'closed_reason', 'closed_comment']
 
         widgets = {
             'sources': SelectOrCreate
