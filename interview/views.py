@@ -159,7 +159,7 @@ def closed_processes(request):
 @login_required
 @require_http_methods(["GET"])
 def processes(request):
-    open_processes = [p for p in Process.objects.all() if p.is_active]
+    open_processes = Process.objects.filter(closed_reason=Process.OPEN)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     recently_closed_processes = Process.objects.filter(end_date__gte=a_week_ago)
 
