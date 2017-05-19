@@ -251,10 +251,14 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-
-    actions_needed_processes = Process.objects.filter(closed_reason=Process.OPEN).\
-        filter(interview__interviewers__user=request.user).distinct()
-    actions_needed_processes = [p for p in actions_needed_processes if p.next_action_responsible is request.user]
+    a=datetime.datetime.now()
+    print(a)
+    actions_needed_processes = Process.objects.filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
+    c = request.user.consultant
+    actions_needed_processes = [
+        p for p in actions_needed_processes
+        if p.next_action_responsible == c or (hasattr(p.next_action_responsible, 'iterator') and c in p.next_action_responsible.iterator())
+    ]
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
     related_processes = Process.objects.filter(interview__interviewers__user=request.user).\
@@ -271,7 +275,7 @@ def dashboard(request):
     config.configure(subsidiary_processes_table)
 
     context = {
-        "actions_needed_processes_table": related_processes_table,
+        "actions_needed_processes_table": actions_needed_processes_table,
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
     }
