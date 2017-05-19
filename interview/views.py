@@ -2,6 +2,7 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -54,6 +55,23 @@ class ProcessTable(tables.Table):
         row_attrs = {
             'class': lambda record: 'danger' if record.needs_attention_bool else None
         }
+
+
+class ProcessEndTable(ProcessTable):
+    class Meta(ProcessTable.Meta):
+        sequence = (
+            "needs_attention",
+            "candidate",
+            "subsidiary",
+            "start_date",
+            "end_date",
+            "contract_type",
+            "next_action_display",
+            "next_action_responsible",
+            "actions"
+        )
+        fields = sequence
+        order_by = "-end_date"
 
 
 class InterviewTable(tables.Table):
@@ -125,7 +143,7 @@ def reopen_process(request, process_id):
 def closed_processes(request):
     closed_processes = Process.objects.filter(end_date__isnull=False).select_related('candidate', 'contract_type')
 
-    closed_processes_table = ProcessTable(closed_processes, prefix='c')
+    closed_processes_table = ProcessEndTable(closed_processes, prefix='c')
 
     config = RequestConfig(request)
     config.configure(closed_processes_table)
@@ -142,10 +160,11 @@ def closed_processes(request):
 @require_http_methods(["GET"])
 def processes(request):
     open_processes = [p for p in Process.objects.all() if p.is_active]
-    recently_closed_processes = Process.objects.filter(end_date__isnull=False).order_by("end_date")
+    a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+    recently_closed_processes = Process.objects.filter(end_date__gte=a_week_ago)
 
     open_processes_table = ProcessTable(open_processes, prefix='o')
-    recently_closed_processes_table = ProcessTable(recently_closed_processes, prefix='c')
+    recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix='c')
 
     config = RequestConfig(request)
     config.configure(open_processes_table)
@@ -231,18 +250,31 @@ def minute(request, interview_id):
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
-    related_processes = Process.objects.filter(interview__interviewers__user=request.user).distinct()
+    a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+
+    actions_needed_processes = Process.objects.filter(closed_reason=Process.OPEN).\
+        filter(interview__interviewers__user=request.user).distinct()
+    actions_needed_processes = [p for p in actions_needed_processes if p.next_action_responsible is request.user]
+    actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
+
+    related_processes = Process.objects.filter(interview__interviewers__user=request.user).\
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
-    subsidiary_processes = Process.objects.filter(subsidiary=request.user.consultant.company)
+    subsidiary_processes = Process.objects.\
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company)
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
+    config.configure(actions_needed_processes_table)
     config.configure(related_processes_table)
     config.configure(subsidiary_processes_table)
 
-    context = {"subsidiary_processes_table": subsidiary_processes_table,
-               "related_processes_table": related_processes_table}
+    context = {
+        "actions_needed_processes_table": related_processes_table,
+        "related_processes_table": related_processes_table,
+        "subsidiary_processes_table": subsidiary_processes_table,
+    }
 
     return render(request, "interview/dashboard.html", context)
 

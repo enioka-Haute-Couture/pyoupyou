@@ -6,6 +6,13 @@
 <div class="container">
     <div class="panel panel-primary">
         <div class="panel-heading">
+            <div class="panel-title">{% trans "Needs actions" %}</div>
+        </div>
+        {% render_table actions_needed_processes_table %}
+    </div>
+
+    <div class="panel panel-primary">
+        <div class="panel-heading">
             <div class="panel-title">{% trans "Related processes" %}</div>
         </div>
         {% render_table related_processes_table %}
