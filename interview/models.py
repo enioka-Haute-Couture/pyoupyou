@@ -154,10 +154,10 @@ class Process(models.Model):
         last_interview = self.interview_set.last()
         if last_interview is None:
             return (True, _("No interview has been planned yet"))
-        if last_interview.planned_date and last_interview.planned_date < datetime.date.today() \
+        if last_interview.planned_date and last_interview.planned_date.date() < datetime.date.today() \
                 and last_interview.needs_attention_bool:
             return (True, _("Last interview needs attention"))
-        if last_interview == Interview.GO:
+        if last_interview.next_state == Interview.GO:
             return (True, "Need to select next_interviewer")
         return (False, "")
 
@@ -230,7 +230,7 @@ class Interview(models.Model):
     def needs_attention(self):
         if self.planned_date is None:
             return (True, _("Interview must be planned"))
-        if self.planned_date and self.planned_date < datetime.date.today():
+        if self.planned_date and self.planned_date.date() < datetime.date.today():
             if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
                 return (True, _("Interview result hasn't been submited"))
             if not self.minute:
