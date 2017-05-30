@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
@@ -100,7 +101,7 @@ class Process(models.Model):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
 
-    @property
+    @cached_property
     def state(self):
         if self.closed_reason == Process.OPEN:
             last_itw = self.interview_set.last()
@@ -110,7 +111,7 @@ class Process(models.Model):
         else:
             return self.closed_reason
 
-    @property
+    @cached_property
     def next_action_display(self):
         if self.closed_reason == Process.OPEN:
             if self.state:
@@ -123,7 +124,7 @@ class Process(models.Model):
         else:
             return self.get_closed_reason_display()
 
-    @property
+    @cached_property
     def next_action_responsible(self):
         if self.state in (Interview.NEED_PLANIFICATION, Interview.PLANNED):
             return self.interview_set.last().interviewers
@@ -143,7 +144,7 @@ class Process(models.Model):
             return True
         return self.end_date > datetime.date.today()
 
-    @property
+    @cached_property
     def needs_attention(self):
         # Is late:
         # - is_active
@@ -169,7 +170,7 @@ class Process(models.Model):
     def needs_attention_reason(self):
         return self.needs_attention[1]
 
-    @property
+    @cached_property
     def is_recently_closed(self):
         if self.end_date is None:
             return False
@@ -226,7 +227,7 @@ class Interview(models.Model):
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
 
-    @property
+    @cached_property
     def needs_attention(self):
         if self.planned_date is None:
             return (True, _("Interview must be planned"))
