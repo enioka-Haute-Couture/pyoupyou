@@ -223,6 +223,10 @@ class Interview(models.Model):
 
         super(Interview, self).save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('process-details', args=[str(self.process_id)])
+
     class Meta:
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
