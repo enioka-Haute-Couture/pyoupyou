@@ -262,11 +262,11 @@ def dashboard(request):
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
     related_processes = Process.objects.filter(interview__interviewers__user=request.user).\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct()
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct().select_related('subsidiary__responsible')
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company)
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company).select_related('subsidiary__responsible')
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -295,18 +295,36 @@ def create_source_ajax(request):
         data = {'error': form.errors}
         return JsonResponse(data)
 
-
 @login_required
 @require_http_methods(["GET", "POST"])
-def edit_candidate(request, candidate_id):
-    candidate = Candidate.objects.get(pk=candidate_id)
+def edit_candidate(request, process_id):
+    process = Process.objects.select_related('candidate').get(pk=process_id)
+    candidate = process.candidate
 
     if request.method == 'POST':
-        form = CandidateForm(request.POST, instance=candidate)
-        if form.is_valid():
-            form.instance.id = candidate_id
-            form.save()
-            return HttpResponseRedirect(candidate.process_set.last().get_absolute_url())
+        candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES, instance=candidate)
+        process_form = ProcessForm(data=request.POST, instance=process)
+
+        if candidate_form.is_valid() and process_form.is_valid():
+            candidate_form.id = candidate.id
+            candidate = candidate_form.save()
+            Document.objects.create(document_type='CV',
+                                    content=request.FILES["cv"],
+                                    candidate=candidate)
+            process_form.id = process.id
+            process = process_form.save(commit=False)
+            process.save()
+            print("abc")
+            print(process.get_absolute_url())
+            return HttpResponseRedirect(process.get_absolute_url())
     else:
-        form = CandidateForm(instance=candidate)
-    return render(request, "interview/candidate.html", {"form": form})
+        candidate_form = ProcessCandidateForm(instance=candidate)
+        process_form = ProcessForm(instance=process)
+    source_form = SourceForm(prefix='source')
+    data = {
+        'process': process,
+        'candidate_form': candidate_form,
+        'process_form': process_form,
+        'source_form': source_form,
+    }
+    return render(request, "interview/new_candidate.html", data)

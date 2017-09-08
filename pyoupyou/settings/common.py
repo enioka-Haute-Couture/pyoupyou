@@ -137,9 +137,3 @@ MINUTE_FORMAT = (
     ('md', 'Markdown'),
     ('rst', "ReStructured Text"),
 )
-
-DOCUMENT_TYPE = (
-    ('CV', 'CV'),
-    ('CL', 'Cover Letter'),
-    ('OT', 'Others'),
-)

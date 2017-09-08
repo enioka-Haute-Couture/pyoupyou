@@ -5,7 +5,7 @@ from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
-from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
+from pyoupyou.settings import MINUTE_FORMAT
 from ref.models import Consultant, Subsidiary
 
 
@@ -46,6 +46,7 @@ class Candidate(models.Model):
 
 
 def document_path(instance, filename):
+    # todo ensure uniqueness (if two documents have the same name we reach a problem)
     filename = filename.encode()
     extension = filename.split(b'.')[-1]
     filename = str(slugify(instance.candidate.name)).encode() + '.'.encode() + extension
@@ -57,11 +58,18 @@ def document_path(instance, filename):
 
 
 class Document(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True)
-    candidate = models.ForeignKey(Candidate)
-    document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE)
-    content = models.FileField(upload_to=document_path)
-    still_valid = models.BooleanField(default=True)
+    DOCUMENT_TYPE = (
+        ('CV', 'CV'),
+        ('CL', 'Cover Letter'),
+        ('OT', 'Others'),
+    )
+
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
+    document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE, verbose_name=_("Kind of document"))
+    content = models.FileField(upload_to=document_path, verbose_name=_("Content file"))
+    # content_url = models.URLField(verbose_name=_("Content URL"))
+    still_valid = models.BooleanField(default=True, verbose_name=_("Still valid"))
 
     def __str__(self):
         return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)

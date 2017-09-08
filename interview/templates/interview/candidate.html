@@ -8,6 +8,10 @@
     <div class="lead">
         {% trans "Candidate details" %}
     </div>
-    {% crispy form %}
+    <form action="{% url 'candidate' process.pk %}" method="post" enctype="multipart/form-data">
+        {% crispy candidate_form %}
+{#        {% crispy process_form %}#}
+        <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">
+    </form>
 </div>
 {% endblock %}

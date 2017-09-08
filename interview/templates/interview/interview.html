@@ -32,7 +32,7 @@
 
 <div class="container">
     <div class="lead">
-        Interview pour le processus concernant <a href="{% url process.candidate|admin_urlname:'change' process.candidate.pk %}"> {{ process.candidate.name }} </a> pour {{ process.subsidiary.name }}
+        Interview pour le processus concernant <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.name }} </a> pour {{ process.subsidiary.name }}
     </div>
     {% crispy form %}
 </div>
