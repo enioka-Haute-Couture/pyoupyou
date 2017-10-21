@@ -40,5 +40,9 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
 
+DEBUG_TOOLBAR_CONFIG = {
+    'JQUERY_URL':'{}bootstrap/js/jquery.min.js'.format(STATIC_URL)
+}
+
 # needed by django debug toolbar
 INTERNAL_IPS = ['127.0.0.1', ]

@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="container">
-    <form action="{% url 'candidate-new' %}" method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data">
         {% crispy candidate_form %}
         {% crispy process_form %}
         <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">

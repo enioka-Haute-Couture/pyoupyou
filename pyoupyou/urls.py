@@ -17,7 +17,7 @@ from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from interview import views
+from interview import views, feeds
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -32,8 +32,9 @@ urlpatterns = [
     url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/plan$', views.interview, {"action":"plan"}, name="interview-plan"),
     url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$', views.interview, {"action":"edit"}, name="interview-edit"),
     url(r'^interview/(?P<interview_id>\d+)/minute/$', views.minute, name="interview-minute"),
-    url(r'^candidate/(?P<candidate_id>\d+)/$', views.edit_candidate, name="candidate"),
+    url(r'^candidate/(?P<process_id>\d+)/$', views.edit_candidate, name="candidate"),
     url(r'^create_source/$', views.create_source_ajax, name="create_source"),
+    url(r'^feed/calendar_full.ics$', feeds.InterviewFeed(), name="calendar_full"),
     url(r'^select2/', include('django_select2.urls')),
 ]
 

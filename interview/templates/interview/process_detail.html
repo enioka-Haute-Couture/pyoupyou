@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="container">
-    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.candidate.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}]</h3>
+    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}]</h3>
     {% if process.is_open %}
         <h5> {% trans "This process is in progress" %} </h5>
     {% else %}
@@ -63,7 +63,7 @@
 
             </div>
             <div class="col-md-6">
-                {% if process.contract_start_date or process.contract_duration or process.contract_type %}
+                {% if process.contract_start_date or process.contract_duration or process.contract_type or process.salary_expectation %}
                 <div class="bs-callout">
                     <h4> {% trans 'Contract information' %}</h4>
                     <p>
@@ -83,6 +83,12 @@
                         <p>
                         <dt>{% trans "Contract start date" %}</dt>
                         <dd>{{ process.contract_start_date }}</dd>
+                        </p>
+                        {% endif %}
+                        {% if process.salary_expectation %}
+                        <p>
+                        <dt>{% trans "Salary expectation" %}</dt>
+                        <dd>{{ process.salary_expectation }} k€</dd>
                         </p>
                         {% endif %}
                     </p>
