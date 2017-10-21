@@ -314,8 +314,6 @@ def edit_candidate(request, process_id):
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
-            print("abc")
-            print(process.get_absolute_url())
             return HttpResponseRedirect(process.get_absolute_url())
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
