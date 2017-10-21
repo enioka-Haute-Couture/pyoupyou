@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 
 from django.db import models
@@ -30,6 +32,10 @@ class Sources(models.Model):
     def __str__(self):
         return self.name
 
+class CandidateManager(models.Manager):
+    def for_user(self, user):
+        return Candidate.objects.distinct().filter(process__in=Process.objects.for_user(user))
+
 
 class Candidate(models.Model):
     name = models.CharField(_("Name"), max_length=200)
@@ -39,6 +45,8 @@ class Candidate(models.Model):
     # TODO Required by the reverse admin url resolver?
     app_label = 'interview'
     model_name = 'candidate'
+
+    objects = CandidateManager()
 
     def __str__(self):
         return ("{name}").format(name=self.name)
@@ -66,6 +74,11 @@ class Document(models.Model):
         return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
 
 
+class ProcessManager(models.Manager):
+    def for_user(self, user):
+        return super(ProcessManager, self).get_queryset().filter(start_date__gte=user.date_joined)
+
+
 class Process(models.Model):
     OPEN = 'OP'
     NO_GO = 'NG'
@@ -84,6 +97,8 @@ class Process(models.Model):
         (OPEN, _('Open')),
     ) + CLOSED_STATE
 
+    objects = ProcessManager()
+
     candidate = models.ForeignKey(Candidate)
     subsidiary = models.ForeignKey(Subsidiary)
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
@@ -96,9 +111,16 @@ class Process(models.Model):
     closed_reason = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=OPEN)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
+
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
+
+    def user_can_access_process(user, process_id):
+        if ProcessManager().for_user(user).get(process_id) is not None:
+            return True
+        else:
+            return False
 
     @property
     def state(self):
@@ -175,6 +197,10 @@ class Process(models.Model):
             return False
         closed_since = datetime.date.today() - self.end_date
 
+class InterviewManager(models.Manager):
+    def for_user(self, user):
+        return super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
+
 
 class Interview(models.Model):
     NEED_PLANIFICATION = 'NP'
@@ -188,6 +214,8 @@ class Interview(models.Model):
         (GO, _('GO')),
         (NO_GO, _('NO')),
     )
+
+    objects = InterviewManager()
 
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
@@ -210,7 +238,7 @@ class Interview(models.Model):
         if self.rank is None:
             # Rank is based on the number of interviews during the
             # same process that occured before the interview
-            self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
+            self.rank = (Interview.objects.for_user(request.user).filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
 
