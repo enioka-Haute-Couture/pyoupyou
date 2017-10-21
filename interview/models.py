@@ -175,6 +175,13 @@ class Process(models.Model):
             return False
         closed_since = datetime.date.today() - self.end_date
 
+    @property
+    def current_rank(self):
+        last_interview = self.interview_set.last()
+        if last_interview is None:
+            return "0"
+        return last_interview.rank
+
 
 class Interview(models.Model):
     NEED_PLANIFICATION = 'NP'

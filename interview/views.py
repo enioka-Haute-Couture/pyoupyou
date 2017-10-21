@@ -29,6 +29,7 @@ class ProcessTable(tables.Table):
                                     template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
     contract_type = tables.Column(order_by=('contract_type__name',))
+    current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
@@ -41,6 +42,7 @@ class ProcessTable(tables.Table):
         attrs = {'class': 'table table-striped table-condensed'}
         sequence = (
             "needs_attention",
+            "current_rank",
             "candidate",
             "subsidiary",
             "start_date",
@@ -251,13 +253,13 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    a=datetime.datetime.now()
-    print(a)
     actions_needed_processes = Process.objects.filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
     c = request.user.consultant
     actions_needed_processes = [
         p for p in actions_needed_processes
-        if p.next_action_responsible == c or (hasattr(p.next_action_responsible, 'iterator') and c in p.next_action_responsible.iterator())
+        if p.next_action_responsible == c
+        or (hasattr(p.next_action_responsible, 'iterator')
+            and c in p.next_action_responsible.iterator())
     ]
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
