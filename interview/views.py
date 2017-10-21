@@ -205,10 +205,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
     """
-    if process_id is not None:
-        if not Process.user_can_access_process(request.user, process_id):
-            raise Http404("Process does not exist")
-
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if interview_id is not None:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)

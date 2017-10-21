@@ -116,12 +116,6 @@ class Process(models.Model):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
 
-    def user_can_access_process(user, process_id):
-        if ProcessManager().for_user(user).get(process_id) is not None:
-            return True
-        else:
-            return False
-
     @property
     def state(self):
         if self.closed_reason == Process.OPEN:
@@ -238,7 +232,7 @@ class Interview(models.Model):
         if self.rank is None:
             # Rank is based on the number of interviews during the
             # same process that occured before the interview
-            self.rank = (Interview.objects.for_user(request.user).filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
+            self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
         if self.id is None:
             self.next_state = self.next_state or Interview.NEED_PLANIFICATION
 
