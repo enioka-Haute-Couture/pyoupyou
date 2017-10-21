@@ -24,7 +24,7 @@ class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"), orderable=False)
-    next_action_responsible = tables.Column(orderable=False)
+    next_action_responsible = tables.Column(verbose_name=_("Next action responsible"), orderable=False)
     actions = tables.TemplateColumn(verbose_name='', orderable=False,
                                     template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
@@ -63,6 +63,7 @@ class ProcessEndTable(ProcessTable):
     class Meta(ProcessTable.Meta):
         sequence = (
             "needs_attention",
+            "current_rank",
             "candidate",
             "subsidiary",
             "start_date",

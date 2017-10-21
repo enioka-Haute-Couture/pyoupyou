@@ -16,6 +16,9 @@ class ContractType(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = _("Contract type")
+
 
 class SourcesCategory(models.Model):
     name = models.CharField(max_length=30)
@@ -44,6 +47,8 @@ class Candidate(models.Model):
     def __str__(self):
         return ("{name}").format(name=self.name)
 
+    class Meta:
+        verbose_name = _("Candidate")
 
 def document_path(instance, filename):
     # todo ensure uniqueness (if two documents have the same name we reach a problem)
@@ -93,11 +98,11 @@ class Process(models.Model):
         (OPEN, _('Open')),
     ) + CLOSED_STATE
 
-    candidate = models.ForeignKey(Candidate)
-    subsidiary = models.ForeignKey(Subsidiary)
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
+    subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
-    contract_type = models.ForeignKey(ContractType, null=True, blank=True)
+    contract_type = models.ForeignKey(ContractType, null=True, blank=True, verbose_name=_("Contract type"))
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
