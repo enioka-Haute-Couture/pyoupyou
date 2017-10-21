@@ -29,7 +29,7 @@ class ProcessTable(tables.Table):
                                     template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
     contract_type = tables.Column(order_by=('contract_type__name',))
-    current_rank = tables.Column(verbose_name="No itw", orderable=False)
+    current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
