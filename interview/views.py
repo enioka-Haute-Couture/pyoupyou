@@ -227,8 +227,9 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-def minute(request, interview_id):
+def minute_form(request, interview_id):
     interview = Interview.objects.for_user(request.user).get(id=interview_id)
+
     if request.method == 'POST':
         if 'itw-go' in request.POST:
             interview.next_state = Interview.GO
@@ -242,10 +243,17 @@ def minute(request, interview_id):
     else:
         form = InterviewMinuteForm(instance=interview)
 
-    return render(request, "interview/interview_minute.html", {'form': form,
-                                                               "process": interview.process,
-                                                               "interview": interview})
+    return render(request, "interview/interview_minute_form.html", {'form': form,
+                                                                    "process": interview.process,
+                                                                    "interview": interview})
 
+@login_required
+@require_http_methods(["GET"])
+def minute(request, interview_id):
+    interview = Interview.objects.get(id=interview_id)
+    context = {'interview': interview,
+               'process': interview.process}
+    return render(request, "interview/interview_minute.html", context)
 
 @login_required
 @require_http_methods(["GET"])
