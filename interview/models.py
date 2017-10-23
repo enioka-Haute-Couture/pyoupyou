@@ -3,10 +3,11 @@
 import datetime
 
 from django.db import models
+from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
-from pyoupyou.settings import DOCUMENT_TYPE, MINUTE_FORMAT
+from pyoupyou.settings import MINUTE_FORMAT
 from ref.models import Consultant, Subsidiary
 
 
@@ -16,6 +17,9 @@ class ContractType(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _("Contract type")
 
 
 class SourcesCategory(models.Model):
@@ -51,8 +55,11 @@ class Candidate(models.Model):
     def __str__(self):
         return ("{name}").format(name=self.name)
 
+    class Meta:
+        verbose_name = _("Candidate")
 
 def document_path(instance, filename):
+    # todo ensure uniqueness (if two documents have the same name we reach a problem)
     filename = filename.encode()
     extension = filename.split(b'.')[-1]
     filename = str(slugify(instance.candidate.name)).encode() + '.'.encode() + extension
@@ -64,11 +71,18 @@ def document_path(instance, filename):
 
 
 class Document(models.Model):
-    created_date = models.DateTimeField(auto_now_add=True)
-    candidate = models.ForeignKey(Candidate)
-    document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE)
-    content = models.FileField(upload_to=document_path)
-    still_valid = models.BooleanField(default=True)
+    DOCUMENT_TYPE = (
+        ('CV', 'CV'),
+        ('CL', 'Cover Letter'),
+        ('OT', 'Others'),
+    )
+
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
+    document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE, verbose_name=_("Kind of document"))
+    content = models.FileField(upload_to=document_path, verbose_name=_("Content file"))
+    # content_url = models.URLField(verbose_name=_("Content URL"))
+    still_valid = models.BooleanField(default=True, verbose_name=_("Still valid"))
 
     def __str__(self):
         return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
@@ -98,12 +112,12 @@ class Process(models.Model):
     ) + CLOSED_STATE
 
     objects = ProcessManager()
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
+    subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
 
-    candidate = models.ForeignKey(Candidate)
-    subsidiary = models.ForeignKey(Subsidiary)
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
-    contract_type = models.ForeignKey(ContractType, null=True, blank=True)
+    contract_type = models.ForeignKey(ContractType, null=True, blank=True, verbose_name=_("Contract type"))
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
@@ -116,7 +130,7 @@ class Process(models.Model):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
 
-    @property
+    @cached_property
     def state(self):
         if self.closed_reason == Process.OPEN:
             last_itw = self.interview_set.last()
@@ -126,7 +140,7 @@ class Process(models.Model):
         else:
             return self.closed_reason
 
-    @property
+    @cached_property
     def next_action_display(self):
         if self.closed_reason == Process.OPEN:
             if self.state:
@@ -139,7 +153,7 @@ class Process(models.Model):
         else:
             return self.get_closed_reason_display()
 
-    @property
+    @cached_property
     def next_action_responsible(self):
         if self.state in (Interview.NEED_PLANIFICATION, Interview.PLANNED):
             return self.interview_set.last().interviewers
@@ -159,7 +173,7 @@ class Process(models.Model):
             return True
         return self.end_date > datetime.date.today()
 
-    @property
+    @cached_property
     def needs_attention(self):
         # Is late:
         # - is_active
@@ -185,11 +199,19 @@ class Process(models.Model):
     def needs_attention_reason(self):
         return self.needs_attention[1]
 
-    @property
+    @cached_property
     def is_recently_closed(self):
         if self.end_date is None:
             return False
         closed_since = datetime.date.today() - self.end_date
+
+    @property
+    def current_rank(self):
+        last_interview = self.interview_set.last()
+        if last_interview is None:
+            return "0"
+        return last_interview.rank
+
 
 class InterviewManager(models.Manager):
     def for_user(self, user):
@@ -244,11 +266,15 @@ class Interview(models.Model):
 
         super(Interview, self).save(*args, **kwargs)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('process-details', args=[str(self.process_id)])
+
     class Meta:
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
 
-    @property
+    @cached_property
     def needs_attention(self):
         if self.planned_date is None:
             return (True, _("Interview must be planned"))

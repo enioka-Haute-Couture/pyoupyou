@@ -8,3 +8,4 @@ try:
     DATABASES
 except NameError:
     print("You need to declare a database settings in your settings/local.py file")
+

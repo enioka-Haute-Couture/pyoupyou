@@ -19,6 +19,7 @@ class ProcessTestCase(TestCase):
         print(p.next_action_display)
         self.assertEqual(p.next_action_display, "Pick up next interviewer")
 
+
 class InterviewTestCase(TestCase):
     def test_new_interview_state_equals_need_plannification(self):
         p = ProcessFactory()

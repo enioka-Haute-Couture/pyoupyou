@@ -24,11 +24,12 @@ class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
     next_action_display = tables.Column(verbose_name=_("Next action"), orderable=False)
-    next_action_responsible = tables.Column(orderable=False)
+    next_action_responsible = tables.Column(verbose_name=_("Next action responsible"), orderable=False)
     actions = tables.TemplateColumn(verbose_name='', orderable=False,
                                     template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
     contract_type = tables.Column(order_by=('contract_type__name',))
+    current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_next_action_responsible(self, value):
         if isinstance(value, Consultant):
@@ -41,6 +42,7 @@ class ProcessTable(tables.Table):
         attrs = {'class': 'table table-striped table-condensed'}
         sequence = (
             "needs_attention",
+            "current_rank",
             "candidate",
             "subsidiary",
             "start_date",
@@ -61,6 +63,7 @@ class ProcessEndTable(ProcessTable):
     class Meta(ProcessTable.Meta):
         sequence = (
             "needs_attention",
+            "current_rank",
             "candidate",
             "subsidiary",
             "start_date",
@@ -259,13 +262,13 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    a=datetime.datetime.now()
-    print(a)
     actions_needed_processes = Process.objects.for_user(request.user).filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
     c = request.user.consultant
     actions_needed_processes = [
         p for p in actions_needed_processes
-        if p.next_action_responsible == c or (hasattr(p.next_action_responsible, 'iterator') and c in p.next_action_responsible.iterator())
+        if p.next_action_responsible == c
+        or (hasattr(p.next_action_responsible, 'iterator')
+            and c in p.next_action_responsible.iterator())
     ]
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
@@ -303,18 +306,37 @@ def create_source_ajax(request):
         data = {'error': form.errors}
         return JsonResponse(data)
 
-
 @login_required
 @require_http_methods(["GET", "POST"])
-def edit_candidate(request, candidate_id):
-    candidate = Candidate.objects.for_user(request.user).get(pk=candidate_id)
+def edit_candidate(request, process_id):
+    # Todo : re-implement security
+    # Check that the user to change is candidate
+    # Candidate.objects.for_user(request.user).get(pk=candidate_id)
+    process = Process.objects.select_related('candidate').get(pk=process_id)
+    candidate = process.candidate
 
     if request.method == 'POST':
-        form = CandidateForm(request.POST, instance=candidate)
-        if form.is_valid():
-            form.instance.id = candidate_id
-            form.save()
-            return HttpResponseRedirect(candidate.process_set.last().get_absolute_url())
+        candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES, instance=candidate)
+        process_form = ProcessForm(data=request.POST, instance=process)
+
+        if candidate_form.is_valid() and process_form.is_valid():
+            candidate_form.id = candidate.id
+            candidate = candidate_form.save()
+            Document.objects.create(document_type='CV',
+                                    content=request.FILES["cv"],
+                                    candidate=candidate)
+            process_form.id = process.id
+            process = process_form.save(commit=False)
+            process.save()
+            return HttpResponseRedirect(process.get_absolute_url())
     else:
-        form = CandidateForm(instance=candidate)
-    return render(request, "interview/candidate.html", {"form": form})
+        candidate_form = ProcessCandidateForm(instance=candidate)
+        process_form = ProcessForm(instance=process)
+    source_form = SourceForm(prefix='source')
+    data = {
+        'process': process,
+        'candidate_form': candidate_form,
+        'process_form': process_form,
+        'source_form': source_form,
+    }
+    return render(request, "interview/new_candidate.html", data)
