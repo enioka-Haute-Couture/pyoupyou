@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 
 from django.db import models
@@ -34,6 +36,10 @@ class Sources(models.Model):
     def __str__(self):
         return self.name
 
+class CandidateManager(models.Manager):
+    def for_user(self, user):
+        return Candidate.objects.distinct().filter(process__in=Process.objects.for_user(user))
+
 
 class Candidate(models.Model):
     name = models.CharField(_("Name"), max_length=200)
@@ -43,6 +49,8 @@ class Candidate(models.Model):
     # TODO Required by the reverse admin url resolver?
     app_label = 'interview'
     model_name = 'candidate'
+
+    objects = CandidateManager()
 
     def __str__(self):
         return ("{name}").format(name=self.name)
@@ -80,6 +88,11 @@ class Document(models.Model):
         return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
 
 
+class ProcessManager(models.Manager):
+    def for_user(self, user):
+        return super(ProcessManager, self).get_queryset().filter(start_date__gte=user.date_joined)
+
+
 class Process(models.Model):
     OPEN = 'OP'
     NO_GO = 'NG'
@@ -98,8 +111,10 @@ class Process(models.Model):
         (OPEN, _('Open')),
     ) + CLOSED_STATE
 
+    objects = ProcessManager()
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
     subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
+
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
     contract_type = models.ForeignKey(ContractType, null=True, blank=True, verbose_name=_("Contract type"))
@@ -109,6 +124,7 @@ class Process(models.Model):
     sources = models.ForeignKey(Sources, null=True, blank=True)
     closed_reason = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=OPEN)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
+
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -197,6 +213,11 @@ class Process(models.Model):
         return last_interview.rank
 
 
+class InterviewManager(models.Manager):
+    def for_user(self, user):
+        return super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
+
+
 class Interview(models.Model):
     NEED_PLANIFICATION = 'NP'
     PLANNED = 'PL'
@@ -209,6 +230,8 @@ class Interview(models.Model):
         (GO, _('GO')),
         (NO_GO, _('NO')),
     )
+
+    objects = InterviewManager()
 
     process = models.ForeignKey(Process)
     next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))

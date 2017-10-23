@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'fontawesome',
     'django_select2',
     'interview.apps.InterviewConfig',
+    'django_markwhat',
 ]
 
 MIDDLEWARE = [

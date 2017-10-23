@@ -1,21 +1,30 @@
 {% extends 'interview/base.html' %}
-{% load crispy_forms_tags %}
 {% load admin_urls %}
 {% load i18n %}
+{% load markup %}
 
 {% block content %}
 <div class="container">
     <div class="lead">
         {% trans "Interview minute" %} <a href="{% url 'process-details' process_id=process.id %}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
-    <form method="post" id="itw-minute">
-        {% crispy form %}
-        <div class="form-group">
-            <div clas="controls">
-                <input type="submit" name="itw-go" value="{% trans "GO" %}" class="btn btn-success pull-right" id="submit-id-summit">
-                <input type="submit" name="itw-no" value="{% trans "NO" %}" class="btn btn-danger pull-right no-go" id="submit-id-summit">
-            </div>
-        </div>
-    </form>
+    <h3>{% trans "Interviewer" %}</h3>
+    <ul>
+        {% for interviewer in interview.interviewers.all %}
+        <li>{{ interviewer }}</li>
+        {% endfor %}
+    </ul>
+    <h3>{% trans "Minute" %}
+        {% if interview.next_state == "GO" %}
+        <i class="fa fa-thumbs-up fa-2x text-success" aria-hidden="true"></i>
+        {% elif interview.next_state == "NO" %}
+        <i class="fa fa-thumbs-down fa-2x text-danger" aria-hidden="true"></i>
+        {% endif %}
+    </h3>
+    <p>{{ interview.minute | commonmark }}</p>
+    <h3>{% trans "Suggested interviewer" %}</h3>
+    <p>{{ interview.suggested_interviewer }}</p>
+    <h3>{% trans "Next interview goal" %}</h3>
+    <p>{{ interview.next_interview_goal | commonmark }}</p>
 </div>
 {% endblock %}

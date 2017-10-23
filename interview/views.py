@@ -103,8 +103,8 @@ class InterviewTable(tables.Table):
 @login_required
 @require_http_methods(["GET"])
 def process(request, process_id):
-    process = Process.objects.get(id=process_id)
-    interviews = Interview.objects.filter(process=process).prefetch_related('process__candidate', 'interviewers')
+    process = Process.objects.for_user(request.user).get(id=process_id)
+    interviews = Interview.objects.for_user(request.user).filter(process=process).prefetch_related('process__candidate', 'interviewers')
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
@@ -121,7 +121,7 @@ def process(request, process_id):
 @login_required
 @require_http_methods(["POST"])
 def close_process(request, process_id):
-    process = Process.objects.get(pk=process_id)
+    process = Process.objects.for_user(request.user).get(pk=process_id)
     form = CloseForm(request.POST, instance=process)
     if form.is_valid():
         form.instance.end_date = datetime.date.today()
@@ -133,7 +133,7 @@ def close_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def reopen_process(request, process_id):
-    process = Process.objects.get(id=process_id)
+    process = Process.objects.for_user(request.user).get(id=process_id)
     process.end_date = None
     process.closed_reason = Process.OPEN
     process.closed_comment = ''
@@ -144,7 +144,7 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = Process.objects.filter(end_date__isnull=False).select_related('candidate', 'contract_type')
+    closed_processes = Process.objects.for_user(request.user).filter(end_date__isnull=False).select_related('candidate', 'contract_type')
 
     closed_processes_table = ProcessEndTable(closed_processes, prefix='c')
 
@@ -162,9 +162,9 @@ def closed_processes(request):
 @login_required
 @require_http_methods(["GET"])
 def processes(request):
-    open_processes = Process.objects.filter(closed_reason=Process.OPEN)
+    open_processes = Process.objects.for_user(request.user).filter(closed_reason=Process.OPEN)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    recently_closed_processes = Process.objects.filter(end_date__gte=a_week_ago)
+    recently_closed_processes = Process.objects.for_user(request.user).filter(end_date__gte=a_week_ago)
 
     open_processes_table = ProcessTable(open_processes, prefix='o')
     recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix='c')
@@ -210,7 +210,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if interview_id is not None:
-        interview = Interview.objects.get(id=interview_id)
+        interview = Interview.objects.for_user(request.user).get(id=interview_id)
     else:
         interview = Interview(process_id=process_id)
     if request.method == 'POST':
@@ -222,7 +222,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         form = InterviewForm(instance=interview)
 
-    process = Process.objects.get(id=process_id)
+    process = Process.objects.for_user(request.user).get(id=process_id)
 
     return render(request, "interview/interview.html", {'form': form,
                                                         'process': process})
@@ -230,8 +230,9 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-def minute(request, interview_id):
-    interview = Interview.objects.get(id=interview_id)
+def minute_form(request, interview_id):
+    interview = Interview.objects.for_user(request.user).get(id=interview_id)
+
     if request.method == 'POST':
         if 'itw-go' in request.POST:
             interview.next_state = Interview.GO
@@ -245,16 +246,23 @@ def minute(request, interview_id):
     else:
         form = InterviewMinuteForm(instance=interview)
 
-    return render(request, "interview/interview_minute.html", {'form': form,
-                                                               "process": interview.process,
-                                                               "interview": interview})
+    return render(request, "interview/interview_minute_form.html", {'form': form,
+                                                                    "process": interview.process,
+                                                                    "interview": interview})
 
+@login_required
+@require_http_methods(["GET"])
+def minute(request, interview_id):
+    interview = Interview.objects.get(id=interview_id)
+    context = {'interview': interview,
+               'process': interview.process}
+    return render(request, "interview/interview_minute.html", context)
 
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    actions_needed_processes = Process.objects.filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
+    actions_needed_processes = Process.objects.for_user(request.user).filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
     c = request.user.consultant
     actions_needed_processes = [
         p for p in actions_needed_processes
@@ -264,12 +272,12 @@ def dashboard(request):
     ]
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
-    related_processes = Process.objects.filter(interview__interviewers__user=request.user).\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct().select_related('subsidiary__responsible')
+    related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user).\
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
-    subsidiary_processes = Process.objects.\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company).select_related('subsidiary__responsible')
+    subsidiary_processes = Process.objects.for_user(request.user).\
+        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company)
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -301,6 +309,9 @@ def create_source_ajax(request):
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_candidate(request, process_id):
+    # Todo : re-implement security
+    # Check that the user to change is candidate
+    # Candidate.objects.for_user(request.user).get(pk=candidate_id)
     process = Process.objects.select_related('candidate').get(pk=process_id)
     candidate = process.candidate
 
