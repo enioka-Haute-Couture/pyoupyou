@@ -6,6 +6,9 @@ from interview.models import Process, Document, Interview, Candidate
 
 import pytz
 
+from django.utils.translation import ugettext_lazy as _
+
+
 class ProcessTestCase(TestCase):
     def test_state(self):
         p = ProcessFactory()
@@ -16,8 +19,7 @@ class ProcessTestCase(TestCase):
 
     def test_next_action_display(self):
         p = ProcessFactory()
-        print(p.next_action_display)
-        self.assertEqual(p.next_action_display, "Pick up next interviewer")
+        self.assertEqual(p.next_action_display, _("Pick up next interviewer"))
 
 
 class InterviewTestCase(TestCase):
