@@ -21,6 +21,7 @@ class MultipleConsultantWidget(ModelSelect2MultipleWidget):
 
 class SourcesWidget(ModelSelect2Widget):
     model = Sources
+    queryset = Sources.objects.filter(archived=False)
     search_fields = [
         'name__icontains',
     ]

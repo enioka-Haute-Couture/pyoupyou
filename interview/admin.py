@@ -65,6 +65,6 @@ class SourcesCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Sources)
 class SourcesAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'category')
-    list_filter = ('category',)
+    list_display = ('id', 'name', 'category', 'archived')
+    list_filter = ('category', 'archived')
     search_fields = ('name',)
