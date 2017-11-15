@@ -32,6 +32,7 @@ class SourcesCategory(models.Model):
 class Sources(models.Model):
     name = models.CharField(max_length=50)
     category = models.ForeignKey(SourcesCategory)
+    archived = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
