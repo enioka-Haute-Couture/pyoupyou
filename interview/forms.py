@@ -32,7 +32,7 @@ class ProcessCandidateForm(forms.ModelForm):
         helper = FormHelper()
         exclude = []
 
-    cv = forms.FileField(label="CV (pour une candidature)", required=True)
+    cv = forms.FileField(label="CV (pour une candidature)", required=False)
 
     helper = FormHelper()
     helper.form_tag = False
