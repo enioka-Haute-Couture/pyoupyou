@@ -7,3 +7,4 @@ django-tables2>=1.4.2,<1.5
 django-ical==1.4
 django-markwhat==1.5.1
 CommonMark==0.7.4
+django-bleach==0.3.0

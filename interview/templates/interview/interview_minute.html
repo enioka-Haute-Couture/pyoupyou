@@ -2,6 +2,7 @@
 {% load admin_urls %}
 {% load i18n %}
 {% load markup %}
+{% load bleach_tags %}
 
 {% block content %}
 <div class="container">
@@ -21,10 +22,10 @@
         <i class="fa fa-thumbs-down fa-2x text-danger" aria-hidden="true"></i>
         {% endif %}
     </h3>
-    <p>{{ interview.minute | commonmark }}</p>
+    <p>{{ interview.minute | bleach | commonmark}}</p>
     <h3>{% trans "Suggested interviewer" %}</h3>
     <p>{{ interview.suggested_interviewer }}</p>
     <h3>{% trans "Next interview goal" %}</h3>
-    <p>{{ interview.next_interview_goal | commonmark }}</p>
+    <p>{{ interview.next_interview_goal | bleach | commonmark}}</p>
 </div>
 {% endblock %}
