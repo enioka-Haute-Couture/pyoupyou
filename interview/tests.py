@@ -8,7 +8,7 @@ from interview.models import Process, Document, Interview, Candidate
 
 import pytz
 
-from interview.views import process, minute_form, minute, interview, close_process, reopen_process
+from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from ref.factory import SubsidiaryFactory
 from ref.models import Consultant
 from django.utils.translation import ugettext_lazy as _
@@ -117,11 +117,11 @@ class AccessRestrictionDateTestCase(TestCase):
         request = self.factory.post(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
 
         request.user = self.consultantOld.user
-        response = minute_form(request, self.i.id)
+        response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 200)
 
         request.user = self.consultantNew.user
-        response = minute_form(request, self.i.id)
+        response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 404)
 
     def testViewInterviewMinute(self):
@@ -153,9 +153,9 @@ class AccessRestrictionUserTestCase(TestCase):
         request = self.factory.post(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
 
         request.user = self.consultantItw.user
-        response = minute_form(request, self.i.id)
+        response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 200)
 
         request.user = self.consultantRestricted.user
-        response = minute_form(request, self.i.id)
+        response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 404)

@@ -244,7 +244,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-def minute_form(request, interview_id):
+def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
     except Interview.DoesNotExist:
