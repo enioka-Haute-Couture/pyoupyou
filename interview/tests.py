@@ -6,7 +6,7 @@ from interview.models import Process, Document, Interview, Candidate
 
 import pytz
 
-from interview.views import process
+from interview.views import process, minute_form, minute, interview, close_process, reopen_process
 from ref.factory import SubsidiaryFactory
 from ref.models import Consultant
 from django.utils.translation import ugettext_lazy as _
@@ -51,7 +51,7 @@ class InterviewTestCase(TestCase):
         self.assertEqual(Interview.GO, i1.next_state)
 
 
-class AccessRestrictionTestCase(TestCase):
+class AccessRestrictionDateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -68,15 +68,92 @@ class AccessRestrictionTestCase(TestCase):
         self.p = ProcessFactory()
         self.p.start_date = datetime.date(2016, 10, 10)
         self.p.save()
+        self.i = InterviewFactory(process=self.p)
+        self.i.interviewers = [self.consultantOld, self.consultantNew]
+        self.i.save()
 
     def testViewProcess(self):
         request = self.factory.get('/process/{}/'.format(self.p.id))
+
         request.user = self.consultantOld.user
         response = process(request, self.p.id)
         self.assertEqual(response.status_code, 200)
 
         request.user = self.consultantNew.user
-        with self.assertRaises(Process.DoesNotExist):
-            process(request, self.p.id)
+        response = process(request, self.p.id)
+        self.assertEqual(response.status_code, 404)
 
-    # TODO test other view using for_user
+    def testViewCloseProcess(self):
+        request = self.factory.post('/process/{}/close'.format(self.p.id))
+
+        request.user = self.consultantNew.user
+        response = close_process(request, self.p.id)
+        self.assertEqual(response.status_code, 404)
+
+    def testViewReopenProcess(self):
+        request = self.factory.get('/process/{}/reopen'.format(self.p.id))
+
+        request.user = self.consultantNew.user
+        response = reopen_process(request, self.p.id)
+        self.assertEqual(response.status_code, 404)
+
+    def testViewInterviewPlan(self):
+        request = self.factory.get('process/{}/interview/{}/plan'.format(self.p.id, self.i.id))
+
+        request.user = self.consultantNew.user
+        response = interview(request, self.p.id, self.i.id, "plan")
+        self.assertEqual(response.status_code, 404)
+
+    def testViewInterviewEdit(self):
+        request = self.factory.get('process/{}/interview/{}/edit'.format(self.p.id, self.i.id))
+
+        request.user = self.consultantNew.user
+        response = interview(request, self.p.id, self.i.id, "edit")
+        self.assertEqual(response.status_code, 404)
+
+    def testViewInterviewMinuteForm(self):
+        request = self.factory.get('/interview/{}/minute/edit'.format(self.p.id))
+
+        request.user = self.consultantOld.user
+        response = minute_form(request, self.i.id)
+        self.assertEqual(response.status_code, 200)
+
+        request.user = self.consultantNew.user
+        response = minute_form(request, self.i.id)
+        self.assertEqual(response.status_code, 404)
+
+    def testViewInterviewMinute(self):
+        request = self.factory.get('/interview/{}/minute'.format(self.p.id))
+
+        request.user = self.consultantOld.user
+        response = minute(request, self.i.id)
+        self.assertEqual(response.status_code, 200)
+
+        request.user = self.consultantNew.user
+        response = minute(request, self.i.id)
+        self.assertEqual(response.status_code, 404)
+
+
+class AccessRestrictionUserTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        sub = SubsidiaryFactory()
+        self.consultantItw = Consultant.objects.create_consultant('ITW', 'itw@mail.com', sub, 'ITW')
+        self.consultantRestricted = Consultant.objects.create_consultant('RES', 'res@mail.com', sub, 'RES')
+
+        self.p = ProcessFactory()
+        self.i = InterviewFactory(process=self.p)
+        self.i.interviewers = [self.consultantItw, ]
+        self.i.save()
+
+    def testOnlyAssignedUserCanEditMinute(self):
+        request = self.factory.get('/interview/{}/minute/edit'.format(self.p.id))
+
+        request.user = self.consultantItw.user
+        response = minute_form(request, self.i.id)
+        self.assertEqual(response.status_code, 200)
+
+        request.user = self.consultantRestricted.user
+        response = minute_form(request, self.i.id)
+        self.assertEqual(response.status_code, 404)

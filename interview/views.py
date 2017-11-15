@@ -3,7 +3,7 @@ import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import ugettext as _
@@ -103,7 +103,10 @@ class InterviewTable(tables.Table):
 @login_required
 @require_http_methods(["GET"])
 def process(request, process_id):
-    process = Process.objects.for_user(request.user).get(id=process_id)
+    try:
+        process = Process.objects.for_user(request.user).get(id=process_id)
+    except Process.DoesNotExist:
+        return HttpResponseNotFound()
     interviews = Interview.objects.for_user(request.user).filter(process=process).prefetch_related('process__candidate', 'interviewers')
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
@@ -121,7 +124,11 @@ def process(request, process_id):
 @login_required
 @require_http_methods(["POST"])
 def close_process(request, process_id):
-    process = Process.objects.for_user(request.user).get(pk=process_id)
+    try:
+        process = Process.objects.for_user(request.user).get(pk=process_id)
+    except Process.DoesNotExist:
+        return HttpResponseNotFound()
+
     form = CloseForm(request.POST, instance=process)
     if form.is_valid():
         form.instance.end_date = datetime.date.today()
@@ -133,7 +140,11 @@ def close_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def reopen_process(request, process_id):
-    process = Process.objects.for_user(request.user).get(id=process_id)
+    try:
+        process = Process.objects.for_user(request.user).get(pk=process_id)
+    except Process.DoesNotExist:
+        return HttpResponseNotFound()
+
     process.end_date = None
     process.closed_reason = Process.OPEN
     process.closed_comment = ''
@@ -210,7 +221,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if interview_id is not None:
-        interview = Interview.objects.for_user(request.user).get(id=interview_id)
+        try:
+            interview = Interview.objects.for_user(request.user).get(id=interview_id)
+        except Interview.DoesNotExist:
+            return HttpResponseNotFound()
     else:
         interview = Interview(process_id=process_id)
     if request.method == 'POST':
@@ -231,8 +245,14 @@ def interview(request, process_id=None, interview_id=None, action=None):
 @login_required
 @require_http_methods(["GET", "POST"])
 def minute_form(request, interview_id):
-    interview = Interview.objects.for_user(request.user).get(id=interview_id)
+    try:
+        interview = Interview.objects.for_user(request.user).get(id=interview_id)
+    except Interview.DoesNotExist:
+        return HttpResponseNotFound()
 
+    # check if user is allowed to edit
+    if request.user.consultant not in interview.interviewers.all():
+        return HttpResponseNotFound()
     if request.method == 'POST':
         if 'itw-go' in request.POST:
             interview.next_state = Interview.GO
@@ -253,7 +273,11 @@ def minute_form(request, interview_id):
 @login_required
 @require_http_methods(["GET"])
 def minute(request, interview_id):
-    interview = Interview.objects.get(id=interview_id)
+    try:
+        interview = Interview.objects.for_user(request.user).get(id=interview_id)
+    except Interview.DoesNotExist:
+        return HttpResponseNotFound()
+
     context = {'interview': interview,
                'process': interview.process}
     return render(request, "interview/interview_minute.html", context)
