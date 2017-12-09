@@ -93,7 +93,7 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_reopen_process(self):
-        request = self.factory.post(reverse('process-reopen', kwargs={'process_id': self.p.id}))
+        request = self.factory.get(reverse('process-reopen', kwargs={'process_id': self.p.id}))
 
         request.user = self.consultantNew.user
         response = reopen_process(request, self.p.id)
@@ -116,7 +116,7 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_interview_minute_form(self):
-        request = self.factory.post(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
 
         request.user = self.consultantOld.user
         response = minute_edit(request, self.i.id)
@@ -127,7 +127,7 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_interview_minute(self):
-        request = self.factory.post(reverse('interview-minute', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse('interview-minute', kwargs={'interview_id': self.i.id}))
 
         request.user = self.consultantOld.user
         response = minute(request, self.i.id)
@@ -152,7 +152,7 @@ class AccessRestrictionUserTestCase(TestCase):
         self.i.save()
 
     def test_only_assigned_user_can_edit_minute(self):
-        request = self.factory.post(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
 
         request.user = self.consultantItw.user
         response = minute_edit(request, self.i.id)
