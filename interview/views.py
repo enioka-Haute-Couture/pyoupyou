@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import datetime
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.core.management import call_command
 from django.db.models import Q
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.six import StringIO
 from django.utils.translation import ugettext as _
 from django.db import transaction
 
@@ -13,9 +15,9 @@ import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 
-from interview.models import Process, Document, Interview, Candidate
+from interview.models import Process, Document, Interview
 from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
-    InterviewFormEditInterviewers, SourceForm, CandidateForm, CloseForm
+    InterviewFormEditInterviewers, SourceForm, CloseForm
 
 from ref.models import Consultant
 
@@ -78,7 +80,7 @@ class ProcessEndTable(ProcessTable):
 
 
 class InterviewTable(tables.Table):
-    #rank = tables.Column(verbose_name='#')
+    # rank = tables.Column(verbose_name='#')
     actions = tables.TemplateColumn(verbose_name='', orderable=False,
                                     template_name='interview/tables/interview_actions.html')
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
@@ -107,7 +109,8 @@ def process(request, process_id):
         process = Process.objects.for_user(request.user).get(id=process_id)
     except Process.DoesNotExist:
         return HttpResponseNotFound()
-    interviews = Interview.objects.for_user(request.user).filter(process=process).prefetch_related('process__candidate', 'interviewers')
+    interviews = Interview.objects.for_user(request.user).filter(process=process).prefetch_related('process__candidate',
+                                                                                                   'interviewers')
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
@@ -155,7 +158,8 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = Process.objects.for_user(request.user).filter(end_date__isnull=False).select_related('candidate', 'contract_type')
+    closed_processes = Process.objects.for_user(request.user).filter(end_date__isnull=False).select_related('candidate',
+                                                                                                            'contract_type')
 
     closed_processes_table = ProcessEndTable(closed_processes, prefix='c')
 
@@ -272,6 +276,7 @@ def minute_edit(request, interview_id):
                                                                     "process": interview.process,
                                                                     "interview": interview})
 
+
 @login_required
 @require_http_methods(["GET"])
 def minute(request, interview_id):
@@ -284,26 +289,30 @@ def minute(request, interview_id):
                'process': interview.process}
     return render(request, "interview/interview_minute.html", context)
 
+
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    actions_needed_processes = Process.objects.for_user(request.user).filter(closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related('subsidiary__responsible')
+    actions_needed_processes = Process.objects.for_user(request.user).filter(
+        closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related(
+        'subsidiary__responsible')
     c = request.user.consultant
     actions_needed_processes = [
         p for p in actions_needed_processes
         if p.next_action_responsible == c
-        or (hasattr(p.next_action_responsible, 'iterator')
-            and c in p.next_action_responsible.iterator())
+           or (hasattr(p.next_action_responsible, 'iterator')
+               and c in p.next_action_responsible.iterator())
     ]
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
-    related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user).\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).distinct()
+    related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user). \
+        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
-    subsidiary_processes = Process.objects.for_user(request.user).\
-        filter(Q(end_date__gte=a_week_ago)|Q(closed_reason=Process.OPEN)).filter(subsidiary=request.user.consultant.company)
+    subsidiary_processes = Process.objects.for_user(request.user). \
+        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).filter(
+        subsidiary=request.user.consultant.company)
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -332,12 +341,10 @@ def create_source_ajax(request):
         data = {'error': form.errors}
         return JsonResponse(data)
 
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def edit_candidate(request, process_id):
-    # Todo : re-implement security
-    # Check that the user to change is candidate
-    # Candidate.objects.for_user(request.user).get(pk=candidate_id)
     try:
         process = Process.objects.for_user(request.user).select_related('candidate').get(id=process_id)
     except Process.DoesNotExist:
@@ -371,3 +378,12 @@ def edit_candidate(request, process_id):
         'source_form': source_form,
     }
     return render(request, "interview/new_candidate.html", data)
+
+
+@user_passes_test(lambda u: u.is_active and u.is_superuser)
+def dump_data(request):
+    out = StringIO()
+    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True, stdout=out)
+    response = HttpResponse(out.getvalue(), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename=dump.json'
+    return response
