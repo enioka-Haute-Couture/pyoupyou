@@ -196,9 +196,11 @@ def new_candidate(request):
         process_form = ProcessForm(data=request.POST)
         if candidate_form.is_valid() and process_form.is_valid():
             candidate = candidate_form.save()
-            Document.objects.create(document_type='CV',
-                                    content=request.FILES["cv"],
-                                    candidate=candidate)
+            content = request.FILES.get('cv', None)
+            if content:
+                Document.objects.create(document_type='CV',
+                                        content=content,
+                                        candidate=candidate)
             process = process_form.save(commit=False)
             process.candidate = candidate
             process.save()
@@ -346,9 +348,11 @@ def edit_candidate(request, process_id):
         if candidate_form.is_valid() and process_form.is_valid():
             candidate_form.id = candidate.id
             candidate = candidate_form.save()
-            Document.objects.create(document_type='CV',
-                                    content=request.FILES["cv"],
-                                    candidate=candidate)
+            content = request.FILES.get("cv", None)
+            if content:
+                Document.objects.create(document_type='CV',
+                                        content=content,
+                                        candidate=candidate)
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
