@@ -139,3 +139,5 @@ MINUTE_FORMAT = (
     ('md', 'Markdown'),
     ('rst', "ReStructured Text"),
 )
+
+USE_X_FORWARDED_HOST=True
