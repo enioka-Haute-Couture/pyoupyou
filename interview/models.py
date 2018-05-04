@@ -3,6 +3,8 @@
 import datetime
 
 from django.db import models
+from django.db.models.signals import post_save, m2m_changed
+from django.dispatch import receiver
 from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -36,6 +38,7 @@ class Sources(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class CandidateManager(models.Manager):
     def for_user(self, user):
@@ -95,11 +98,17 @@ class ProcessManager(models.Manager):
 
 
 class Process(models.Model):
+    WAITING_INTERVIEW_PLANIFICATION = 'WP'
+    INTERVIEW_IS_PLANNED = 'WI'
+    WAITING_ITW_MINUTE = 'WM'
     OPEN = 'OP'
+    WAITING_INTERVIEWER_TO_BE_DESIGNED = 'WA'
+    WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS = 'WK'
     NO_GO = 'NG'
     CANDIDATE_DECLINED = 'CD'
     HIRED = 'HI'
     OTHER = 'NO'
+    JOB_OFFER = 'JO'
 
     CLOSED_STATE = (
         (NO_GO, _('Last interviewer interupt process')),
@@ -108,9 +117,22 @@ class Process(models.Model):
         (OTHER, _('Closed - other reason')),
     )
 
+    INTERVIEW_STATE = (
+        (WAITING_INTERVIEW_PLANIFICATION, _('Waiting interview planification')),
+        (WAITING_ITW_MINUTE, _('Waiting interview minute')),
+        (INTERVIEW_IS_PLANNED, _('Waiting interview')),
+    )
+    OPEN_STATE = (
+        WAITING_INTERVIEWER_TO_BE_DESIGNED,
+        WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+        JOB_OFFER,
+    ) + INTERVIEW_STATE
     PROCESS_STATE = (
         (OPEN, _('Open')),
-    ) + CLOSED_STATE
+        (WAITING_INTERVIEWER_TO_BE_DESIGNED, _('Waiting interviewer to be designed')),
+        (WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS, _('Waiting next interview designation or process termination')),
+        (JOB_OFFER, _('Waiting candidate feedback after a job offer'))
+    ) + INTERVIEW_STATE + CLOSED_STATE
 
     objects = ProcessManager()
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
@@ -123,45 +145,63 @@ class Process(models.Model):
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True)
-    closed_reason = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=OPEN)
+    responsible = models.ManyToManyField(Consultant, blank=True)
+    state = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=WAITING_INTERVIEWER_TO_BE_DESIGNED)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        super().save(force_insert, force_update, using, update_fields)
+
+        if self.state in (Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
+                          Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+                          Process.JOB_OFFER):
+            self.responsible.clear()
+            self.responsible.add(self.subsidiary.responsible)
+        if self.state in (Process.CANDIDATE_DECLINED, Process.HIRED):
+            self.responsible.clear()
+        if self.state in (Process.WAITING_INTERVIEW_PLANIFICATION,
+                          Process.INTERVIEW_IS_PLANNED):
+            self.responsible.clear()
+            for interviewer in self.interview_set.last().interviewers.all():
+                self.responsible.add(interviewer)
 
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
 
-    @cached_property
-    def state(self):
-        if self.closed_reason == Process.OPEN:
-            last_itw = self.interview_set.last()
-            if last_itw:
-                return self.interview_set.last().next_state
-            return None
-        else:
-            return self.closed_reason
 
-    @cached_property
-    def next_action_display(self):
-        if self.closed_reason == Process.OPEN:
-            if self.state:
-                if self.state == Interview.GO:
-                    return _("Pick up next interviewer")
-                if self.state == Interview.NO_GO:
-                    return _("Inform candidate")
-                return dict(Interview.ITW_STATE)[self.state]
-            return _("Pick up next interviewer")
-        else:
-            return self.get_closed_reason_display()
+    # @cached_property
+    # def state(self):
+    #     if self.closed_reason == Process.OPEN:
+    #         last_itw = self.interview_set.last()
+    #         if last_itw:
+    #             return self.interview_set.last().state
+    #         return None
+    #     else:
+    #         return self.closed_reason
 
-    @cached_property
-    def next_action_responsible(self):
-        if self.state in (Interview.NEED_PLANIFICATION, Interview.PLANNED):
-            return self.interview_set.last().interviewers
-        return self.subsidiary.responsible
+    # @cached_property
+    # def next_action_display(self):
+    #     if self.closed_reason == Process.OPEN:
+    #         if self.state:
+    #             if self.state == Interview.GO:
+    #                 return _("Pick up next interviewer")
+    #             if self.state == Interview.NO_GO:
+    #                 return _("Inform candidate")
+    #             return dict(Interview.ITW_STATE)[self.state]
+    #         return _("Pick up next interviewer")
+    #     else:
+    #         return self.get_closed_reason_display()
 
-    def is_open(self):
-        return self.closed_reason == Process.OPEN
+    # @cached_property
+    # def next_action_responsible(self):
+    #     if self.state in (Interview.WAITING_PLANIFICATION, Interview.PLANNED):
+    #         return self.interview_set.last().interviewers
+    #     return self.subsidiary.responsible
+
+    # def is_open(self):
+    #     return self.state not in Process.CLOSED_STATE
 
     def __str__(self):
         return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,
@@ -174,31 +214,12 @@ class Process(models.Model):
             return True
         return self.end_date > datetime.date.today()
 
-    @cached_property
+    @property
     def needs_attention(self):
-        # Is late:
-        # - is_active
-        # - last interview past and no minute
-        # - no next interview planned
-        if not self.is_active:
-            return (False, "")
-        last_interview = self.interview_set.last()
-        if last_interview is None:
-            return (True, _("No interview has been planned yet"))
-        if last_interview.planned_date and last_interview.planned_date.date() < datetime.date.today() \
-                and last_interview.needs_attention_bool:
-            return (True, _("Last interview needs attention"))
-        if last_interview.next_state == Interview.GO:
-            return (True, "Need to select next_interviewer")
-        return (False, "")
-
-    @property
-    def needs_attention_bool(self):
-        return self.needs_attention[0]
-
-    @property
-    def needs_attention_reason(self):
-        return self.needs_attention[1]
+        return self.is_active and self.state in (Process.WAITING_ITW_MINUTE,
+                                  Process.WAITING_INTERVIEW_PLANIFICATION,
+                                  Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
+                                  Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
 
     @cached_property
     def is_recently_closed(self):
@@ -220,22 +241,26 @@ class InterviewManager(models.Manager):
 
 
 class Interview(models.Model):
-    NEED_PLANIFICATION = 'NP'
+    WAITING_PLANIFICATION = 'NP'
     PLANNED = 'PL'
     GO = 'GO'
     NO_GO = 'NO'
+    DRAFT = 'DR'
+    WAIT_INFORMATION = 'WI'
 
     ITW_STATE = (
-        (NEED_PLANIFICATION, _('NEED PLANIFICATION')),
+        (WAITING_PLANIFICATION, _('NEED PLANIFICATION')),
         (PLANNED, _('PLANNED')),
         (GO, _('GO')),
         (NO_GO, _('NO')),
+        (DRAFT, _('DRAFT')),
+        (WAIT_INFORMATION, _('WAIT INFORMATION')),
     )
 
     objects = InterviewManager()
 
     process = models.ForeignKey(Process)
-    next_state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
+    state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
     interviewers = models.ManyToManyField(Consultant)
@@ -252,20 +277,36 @@ class Interview(models.Model):
         return "#{rank} - {process}".format(process=self.process, rank=self.rank)
 
     def save(self, *args, **kwargs):
+        current_state = self.state
+        is_new = self.id is None
+
         if self.rank is None:
             # Rank is based on the number of interviews during the
             # same process that occured before the interview
             self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
-        if self.id is None:
-            self.next_state = self.next_state or Interview.NEED_PLANIFICATION
 
-        if self.planned_date is None and self.next_state is None:
-            self.next_state = self.NEED_PLANIFICATION
+        if is_new:
+            self.state = self.state or Interview.WAITING_PLANIFICATION
+
+        if self.planned_date is None and self.state is None:
+            self.state = self.WAITING_PLANIFICATION
         else:
-            if self.next_state == self.NEED_PLANIFICATION and self.planned_date is not None:
-                self.next_state = self.PLANNED
+            if self.state == self.WAITING_PLANIFICATION and self.planned_date is not None:
+                self.state = self.PLANNED
 
         super(Interview, self).save(*args, **kwargs)
+        if self.state == self.WAITING_PLANIFICATION:
+            self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
+            self.process.save()
+        elif self.state == self.PLANNED:
+            self.process.state = Process.INTERVIEW_IS_PLANNED
+            self.process.save()
+        if self.state in (Interview.GO, Interview.NO_GO):
+            self.process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+            self.process.save()
+
+        if is_new:
+            self.trigger_notification()
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -275,21 +316,41 @@ class Interview(models.Model):
         unique_together = (('process', 'rank'), )
         ordering = ['process', 'rank']
 
-    @cached_property
+    @property
     def needs_attention(self):
         if self.planned_date is None:
             return (True, _("Interview must be planned"))
         if self.planned_date and self.planned_date.date() < datetime.date.today():
-            if self.next_state in [self.PLANNED, self.NEED_PLANIFICATION]:
+            if self.state in [self.PLANNED, self.WAITING_PLANIFICATION]:
                 return (True, _("Interview result hasn't been submited"))
             if not self.minute:
                 return (True, _("No minute has been written for this interview"))
         return (False, "")
 
-    @property
-    def needs_attention_bool(self):
-        return self.needs_attention[0]
+    def trigger_notification(self):
+        # print("NOTIFICATION : ")
+        # print(self.interviewers.all())
+        pass
 
-    @property
-    def needs_attention_reason(self):
-        return self.needs_attention[1]
+
+@receiver(post_save, sender=Interview)
+def interview_post_save(*args, **kwargs):
+    # print("post save")
+    # print(kwargs)
+    # print(kwargs["instance"].interviewers.all())
+    pass
+
+@receiver(m2m_changed, sender=Interview.interviewers.through)
+def interview_m2m_changed(sender, **kwargs):
+    # # TODO filter actions (post_add
+    # action = kwargs['action']
+    # if action == "post_add":
+    #     print(f"added {kwargs['pk_set']}")
+    # if action == "post_remove":
+    #     print(f"removed {kwargs['pk_remove']}")
+    #
+    # print("m2m")
+    # instance = kwargs["instance"]
+    # print(kwargs)
+    # instance.trigger_notification()
+    pass

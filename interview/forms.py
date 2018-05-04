@@ -138,6 +138,6 @@ class CloseForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         default_choice = Process.NO_GO
-        if self.instance.interview_set.last() and self.instance.interview_set.last().next_state == Interview.GO:
+        if self.instance.interview_set.last() and self.instance.interview_set.last().state == Interview.GO:
             default_choice = Process.HIRED
         self.fields['closed_reason'].initial = default_choice

@@ -9,7 +9,7 @@ from interview.models import Process, Document, Interview, Candidate
 import pytz
 
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
-from ref.factory import SubsidiaryFactory
+from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
 from django.utils.translation import ugettext_lazy as _
 
@@ -17,10 +17,10 @@ from django.utils.translation import ugettext_lazy as _
 class ProcessTestCase(TestCase):
     def test_state(self):
         p = ProcessFactory()
-        i1 = InterviewFactory(process=p, rank=1, next_state='GO')
-        i3 = InterviewFactory(process=p, rank=3, next_state='PL')
-        i2 = InterviewFactory(process=p, rank=2, next_state='NO')
-        self.assertEqual(p.state, i3.next_state)
+        i1 = InterviewFactory(process=p, rank=1, state='GO')
+        i3 = InterviewFactory(process=p, rank=3, state='PL')
+        i2 = InterviewFactory(process=p, rank=2, state='NO')
+        self.assertEqual(p.state, i3.state)
 
     def test_next_action_display(self):
         p = ProcessFactory()
@@ -32,7 +32,7 @@ class InterviewTestCase(TestCase):
         p = ProcessFactory()
         i1 = Interview(process_id=p.id)
         i1.save()
-        self.assertEqual(Interview.NEED_PLANIFICATION, i1.next_state)
+        self.assertEqual(Interview.WAITING_PLANIFICATION, i1.state)
 
     def test_set_interview_date_state_equals_planned(self):
         p = ProcessFactory()
@@ -40,7 +40,7 @@ class InterviewTestCase(TestCase):
         i1.save()
         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
         i1.save()
-        self.assertEqual(Interview.PLANNED, i1.next_state)
+        self.assertEqual(Interview.PLANNED, i1.state)
 
     def test_interview_replanned_after_state_set_keeps_state(self):
         p = ProcessFactory()
@@ -48,9 +48,9 @@ class InterviewTestCase(TestCase):
         i1.save()
         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
         i1.save()
-        i1.next_state = Interview.GO
+        i1.state = Interview.GO
         i1.save()
-        self.assertEqual(Interview.GO, i1.next_state)
+        self.assertEqual(Interview.GO, i1.state)
 
 
 class AccessRestrictionDateTestCase(TestCase):
@@ -161,3 +161,91 @@ class AccessRestrictionUserTestCase(TestCase):
         request.user = self.consultantRestricted.user
         response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 404)
+
+
+class StatusAndNotificationTestCase(TestCase):
+    def test_status_and_notification(self):
+        subsidiary = SubsidiaryFactory()
+        subsidiaryResponsible = ConsultantFactory(company=subsidiary)
+        subsidiary.responsible = subsidiaryResponsible
+        subsidiary.save()
+        interviewer = ConsultantFactory(company=subsidiary)
+
+        # When we create a process
+        # Process state will be: WAITING_INTERVIEWER_TO_BE_DESIGNED
+        # Action responsible will be: Subsidiary responsible
+        # Mail will be sent to global HR
+        p = ProcessFactory(subsidiary=subsidiary)
+        self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        # TODO check mail global HR
+
+        # When we create an interview
+        # Process state will be: WAITING_INTERVIEW_PLANIFICATION
+        # Interview state will be: WAITING_PLANIFICATION
+        # Action responsible will be: Interviewer
+        # Mail will be sent to global HR and interviewer
+        i1 = Interview(process_id=p.id)
+        i1.save()
+
+        i1.interviewers.add(interviewer)
+        i1.save()
+
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
+        self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
+        self.assertEqual(list(p.responsible.all()), [interviewer,])
+        # TODO check mail global HR and interviewer
+
+        # After interview planification
+        # Process state will be: INTERVIEW_IS_PLANNED
+        # Interview state will be: PLANNED
+        # Action responsible will be: Interviewer
+        # Mail will be sent to global HR and interviewer if more than one
+        i1.planned_date = datetime.datetime.now() + datetime.timedelta(days=7)
+        i1.save()
+
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.INTERVIEW_IS_PLANNED)
+        self.assertEqual(i1.state, Interview.PLANNED)
+        self.assertEqual(list(p.responsible.all()), [interviewer,])
+        # TODO assert notification recrutement team
+
+        # After Go/No Go
+        # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+        # Interview state will be: GO or NO_GO
+        # Action responsible will be: Subsidiary responsible
+        # Mail will be sent to global HR
+        i1.state = Interview.GO
+        i1.save()
+
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
+        self.assertEqual(i1.state, Interview.GO)
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        # TODO assert notification recrutement team
+
+        # After we go for a job offer
+        # Process state will be: JOB_OFFER
+        # Action responsible will be: Subsidiary responsible
+        # Mail will be sent to global HR
+        p.state = Process.JOB_OFFER
+        p.save()
+
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
+         # TODO assert notification recrutement team
+
+        # After we hired the candidate or we didn't hired him (can be our offer is refused by the candidate for example)
+        # Process state will be: HIRED or JOB_OFFER_DECLINED
+        # No more action responsible
+        # Mail will be sent to global HR
+        p.state = Process.HIRED
+        p.save()
+
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
+        self.assertEqual(list(p.responsible.all()), [])
+        # TODO assert notification recrutement team
+
+
+
+# TODO test multiple consultant on one itw
+# TODO test state change on day change (late)
+# TODO add migration
