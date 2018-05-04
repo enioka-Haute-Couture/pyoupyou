@@ -269,7 +269,7 @@ class Interview(models.Model):
 
     def get_absolute_url(self):
         from django.urls import reverse
-        return reverse('process-details', args=[str(self.process_id)])
+        return reverse('interview-minute', args=[str(self.id)])
 
     class Meta:
         unique_together = (('process', 'rank'), )
