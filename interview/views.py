@@ -338,7 +338,10 @@ def edit_candidate(request, process_id):
     # Todo : re-implement security
     # Check that the user to change is candidate
     # Candidate.objects.for_user(request.user).get(pk=candidate_id)
-    process = Process.objects.select_related('candidate').get(pk=process_id)
+    try:
+        process = Process.objects.for_user(request.user).select_related('candidate').get(id=process_id)
+    except Process.DoesNotExist:
+        return HttpResponseNotFound()
     candidate = process.candidate
 
     if request.method == 'POST':
