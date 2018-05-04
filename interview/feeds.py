@@ -14,7 +14,7 @@ class InterviewFeed(ICalFeed):
     """
     product_id = '-//pyoupyou//Full'
     timezone = 'Europe/Paris'
-    file_name = "calendar_full.ics"
+    file_name = "pyoupyou_full.ics"
 
     def __call__(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
