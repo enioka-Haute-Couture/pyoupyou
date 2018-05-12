@@ -387,3 +387,94 @@ def dump_data(request):
     response = HttpResponse(out.getvalue(), content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename=dump.json'
     return response
+
+@login_required
+@require_http_methods(["GET"])
+def export_interviews(request):
+    interviews = Interview.objects.for_user(request.user)
+    ret = []
+
+    ret.append("\t".join(str(x).replace("\t", " ") for x in ["process.id",
+                                                             "candidate.name",
+                                                             "subsidiary",
+                                                             "start_date",
+                                                             "end_date",
+                                                             "process length",
+                                                             "sources",
+                                                             "contract_type",
+                                                             "process closed_reason",
+                                                             "process itw count",
+                                                             "mean days between itws",
+                                                             "interview.id",
+                                                             "next_state",
+                                                             "interviewers",
+                                                             "interview rank",
+                                                             "days since last",
+                                                             "planned_date"]))
+    for interview in interviews:
+        interviewers = ""
+        for i in interview.interviewers.all():
+            interviewers += i.user.trigramme + "_"
+        interviewers = interviewers[:-1]
+
+        # Compute process length (in days)
+        process_length = 0
+        end_date = None
+        if interview.process.end_date:
+            end_date = interview.process.end_date
+        else:
+            last_interview = Interview.objects.filter(process=interview.process).order_by("planned_date").last()
+            if last_interview is None or last_interview.planned_date is None:
+                end_date = datetime.datetime.now().date()
+            else:
+                end_date = last_interview.planned_date.date()
+        process_length = end_date - interview.process.start_date
+        process_length = process_length.days
+
+        # Compute time elapsed since last event (previous interview or beginning of process)
+        time_since_last_is_sound = True
+        last_event_date = interview.process.start_date
+        next_event_date = None
+        if interview.rank > 1:
+            print("Process : {}".format(interview.process.id))
+            print("rank : {}".format(interview.rank))
+            last_itw = Interview.objects.filter(process=interview.process,
+                                                rank=interview.rank - 1).first()
+            if last_itw.planned_date is not None:
+                last_event_date = last_itw.planned_date.date()
+            else:
+                print("Past interview without date: {}".format(last_itw.id))
+                time_since_last_is_sound = False
+        if interview.planned_date is None:
+            time_since_last_is_sound = False
+        else:
+            next_event_date = interview.planned_date.date()
+        if time_since_last_is_sound:
+            time_since_last_event = int((next_event_date - last_event_date).days)
+            # we have some processes that were created after the first itw was planned
+            if time_since_last_event < 0:
+                time_since_last_event = ""
+        else:
+            time_since_last_event = ""
+
+        ret.append("\t".join(str(x).replace("\t", " ") for x in [interview.process.id,
+                                                                 interview.process.candidate.name,
+                                                                 interview.process.subsidiary,
+                                                                 interview.process.start_date,
+                                                                 interview.process.end_date,
+                                                                 process_length,
+                                                                 interview.process.sources,
+                                                                 interview.process.contract_type,
+                                                                 interview.process.closed_reason,
+                                                                 len(Interview.objects.filter(process=interview.process)),
+                                                                 int(process_length/len(Interview.objects.filter(process=interview.process))),
+                                                                 interview.id,
+                                                                 interview.next_state,
+                                                                 interviewers,
+                                                                 interview.rank,
+                                                                 time_since_last_event,
+                                                                 interview.planned_date]))
+
+    response = HttpResponse("\n".join(ret), content_type='text/plain; charset=utf-8')
+    response["Content-Disposition"] = 'attachment; filename=pyoupyou.txt'
+    return response
