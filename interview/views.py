@@ -496,9 +496,9 @@ def _interviewer_load(interviewer):
     a_month_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=30)
     a_week_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=7)
     end_of_today = datetime.datetime.now(pytz.timezone("Europe/Paris")).replace(hour=23, minute=59, second=59)
-    itw_last_month = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today))
-    itw_last_week = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today))
-    itw_planned = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=datetime.datetime.now(pytz.timezone("Europe/Paris"))))
+    itw_last_month = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
+    itw_last_week = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
+    itw_planned = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=datetime.datetime.now(pytz.timezone("Europe/Paris"))).count()
 
     load = pow(itw_planned, 2) + 2*itw_last_week + itw_last_month
 
