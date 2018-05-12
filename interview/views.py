@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import pytz
 
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.management import call_command
@@ -8,7 +9,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.six import StringIO
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.db import transaction
 
 import django_tables2 as tables
@@ -19,7 +20,7 @@ from interview.models import Process, Document, Interview
 from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
     InterviewFormEditInterviewers, SourceForm, CloseForm
 
-from ref.models import Consultant
+from ref.models import Consultant, Subsidiary
 
 
 class ProcessTable(tables.Table):
@@ -476,3 +477,63 @@ def export_interviews_tsv(request):
     response = HttpResponse("\n".join(ret), content_type='text/plain; charset=utf-8')
     response["Content-Disposition"] = 'attachment; filename=all_interviews.tsv'
     return response
+
+
+class LoadTable(tables.Table):
+    subsidiary = tables.Column(verbose_name=_("Subsidiary"))
+    interviewer = tables.Column(verbose_name=_("Interviewer"),
+                                attrs={"td": {"style": "font-weight: bold"}})
+    load = tables.Column(verbose_name=_("Load"))
+    itw_last_month = tables.Column(verbose_name=_("Past month"))
+    itw_last_week = tables.Column(verbose_name=_("Past week"))
+    itw_planned =tables.Column(verbose_name=_("Planned"))
+
+    class Meta:
+        template = 'interview/_tables.html'
+        attrs = {"class": "table table-striped table-condensed"}
+
+def _interviewer_load(interviewer):
+    a_month_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=30)
+    a_week_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=7)
+    end_of_today = datetime.datetime.now(pytz.timezone("Europe/Paris")).replace(hour=23, minute=59, second=59)
+    itw_last_month = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today))
+    itw_last_week = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today))
+    itw_planned = len(Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=datetime.datetime.now(pytz.timezone("Europe/Paris"))))
+
+    load = pow(itw_planned, 2) + 2*itw_last_week + itw_last_month
+
+    return {"load": load,
+            "itw_last_month": itw_last_month,
+            "itw_last_week": itw_last_week,
+            "itw_planned": itw_planned}
+
+@login_required
+@require_http_methods(["GET"])
+def interviewers_load(request, subsidiary_id=None):
+    subsidiary = None
+    if subsidiary_id:
+        try:
+            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
+        except Subsidiary.DoesNotExist:
+            subsidiary = None
+
+    if subsidiary:
+        consultants_qs = Consultant.objects.filter(company=subsidiary_id)
+    else:
+        consultants_qs = Consultant.objects.all()
+    data = []
+    for c in consultants_qs.filter(productive=True).order_by("company", "user__full_name"):
+        load = _interviewer_load(c)
+        data.append({"subsidiary": c.company,
+                     "interviewer": c,
+                     "load": load["load"],
+                     "itw_last_month": load["itw_last_month"],
+                     "itw_last_week": load["itw_last_week"],
+                     "itw_planned": load["itw_planned"]})
+
+    load_table = LoadTable(data)
+    RequestConfig(request, paginate={'per_page': 100}).configure(load_table)
+    return render(request, "interview/interviewers-load.html", {"subsidiary": subsidiary,
+                                                                "subsidiaries": Subsidiary.objects.all(),
+                                                                "load_table": load_table })
+
