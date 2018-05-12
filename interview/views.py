@@ -436,8 +436,6 @@ def export_interviews(request):
         last_event_date = interview.process.start_date
         next_event_date = None
         if interview.rank > 1:
-            print("Process : {}".format(interview.process.id))
-            print("rank : {}".format(interview.rank))
             last_itw = Interview.objects.filter(process=interview.process,
                                                 rank=interview.rank - 1).first()
             if last_itw.planned_date is not None:
@@ -466,8 +464,8 @@ def export_interviews(request):
                                                                  interview.process.sources,
                                                                  interview.process.contract_type,
                                                                  interview.process.closed_reason,
-                                                                 len(Interview.objects.filter(process=interview.process)),
-                                                                 int(process_length/len(Interview.objects.filter(process=interview.process))),
+                                                                 Interview.objects.filter(process=interview.process).count(),
+                                                                 int(process_length/Interview.objects.filter(process=interview.process).count()),
                                                                  interview.id,
                                                                  interview.next_state,
                                                                  interviewers,
