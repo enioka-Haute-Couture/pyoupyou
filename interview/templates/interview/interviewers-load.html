@@ -1,0 +1,40 @@
+{% extends "interview/base.html" %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load admin_urls %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block more_css %}
+<link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="panel">
+        <div class="btn-group">
+            <div class="btn-group">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    {% trans "Filter" %} <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a href="./"> {% trans "All" %} </a></li>
+                    {% for s in subsidiaries %}
+                    <li><a href="./{{s.id}}"> {{ s }} </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            {% if subsidiary %}
+            <div class="panel-title">{% trans "Interviewers load: "%}{{subsidiary}}</div>
+            {% else %}
+            <div class="panel-title">{% trans "Interviewers load" %}</div>
+            {% endif %}
+        </div>
+        {% render_table  load_table %}
+    </div>
+</div>
+{% endblock %}
