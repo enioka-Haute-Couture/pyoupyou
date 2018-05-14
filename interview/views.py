@@ -390,7 +390,7 @@ def dump_data(request):
 
 @login_required
 @require_http_methods(["GET"])
-def export_interviews(request):
+def export_interviews_tsv(request):
     interviews = Interview.objects.for_user(request.user)
     ret = []
 
@@ -474,5 +474,5 @@ def export_interviews(request):
                                                                  interview.planned_date]))
 
     response = HttpResponse("\n".join(ret), content_type='text/plain; charset=utf-8')
-    response["Content-Disposition"] = 'attachment; filename=pyoupyou.txt'
+    response["Content-Disposition"] = 'attachment; filename=all_interviews.tsv'
     return response
