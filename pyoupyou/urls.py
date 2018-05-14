@@ -37,7 +37,7 @@ urlpatterns = [
     url(r'^candidate/(?P<process_id>\d+)/$', views.edit_candidate, name="candidate"),
     url(r'^create_source/$', views.create_source_ajax, name="create_source"),
     url(r'^feed/pyoupyou_full.ics$', feeds.InterviewFeed(), name="calendar_full"),
-    url(r'^export/all_interviews.tsv$', views.export_interviews_tsv, name="export_full"),
+    url(r'^export/all_interviews.tsv$', views.export_interviews_tsv, name="export_interviews_tsv"),
     url(r'^select2/', include('django_select2.urls')),
 ]
 
