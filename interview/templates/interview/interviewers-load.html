@@ -18,9 +18,9 @@
                     {% trans "Filter" %} <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a href="./"> {% trans "All" %} </a></li>
+                    <li><a href="{% url 'interviewers-load' %}"> {% trans "All" %} </a></li>
                     {% for s in subsidiaries %}
-                    <li><a href="./{{s.id}}"> {{ s }} </a></li>
+                    <li><a href="{% url 'interviewers-load-subdidiary' s.id  %}"> {{ s }} </a></li>
                     {% endfor %}
                 </ul>
             </div>
