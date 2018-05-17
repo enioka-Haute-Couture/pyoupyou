@@ -486,7 +486,8 @@ class LoadTable(tables.Table):
     load = tables.Column(verbose_name=_("Load"))
     itw_last_month = tables.Column(verbose_name=_("Past month"))
     itw_last_week = tables.Column(verbose_name=_("Past week"))
-    itw_planned =tables.Column(verbose_name=_("Planned"))
+    itw_planned = tables.Column(verbose_name=_("Planned"))
+    itw_not_planned_yet = tables.Column(verbose_name=_("To plan"))
 
     class Meta:
         template = 'interview/_tables.html'
@@ -499,12 +500,14 @@ def _interviewer_load(interviewer):
     itw_last_month = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
     itw_last_week = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
     itw_planned = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=datetime.datetime.now(pytz.timezone("Europe/Paris"))).count()
+    itw_not_planned_yet = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date=None).filter(process__closed_reason=Process.OPEN).count()
 
-    load = pow(itw_planned, 2) + 2*itw_last_week + itw_last_month
+    load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
 
     return {"load": load,
             "itw_last_month": itw_last_month,
             "itw_last_week": itw_last_week,
+            "itw_not_planned_yet": itw_not_planned_yet,
             "itw_planned": itw_planned}
 
 @login_required
@@ -529,6 +532,7 @@ def interviewers_load(request, subsidiary_id=None):
                      "load": load["load"],
                      "itw_last_month": load["itw_last_month"],
                      "itw_last_week": load["itw_last_week"],
+                     "itw_not_planned_yet": load["itw_not_planned_yet"],
                      "itw_planned": load["itw_planned"]})
 
     load_table = LoadTable(data)
