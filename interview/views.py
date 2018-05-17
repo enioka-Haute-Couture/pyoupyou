@@ -385,9 +385,9 @@ def edit_candidate(request, process_id):
 @user_passes_test(lambda u: u.is_active and u.is_superuser)
 def dump_data(request):
     out = StringIO()
-    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True, stdout=out)
+    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True, exclude=['auth.Permission', 'contenttypes'], stdout=out)
     response = HttpResponse(out.getvalue(), content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=dump.json'
+    response['Content-Disposition'] = 'attachment; filename=pyoupyou_dump.json'
     return response
 
 @login_required
