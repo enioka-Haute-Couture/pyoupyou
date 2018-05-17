@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
 from django.db import transaction
+from django.conf import settings
 
 import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
@@ -494,13 +495,14 @@ class LoadTable(tables.Table):
         attrs = {"class": "table table-striped table-condensed"}
 
 def _interviewer_load(interviewer):
-    a_month_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=30)
-    a_week_ago = datetime.datetime.now(pytz.timezone("Europe/Paris")) - datetime.timedelta(days=7)
-    end_of_today = datetime.datetime.now(pytz.timezone("Europe/Paris")).replace(hour=23, minute=59, second=59)
-    itw_last_month = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
-    itw_last_week = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
-    itw_planned = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date__gte=datetime.datetime.now(pytz.timezone("Europe/Paris"))).count()
-    itw_not_planned_yet = Interview.objects.filter(interviewers__id=interviewer.id).filter(planned_date=None).filter(process__closed_reason=Process.OPEN).count()
+    tz = settings.TIME_ZONE
+    a_month_ago = datetime.datetime.now(pytz.timezone(tz)) - datetime.timedelta(days=30)
+    a_week_ago = datetime.datetime.now(pytz.timezone(tz)) - datetime.timedelta(days=7)
+    end_of_today = datetime.datetime.now(pytz.timezone(tz)).replace(hour=23, minute=59, second=59)
+    itw_last_month = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
+    itw_last_week = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
+    itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=datetime.datetime.now(pytz.timezone(tz))).count()
+    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__closed_reason=Process.OPEN).count()
 
     load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
 
@@ -535,7 +537,7 @@ def interviewers_load(request, subsidiary_id=None):
                      "itw_not_planned_yet": load["itw_not_planned_yet"],
                      "itw_planned": load["itw_planned"]})
 
-    load_table = LoadTable(data)
+    load_table = LoadTable(data, order_by="-load")
     RequestConfig(request, paginate={'per_page': 100}).configure(load_table)
     return render(request, "interview/interviewers-load.html", {"subsidiary": subsidiary,
                                                                 "subsidiaries": Subsidiary.objects.all(),
