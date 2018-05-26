@@ -16,9 +16,9 @@
         {% endfor %}
     </ul>
     <h3>{% trans "Minute" %}
-        {% if interview.next_state == "GO" %}
+        {% if interview.state == "GO" %}
         <i class="fa fa-thumbs-up fa-2x text-success" aria-hidden="true"></i>
-        {% elif interview.next_state == "NO" %}
+        {% elif interview.state == "NO" %}
         <i class="fa fa-thumbs-down fa-2x text-danger" aria-hidden="true"></i>
         {% endif %}
     </h3>

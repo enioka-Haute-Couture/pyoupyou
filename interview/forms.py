@@ -49,7 +49,7 @@ class SelectOrCreate(SourcesWidget):
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        exclude = ['candidate', 'start_date', 'end_date', 'closed_reason', 'closed_comment']
+        exclude = ['candidate', 'start_date', 'end_date', 'state', 'closed_comment', 'responsible']
 
         widgets = {
             'sources': SelectOrCreate
@@ -129,15 +129,15 @@ class CandidateForm(forms.ModelForm):
 class CloseForm(forms.ModelForm):
     class Meta:
         model = Process
-        fields = ['closed_reason', 'closed_comment']
+        fields = ['state', 'closed_comment']
     # we remove open choice
-    closed_reason = forms.ChoiceField(choices=Process.CLOSED_STATE)
+    state = forms.ChoiceField(choices=Process.CLOSED_STATE)
     helper = FormHelper()
     helper.form_tag = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         default_choice = Process.NO_GO
-        if self.instance.interview_set.last() and self.instance.interview_set.last().next_state == Interview.GO:
+        if self.instance.interview_set.last() and self.instance.interview_set.last().state == Interview.GO:
             default_choice = Process.HIRED
-        self.fields['closed_reason'].initial = default_choice
+        self.fields['state'].initial = default_choice

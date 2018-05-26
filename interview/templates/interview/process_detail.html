@@ -15,7 +15,7 @@
     {% if process.is_open %}
         <h5> {% trans "This process is in progress" %} </h5>
     {% else %}
-        <h5> {% trans "This process is closed" %} - {{ process.get_closed_reason_display }} </h5>
+        <h5> {% trans "This process is closed" %} - {{ process.get_state_display }} </h5>
         <span>{{ process.closed_comment }}</span>
     {% endif %}
         <div class="row">

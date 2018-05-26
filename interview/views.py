@@ -11,11 +11,13 @@ from django.urls import reverse
 from django.utils.six import StringIO
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
+from django.utils.html import format_html
+from django.utils.translation import ugettext as _
 from django.db import transaction
 
-import django_tables2 as tables
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
+import django_tables2 as tables
 
 from interview.models import Process, Document, Interview
 from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
@@ -27,18 +29,14 @@ from ref.models import Consultant, Subsidiary
 class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
-    next_action_display = tables.Column(verbose_name=_("Next action"), orderable=False)
-    next_action_responsible = tables.Column(verbose_name=_("Next action responsible"), orderable=False)
     actions = tables.TemplateColumn(verbose_name='', orderable=False,
                                     template_name='interview/tables/process_actions.html')
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
     contract_type = tables.Column(order_by=('contract_type__name',))
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
-    def render_next_action_responsible(self, value):
-        if isinstance(value, Consultant):
-            return value
-        return ', '.join(str(c) for c in value.all())
+    def render_responsible(self, value):
+        return format_html(', '.join([f'<span title="{c.user.full_name}">{c.user. trigramme}</span>' for c in value.all()]))
 
     class Meta:
         model = Process
@@ -51,15 +49,15 @@ class ProcessTable(tables.Table):
             "subsidiary",
             "start_date",
             "contract_type",
-            "next_action_display",
-            "next_action_responsible",
+            "state",
+            "responsible",
             "actions"
         )
         fields = sequence
         order_by = "start_date"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention_bool else None
+            'class': lambda record: 'danger' if record.needs_attention else None
         }
 
 
@@ -73,11 +71,11 @@ class ProcessEndTable(ProcessTable):
             "start_date",
             "end_date",
             "contract_type",
-            "next_action_display",
-            "next_action_responsible",
+            "state",
             "actions"
         )
         fields = sequence
+
         order_by = "-end_date"
 
 
@@ -95,12 +93,12 @@ class InterviewTable(tables.Table):
         model = Interview
         template = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
-        sequence = ("needs_attention", "interviewers", "planned_date", "next_state", "actions")
+        sequence = ("needs_attention", "interviewers", "planned_date", "state", "actions")
         fields = sequence
         order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention_bool else None
+            'class': lambda record: 'danger' if record.needs_attention else None
         }
 
 
@@ -151,7 +149,7 @@ def reopen_process(request, process_id):
         return HttpResponseNotFound()
 
     process.end_date = None
-    process.closed_reason = Process.OPEN
+    process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
     process.closed_comment = ''
     process.save()
     return HttpResponseRedirect(process.get_absolute_url())
@@ -179,7 +177,7 @@ def closed_processes(request):
 @login_required
 @require_http_methods(["GET"])
 def processes(request):
-    open_processes = Process.objects.for_user(request.user).filter(closed_reason=Process.OPEN)
+    open_processes = Process.objects.for_user(request.user).filter(end_date__isnull=True)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     recently_closed_processes = Process.objects.for_user(request.user).filter(end_date__gte=a_week_ago)
 
@@ -263,9 +261,9 @@ def minute_edit(request, interview_id):
         return HttpResponseNotFound()
     if request.method == 'POST':
         if 'itw-go' in request.POST:
-            interview.next_state = Interview.GO
+            interview.state = Interview.GO
         elif 'itw-no' in request.POST:
-            interview.next_state = Interview.NO_GO
+            interview.state = Interview.NO_GO
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
@@ -296,25 +294,18 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    actions_needed_processes = Process.objects.for_user(request.user).filter(
-        closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related(
-        'subsidiary__responsible')
     c = request.user.consultant
-    actions_needed_processes = [
-        p for p in actions_needed_processes
-        if p.next_action_responsible == c
-           or (hasattr(p.next_action_responsible, 'iterator')
-               and c in p.next_action_responsible.iterator())
-    ]
+    actions_needed_processes = Process.objects.for_user(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
+
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
     related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).distinct()
+        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.for_user(request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).filter(
-        subsidiary=request.user.consultant.company)
+        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).filter(
+        subsidiary=c.company)
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -404,11 +395,11 @@ def export_interviews_tsv(request):
                                                              "process length",
                                                              "sources",
                                                              "contract_type",
-                                                             "process closed_reason",
+                                                             "process state",
                                                              "process itw count",
                                                              "mean days between itws",
                                                              "interview.id",
-                                                             "next_state",
+                                                             "state",
                                                              "interviewers",
                                                              "interview rank",
                                                              "days since last",
@@ -465,11 +456,11 @@ def export_interviews_tsv(request):
                                                                  process_length,
                                                                  interview.process.sources,
                                                                  interview.process.contract_type,
-                                                                 interview.process.closed_reason,
+                                                                 interview.process.state,
                                                                  Interview.objects.filter(process=interview.process).count(),
                                                                  int(process_length/Interview.objects.filter(process=interview.process).count()),
                                                                  interview.id,
-                                                                 interview.next_state,
+                                                                 interview.state,
                                                                  interviewers,
                                                                  interview.rank,
                                                                  time_since_last_event,
@@ -501,7 +492,7 @@ def _interviewer_load(interviewer):
     itw_last_month = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
     itw_last_week = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
     itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=timezone.now()).count()
-    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__closed_reason=Process.OPEN).count()
+    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__state__in=Process.OPEN_STATE_VALUES).count()
 
     load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
 
