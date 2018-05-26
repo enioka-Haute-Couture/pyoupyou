@@ -177,9 +177,10 @@ class Process(models.Model):
             for interviewer in self.interview_set.last().interviewers.all():
                 self.responsible.add(interviewer)
 
-        for interview in self.interview_set.exclude(state__in=[Interview.GO, Interview.NO_GO]):
-            for interviewer in interview.interviewers.all():
-                self.responsible.add(interviewer)
+        if self.is_open():
+            for interview in self.interview_set.exclude(state__in=[Interview.GO, Interview.NO_GO]):
+                for interviewer in interview.interviewers.all():
+                    self.responsible.add(interviewer)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -293,7 +294,6 @@ class Interview(models.Model):
         return f"#{self.rank} - {self.process} - {interviewers}"
 
     def save(self, *args, **kwargs):
-        current_state = self.state
         is_new = self.id is None
 
         if self.rank is None:
