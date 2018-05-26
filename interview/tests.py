@@ -198,6 +198,14 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [interviewer,])
         # TODO assert notification recrutement team
 
+        # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
+        # WAITING_ITW_MINUTE (WM) for the process
+        i1.state = Interview.WAIT_INFORMATION
+        i1.save()
+        self.assertEqual(i1.state, Interview.WAIT_INFORMATION)
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_ITW_MINUTE)
+        self.assertEqual(list(p.responsible.all()), [interviewer,])
+
         # After Go/No Go
         # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
         # Interview state will be: GO or NO_GO
@@ -234,7 +242,3 @@ class StatusAndNotificationTestCase(TestCase):
         # TODO assert notification recrutement team
 
 
-
-# TODO test multiple consultant on one itw
-# TODO test state change on day change (late)
-# TODO add migration

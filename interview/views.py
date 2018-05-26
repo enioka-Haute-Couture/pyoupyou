@@ -149,7 +149,7 @@ def reopen_process(request, process_id):
         return HttpResponseNotFound()
 
     process.end_date = None
-    process.closed_reason = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+    process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
     process.closed_comment = ''
     process.save()
     return HttpResponseRedirect(process.get_absolute_url())
@@ -395,11 +395,11 @@ def export_interviews_tsv(request):
                                                              "process length",
                                                              "sources",
                                                              "contract_type",
-                                                             "process closed_reason",
+                                                             "process state",
                                                              "process itw count",
                                                              "mean days between itws",
                                                              "interview.id",
-                                                             "next_state",
+                                                             "state",
                                                              "interviewers",
                                                              "interview rank",
                                                              "days since last",
@@ -456,11 +456,11 @@ def export_interviews_tsv(request):
                                                                  process_length,
                                                                  interview.process.sources,
                                                                  interview.process.contract_type,
-                                                                 interview.process.closed_reason,
+                                                                 interview.process.state,
                                                                  Interview.objects.filter(process=interview.process).count(),
                                                                  int(process_length/Interview.objects.filter(process=interview.process).count()),
                                                                  interview.id,
-                                                                 interview.next_state,
+                                                                 interview.state,
                                                                  interviewers,
                                                                  interview.rank,
                                                                  time_since_last_event,
@@ -492,7 +492,7 @@ def _interviewer_load(interviewer):
     itw_last_month = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
     itw_last_week = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
     itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=timezone.now()).count()
-    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__closed_reason=Process.OPEN).count()
+    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__state__in=Process.OPEN_STATE_VALUES).count()
 
     load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
 
