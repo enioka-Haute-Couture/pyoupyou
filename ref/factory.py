@@ -1,15 +1,7 @@
 import factory
 import factory.faker
 
-from ref.models import Subsidiary
-
-
-class SubsidiaryFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = 'ref.Subsidiary'
-
-    name = factory.Faker('company')
-    code = factory.LazyAttribute(lambda n: n.name[0:3].upper())
+from ref.models import Subsidiary, Consultant
 
 
 class PyouPyouUserFactory(factory.django.DjangoModelFactory):
@@ -28,3 +20,11 @@ class ConsultantFactory(factory.django.DjangoModelFactory):
     user = factory.SubFactory(PyouPyouUserFactory)
     company = factory.Iterator(Subsidiary.objects.all())
     productive = True
+
+
+class SubsidiaryFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = 'ref.Subsidiary'
+
+    name = factory.Faker('company')
+    code = factory.LazyAttribute(lambda n: n.name[0:3].upper())

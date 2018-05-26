@@ -14,43 +14,30 @@ from ref.models import Consultant
 from django.utils.translation import ugettext_lazy as _
 
 
-class ProcessTestCase(TestCase):
-    def test_state(self):
-        p = ProcessFactory()
-        i1 = InterviewFactory(process=p, rank=1, state='GO')
-        i3 = InterviewFactory(process=p, rank=3, state='PL')
-        i2 = InterviewFactory(process=p, rank=2, state='NO')
-        self.assertEqual(p.state, i3.state)
-
-    def test_next_action_display(self):
-        p = ProcessFactory()
-        self.assertEqual(p.next_action_display, _("Pick up next interviewer"))
-
-
-class InterviewTestCase(TestCase):
-    def test_new_interview_state_equals_need_plannification(self):
-        p = ProcessFactory()
-        i1 = Interview(process_id=p.id)
-        i1.save()
-        self.assertEqual(Interview.WAITING_PLANIFICATION, i1.state)
-
-    def test_set_interview_date_state_equals_planned(self):
-        p = ProcessFactory()
-        i1 = Interview(process_id=p.id)
-        i1.save()
-        i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
-        i1.save()
-        self.assertEqual(Interview.PLANNED, i1.state)
-
-    def test_interview_replanned_after_state_set_keeps_state(self):
-        p = ProcessFactory()
-        i1 = Interview(process_id=p.id)
-        i1.save()
-        i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
-        i1.save()
-        i1.state = Interview.GO
-        i1.save()
-        self.assertEqual(Interview.GO, i1.state)
+# class InterviewTestCase(TestCase):
+#     def test_new_interview_state_equals_need_plannification(self):
+#         p = ProcessFactory()
+#         i1 = Interview(process_id=p.id)
+#         i1.save()
+#         self.assertEqual(Interview.WAITING_PLANIFICATION, i1.state)
+#
+#     def test_set_interview_date_state_equals_planned(self):
+#         p = ProcessFactory()
+#         i1 = Interview(process_id=p.id)
+#         i1.save()
+#         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
+#         i1.save()
+#         self.assertEqual(Interview.PLANNED, i1.state)
+#
+#     def test_interview_replanned_after_state_set_keeps_state(self):
+#         p = ProcessFactory()
+#         i1 = Interview(process_id=p.id)
+#         i1.save()
+#         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
+#         i1.save()
+#         i1.state = Interview.GO
+#         i1.save()
+#         self.assertEqual(Interview.GO, i1.state)
 
 
 class AccessRestrictionDateTestCase(TestCase):
@@ -59,6 +46,8 @@ class AccessRestrictionDateTestCase(TestCase):
 
         sub = SubsidiaryFactory()
         self.consultantOld = Consultant.objects.create_consultant('OLD', 'old@mail.com', sub, 'OLD')
+        sub.responsible = self.consultantOld
+        sub.responsible.save()
         userOld = self.consultantOld.user
         userOld.date_joined = datetime.date(2016, 1, 1)
         userOld.save()

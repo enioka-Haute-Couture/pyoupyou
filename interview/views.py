@@ -36,7 +36,7 @@ class ProcessTable(tables.Table):
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(''.join([f'<span title="{c.user.full_name}">{c.user. trigramme}</span>' for c in value.all()]))
+        return format_html(', '.join([f'<span title="{c.user.full_name}">{c.user. trigramme}</span>' for c in value.all()]))
 
     class Meta:
         model = Process
@@ -72,10 +72,10 @@ class ProcessEndTable(ProcessTable):
             "end_date",
             "contract_type",
             "state",
-            "responsible",
             "actions"
         )
         fields = sequence
+
         order_by = "-end_date"
 
 
@@ -98,7 +98,7 @@ class InterviewTable(tables.Table):
         order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention_bool else None
+            'class': lambda record: 'danger' if record.needs_attention else None
         }
 
 
@@ -294,25 +294,18 @@ def minute(request, interview_id):
 @require_http_methods(["GET"])
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    actions_needed_processes = Process.objects.for_user(request.user).filter(
-        closed_reason=Process.OPEN).prefetch_related('interview_set__interviewers').select_related(
-        'subsidiary__responsible')
     c = request.user.consultant
-    actions_needed_processes = [
-        p for p in actions_needed_processes
-        if p.next_action_responsible == c
-           or (hasattr(p.next_action_responsible, 'iterator')
-               and c in p.next_action_responsible.iterator())
-    ]
+    actions_needed_processes = Process.objects.for_user(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
+
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
     related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).distinct()
+        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.for_user(request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(closed_reason=Process.OPEN)).filter(
-        subsidiary=request.user.consultant.company)
+        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).filter(
+        subsidiary=c.company)
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -321,9 +314,9 @@ def dashboard(request):
     config.configure(subsidiary_processes_table)
 
     context = {
-        # "actions_needed_processes_table": actions_needed_processes_table,
-        # "related_processes_table": related_processes_table,
-        # "subsidiary_processes_table": subsidiary_processes_table,
+        "actions_needed_processes_table": actions_needed_processes_table,
+        "related_processes_table": related_processes_table,
+        "subsidiary_processes_table": subsidiary_processes_table,
     }
 
     return render(request, "interview/dashboard.html", context)

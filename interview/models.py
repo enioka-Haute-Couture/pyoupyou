@@ -122,11 +122,7 @@ class Process(models.Model):
         (WAITING_ITW_MINUTE, _('Waiting interview minute')),
         (INTERVIEW_IS_PLANNED, _('Waiting interview')),
     )
-    OPEN_STATE = (
-        WAITING_INTERVIEWER_TO_BE_DESIGNED,
-        WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
-        JOB_OFFER,
-    ) + INTERVIEW_STATE
+
     PROCESS_STATE = (
         (OPEN, _('Open')),
         (WAITING_INTERVIEWER_TO_BE_DESIGNED, _('Waiting interviewer to be designed')),
@@ -134,6 +130,21 @@ class Process(models.Model):
         (JOB_OFFER, _('Waiting candidate feedback after a job offer'))
     ) + INTERVIEW_STATE + CLOSED_STATE
 
+    ALL_STATE_VALUES = [
+        WAITING_INTERVIEW_PLANIFICATION,
+        INTERVIEW_IS_PLANNED,
+        WAITING_ITW_MINUTE,
+        OPEN,
+        WAITING_INTERVIEWER_TO_BE_DESIGNED,
+        WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+        NO_GO,
+        CANDIDATE_DECLINED,
+        HIRED,
+        OTHER,
+        JOB_OFFER,
+    ]
+    CLOSED_STATE_VALUES = [s[0] for s in CLOSED_STATE]
+    OPEN_STATE_VALUES = list(set(ALL_STATE_VALUES) - set(CLOSED_STATE_VALUES))
     objects = ProcessManager()
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
     subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
@@ -152,18 +163,22 @@ class Process(models.Model):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         super().save(force_insert, force_update, using, update_fields)
-
         if self.state in (Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
                           Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
                           Process.JOB_OFFER):
             self.responsible.clear()
-            self.responsible.add(self.subsidiary.responsible)
+            if self.subsidiary.responsible:
+                self.responsible.add(self.subsidiary.responsible)
         if self.state in (Process.CANDIDATE_DECLINED, Process.HIRED):
             self.responsible.clear()
         if self.state in (Process.WAITING_INTERVIEW_PLANIFICATION,
                           Process.INTERVIEW_IS_PLANNED):
             self.responsible.clear()
             for interviewer in self.interview_set.last().interviewers.all():
+                self.responsible.add(interviewer)
+
+        for interview in self.interview_set.exclude(state__in=[Interview.GO, Interview.NO_GO]):
+            for interviewer in interview.interviewers.all():
                 self.responsible.add(interviewer)
 
     def get_absolute_url(self):
@@ -200,8 +215,8 @@ class Process(models.Model):
     #         return self.interview_set.last().interviewers
     #     return self.subsidiary.responsible
 
-    # def is_open(self):
-    #     return self.state not in Process.CLOSED_STATE
+    def is_open(self):
+        return self.state not in Process.CLOSED_STATE_VALUES
 
     def __str__(self):
         return ("{candidate} {for_subsidiary} {subsidiary}").format(candidate=self.candidate,
@@ -274,7 +289,8 @@ class Interview(models.Model):
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
 
     def __str__(self):
-        return "#{rank} - {process}".format(process=self.process, rank=self.rank)
+        interviewers = ', '.join(i.user.trigramme for i in self.interviewers.all())
+        return f"#{self.rank} - {self.process} - {interviewers}"
 
     def save(self, *args, **kwargs):
         current_state = self.state
@@ -318,14 +334,13 @@ class Interview(models.Model):
 
     @property
     def needs_attention(self):
+        print(self)
         if self.planned_date is None:
-            return (True, _("Interview must be planned"))
+            return True
         if self.planned_date and self.planned_date.date() < datetime.date.today():
-            if self.state in [self.PLANNED, self.WAITING_PLANIFICATION]:
-                return (True, _("Interview result hasn't been submited"))
-            if not self.minute:
-                return (True, _("No minute has been written for this interview"))
-        return (False, "")
+            if self.state in [self.PLANNED, self.WAITING_PLANIFICATION] or not self.minute:
+                return True
+        return False
 
     def trigger_notification(self):
         # print("NOTIFICATION : ")
@@ -342,15 +357,6 @@ def interview_post_save(*args, **kwargs):
 
 @receiver(m2m_changed, sender=Interview.interviewers.through)
 def interview_m2m_changed(sender, **kwargs):
-    # # TODO filter actions (post_add
-    # action = kwargs['action']
-    # if action == "post_add":
-    #     print(f"added {kwargs['pk_set']}")
-    # if action == "post_remove":
-    #     print(f"removed {kwargs['pk_remove']}")
-    #
-    # print("m2m")
-    # instance = kwargs["instance"]
-    # print(kwargs)
-    # instance.trigger_notification()
+    instance = kwargs["instance"]
+    instance.process.save()
     pass
