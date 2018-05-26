@@ -149,7 +149,7 @@ def reopen_process(request, process_id):
         return HttpResponseNotFound()
 
     process.end_date = None
-    process.closed_reason = Process.OPEN
+    process.closed_reason = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
     process.closed_comment = ''
     process.save()
     return HttpResponseRedirect(process.get_absolute_url())

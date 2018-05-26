@@ -302,7 +302,7 @@ class Interview(models.Model):
             self.rank = (Interview.objects.filter(process=self.process).values_list('rank', flat=True).last() or 0) + 1
 
         if is_new:
-            self.state = self.state or Interview.WAITING_PLANIFICATION
+            self.state = Interview.WAITING_PLANIFICATION
 
         if self.planned_date is None and self.state is None:
             self.state = self.WAITING_PLANIFICATION
@@ -311,15 +311,16 @@ class Interview(models.Model):
                 self.state = self.PLANNED
 
         super(Interview, self).save(*args, **kwargs)
-        if self.state == self.WAITING_PLANIFICATION:
-            self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
-            self.process.save()
-        elif self.state == self.PLANNED:
-            self.process.state = Process.INTERVIEW_IS_PLANNED
-            self.process.save()
-        if self.state in (Interview.GO, Interview.NO_GO):
-            self.process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
-            self.process.save()
+        if is_new or (Interview.objects.filter(process=self.process).last() == self and self.process.is_open()):
+            if self.state == self.WAITING_PLANIFICATION:
+                self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
+                self.process.save()
+            elif self.state == self.PLANNED:
+                self.process.state = Process.INTERVIEW_IS_PLANNED
+                self.process.save()
+            if self.state in (Interview.GO, Interview.NO_GO):
+                self.process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+                self.process.save()
 
         if is_new:
             self.trigger_notification()
