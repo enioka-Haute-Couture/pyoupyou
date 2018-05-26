@@ -145,7 +145,7 @@ class Process(models.Model):
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True)
-    responsible = models.ManyToManyField(Consultant, blank=True)
+    responsible = models.ManyToManyField(Consultant, blank=True, null=True)
     state = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=WAITING_INTERVIEWER_TO_BE_DESIGNED)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
