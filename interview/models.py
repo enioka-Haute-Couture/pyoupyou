@@ -186,36 +186,6 @@ class Process(models.Model):
         from django.urls import reverse
         return reverse('process-details', args=[str(self.id)])
 
-
-    # @cached_property
-    # def state(self):
-    #     if self.closed_reason == Process.OPEN:
-    #         last_itw = self.interview_set.last()
-    #         if last_itw:
-    #             return self.interview_set.last().state
-    #         return None
-    #     else:
-    #         return self.closed_reason
-
-    # @cached_property
-    # def next_action_display(self):
-    #     if self.closed_reason == Process.OPEN:
-    #         if self.state:
-    #             if self.state == Interview.GO:
-    #                 return _("Pick up next interviewer")
-    #             if self.state == Interview.NO_GO:
-    #                 return _("Inform candidate")
-    #             return dict(Interview.ITW_STATE)[self.state]
-    #         return _("Pick up next interviewer")
-    #     else:
-    #         return self.get_closed_reason_display()
-
-    # @cached_property
-    # def next_action_responsible(self):
-    #     if self.state in (Interview.WAITING_PLANIFICATION, Interview.PLANNED):
-    #         return self.interview_set.last().interviewers
-    #     return self.subsidiary.responsible
-
     def is_open(self):
         return self.state not in Process.CLOSED_STATE_VALUES
 
@@ -236,12 +206,6 @@ class Process(models.Model):
                                   Process.WAITING_INTERVIEW_PLANIFICATION,
                                   Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
                                   Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
-
-    @cached_property
-    def is_recently_closed(self):
-        if self.end_date is None:
-            return False
-        closed_since = datetime.date.today() - self.end_date
 
     @property
     def current_rank(self):
