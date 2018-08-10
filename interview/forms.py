@@ -13,6 +13,7 @@ from interview.models import Consultant, Interview, Candidate, Process, Sources
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
+    queryset = Consultant.objects.filter(user__is_active=True)
     search_fields = [
         'user__trigramme__icontains',
         'user__full_name__icontains',
