@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
-from django.utils.functional import cached_property
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
@@ -61,6 +59,7 @@ class Candidate(models.Model):
 
     class Meta:
         verbose_name = _("Candidate")
+
 
 def document_path(instance, filename):
     # todo ensure uniqueness (if two documents have the same name we reach a problem)
@@ -124,11 +123,12 @@ class Process(models.Model):
     )
 
     PROCESS_STATE = (
-        (OPEN, _('Open')),
-        (WAITING_INTERVIEWER_TO_BE_DESIGNED, _('Waiting interviewer to be designed')),
-        (WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS, _('Waiting next interview designation or process termination')),
-        (JOB_OFFER, _('Waiting candidate feedback after a job offer'))
-    ) + INTERVIEW_STATE + CLOSED_STATE
+                        (OPEN, _('Open')),
+                        (WAITING_INTERVIEWER_TO_BE_DESIGNED, _('Waiting interviewer to be designed')),
+                        (WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+                         _('Waiting next interview designation or process termination')),
+                        (JOB_OFFER, _('Waiting candidate feedback after a job offer'))
+                    ) + INTERVIEW_STATE + CLOSED_STATE
 
     ALL_STATE_VALUES = [
         WAITING_INTERVIEW_PLANIFICATION,
@@ -157,11 +157,13 @@ class Process(models.Model):
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True)
     responsible = models.ManyToManyField(Consultant, blank=True)
-    state = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=WAITING_INTERVIEWER_TO_BE_DESIGNED)
+    state = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"),
+                             default=WAITING_INTERVIEWER_TO_BE_DESIGNED)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
+        is_new = False if self.id else True
         super().save(force_insert, force_update, using, update_fields)
         if self.state in (Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
                           Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
@@ -181,6 +183,7 @@ class Process(models.Model):
             for interview in self.interview_set.exclude(state__in=[Interview.GO, Interview.NO_GO]):
                 for interviewer in interview.interviewers.all():
                     self.responsible.add(interviewer)
+        self.trigger_notification(is_new)
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -203,9 +206,9 @@ class Process(models.Model):
     @property
     def needs_attention(self):
         return self.is_active and self.state in (Process.WAITING_ITW_MINUTE,
-                                  Process.WAITING_INTERVIEW_PLANIFICATION,
-                                  Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
-                                  Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
+                                                 Process.WAITING_INTERVIEW_PLANIFICATION,
+                                                 Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
+                                                 Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
 
     @property
     def current_rank(self):
@@ -213,6 +216,10 @@ class Process(models.Model):
         if last_interview is None:
             return "0"
         return last_interview.rank
+
+    def trigger_notification(self, is_new=False):
+        if is_new:
+            print("Send to HR - new process")
 
 
 class InterviewManager(models.Manager):
@@ -297,7 +304,7 @@ class Interview(models.Model):
         return reverse('interview-minute', args=[str(self.id)])
 
     class Meta:
-        unique_together = (('process', 'rank'), )
+        unique_together = (('process', 'rank'),)
         ordering = ['process', 'rank']
 
     @property
@@ -310,9 +317,7 @@ class Interview(models.Model):
         return False
 
     def trigger_notification(self):
-        # print("NOTIFICATION : ")
-        # print(self.interviewers.all())
-        pass
+        print("notification")
 
 
 @receiver(post_save, sender=Interview)
@@ -321,6 +326,7 @@ def interview_post_save(*args, **kwargs):
     # print(kwargs)
     # print(kwargs["instance"].interviewers.all())
     pass
+
 
 @receiver(m2m_changed, sender=Interview.interviewers.through)
 def interview_m2m_changed(sender, **kwargs):

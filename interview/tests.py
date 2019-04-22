@@ -164,7 +164,9 @@ class StatusAndNotificationTestCase(TestCase):
         # Process state will be: WAITING_INTERVIEWER_TO_BE_DESIGNED
         # Action responsible will be: Subsidiary responsible
         # Mail will be sent to global HR
+        print("===> Mail to itw and global hr")
         p = ProcessFactory(subsidiary=subsidiary)
+        print("<=== END")
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
         # TODO check mail global HR
@@ -177,8 +179,10 @@ class StatusAndNotificationTestCase(TestCase):
         i1 = Interview(process_id=p.id)
         i1.save()
 
+        print("===> Mail to itw and global hr")
         i1.interviewers.add(interviewer)
         i1.save()
+        print("<==== End")
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)

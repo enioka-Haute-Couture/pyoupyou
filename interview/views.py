@@ -98,7 +98,7 @@ class InterviewTable(tables.Table):
         order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
+            'class': lambda record: 'danger' if record.needs_attention else None # TODO bpo check if we really needs needs_attention function
         }
 
 
