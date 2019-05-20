@@ -327,8 +327,6 @@ class Interview(models.Model):
                 self.process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
             self.process.save()
 
-        # self.trigger_notification()
-
     def get_absolute_url(self):
         from django.urls import reverse
         return reverse('interview-minute', args=[str(self.id)])
@@ -369,13 +367,6 @@ class Interview(models.Model):
                            message=body,
                            from_email=settings.MAIL_FROM,
                            recipient_list=recipient_list)
-        # if self.
-        # body_template = "interview/email/new_interview.txt"
-        # body = render_to_string(body_template, {'interview': self})
-        # mail.send_mail(subject=_("New interview for {process}".format(process=self.process)),
-        #                message=body,
-        #                from_email=settings.MAIL_FROM,
-        #                recipient_list=recipient_list)
 
 
 @receiver(m2m_changed, sender=Interview.interviewers.through)
