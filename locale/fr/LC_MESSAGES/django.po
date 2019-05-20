@@ -99,7 +99,7 @@ msgstr "Attente de la désignation du prochain interviewer ou de la fin du proce
 
 #: interview/models.py:134
 msgid "Waiting candidate feedback after a job offer"
-msgstr "Attente du retour du candidate"
+msgstr "Proposition en cours, attente du retour du candidat"
 
 #: interview/models.py:154 interview/views.py:479 ref/models.py:20
 #: ref/models.py:113

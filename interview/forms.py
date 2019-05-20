@@ -132,7 +132,7 @@ class CloseForm(forms.ModelForm):
         model = Process
         fields = ['state', 'closed_comment']
     # we remove open choice
-    state = forms.ChoiceField(choices=Process.CLOSED_STATE)
+    state = forms.ChoiceField(choices=Process.CLOSED_STATE + ((Process.JOB_OFFER, _('Waiting candidate feedback after a job offer')),))
     helper = FormHelper()
     helper.form_tag = False
 
