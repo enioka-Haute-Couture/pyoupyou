@@ -41,8 +41,8 @@ class ProcessCandidateForm(forms.ModelForm):
 
 
 class SelectOrCreate(SourcesWidget):
-    def render(self, name, value, attrs=None):
-        output = [super().render(name, value, attrs), ]
+    def render(self, *args, **kwargs):
+        output = [super().render(*args, **kwargs), ]
         output.append(render_to_string('interview/select_or_create_source.html'))
         return mark_safe('\n'.join(output))
 
