@@ -1,2 +1,2 @@
 {% load i18n %}
-{% blocktrans %}Candidate {{ process.candidate }} declined our offer{% endblocktrans %}
+{% blocktrans with candidate=process.candidate %}Candidate {{ candidate }} declined our offer{% endblocktrans %}

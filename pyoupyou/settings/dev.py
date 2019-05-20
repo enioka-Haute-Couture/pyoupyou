@@ -44,3 +44,5 @@ DEBUG_TOOLBAR_CONFIG = {
 
 # needed by django debug toolbar
 INTERNAL_IPS = ['127.0.0.1', ]
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

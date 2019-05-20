@@ -1,2 +1,2 @@
 {% load i18n %}
-{% blocktrans %}New process for candidate {{ process.candidate }}{% endblocktrans %}
+{% blocktrans with candidate=process.candidate %}New process for candidate {{ candidate }}{% endblocktrans %}

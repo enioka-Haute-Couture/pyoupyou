@@ -223,10 +223,11 @@ class Process(models.Model):
         return last_interview.rank
 
     def trigger_notification(self, is_new):
+        print("trigger")
         subject = None
         body_template = None
         if is_new:
-            subject = _('New process')
+            subject = _('New process {candidate}').format(candidate=self.candidate)
             body_template = "interview/email/new_process.txt"
         elif self.state == Process.CANDIDATE_DECLINED:
             subject = _('Process {process}: candidate declined').format(process=self)
@@ -236,9 +237,9 @@ class Process(models.Model):
             subject=_("Process {process}: Candidate accepted our offer").format(process=self)
             body_template = "interview/email/candidate_hired.txt"
 
-        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS:
-            subject=_("Process {process}: Candidate accepted our offer").format(process=self)
-            body_template = "interview/email/candidate_hired.txt"
+        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS and self.interview_set.last().state in [Interview.GO, Interview.NO_GO]:
+            subject=_("Process {process}: {result}").format(process=self, result=self.interview_set.last().state)
+            body_template = "interview/email/minute_done.txt"
 
         elif self.state == Process.JOB_OFFER:
             subject = _("Process {process}: job offer").format(process=self)
@@ -344,6 +345,10 @@ class Interview(models.Model):
                 return True
         return False
 
+    @property
+    def interviewers_str(self):
+        return ', '.join(i.user.get_full_name() for i in self.interviewers.all())
+
     def trigger_notification(self):
         recipient_list = [settings.MAIL_HR]
         if self.process.subsidiary.responsible:
@@ -354,15 +359,15 @@ class Interview(models.Model):
         subject = None
         body_template = None
         if self.state == Interview.WAITING_PLANIFICATION:
-            subject = _("New interview for {process}".format(process=self.process))
+            subject = _("New interview for {process}").format(process=self.process)
             body_template = "interview/email/new_interview.txt"
 
         elif self.state == Interview.PLANNED:
-            subject = _("Interview planned: {process}".format(process=self.process))
+            subject = _("Interview planned: {process}").format(process=self.process)
             body_template = "interview/email/interview_planned.txt"
 
         if subject and body_template:
-            body = render_to_string(body_template, {'process': self})
+            body = render_to_string(body_template, {'interview': self})
             mail.send_mail(subject=subject,
                            message=body,
                            from_email=settings.MAIL_FROM,
