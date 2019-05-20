@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktrans %}Interview for {{ interview.process.candidate }} was planned by {{ interview.interviewers }} (interview.planned_date){% endblocktrans %}

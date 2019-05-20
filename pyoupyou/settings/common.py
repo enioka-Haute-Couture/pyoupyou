@@ -27,7 +27,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'ref.apps.RefConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'bootstrap',
     'fontawesome',
     'django_select2',
+    'ref.apps.RefConfig',
     'interview.apps.InterviewConfig',
     'django_markwhat',
 ]

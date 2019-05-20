@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktrans %}A new interviewer was assigned to {{ interview.process.candidate }}{% endblocktrans %}

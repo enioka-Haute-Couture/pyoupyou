@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+
+from django.conf import settings
+from django.core import mail
 from django.db import models
 from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
+from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 
@@ -31,7 +35,7 @@ class SourcesCategory(models.Model):
 
 class Sources(models.Model):
     name = models.CharField(max_length=50)
-    category = models.ForeignKey(SourcesCategory)
+    category = models.ForeignKey(SourcesCategory, null=True, on_delete=models.SET_NULL)
     archived = models.BooleanField(default=False)
 
     def __str__(self):
@@ -81,7 +85,7 @@ class Document(models.Model):
     )
 
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
-    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"), on_delete=models.CASCADE)
     document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE, verbose_name=_("Kind of document"))
     content = models.FileField(upload_to=document_path, verbose_name=_("Content file"))
     # content_url = models.URLField(verbose_name=_("Content URL"))
@@ -146,16 +150,17 @@ class Process(models.Model):
     CLOSED_STATE_VALUES = [s[0] for s in CLOSED_STATE]
     OPEN_STATE_VALUES = list(set(ALL_STATE_VALUES) - set(CLOSED_STATE_VALUES))
     objects = ProcessManager()
-    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"))
-    subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
+    candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"), on_delete=models.CASCADE)
+    subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), on_delete=models.CASCADE)
 
     start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
-    contract_type = models.ForeignKey(ContractType, null=True, blank=True, verbose_name=_("Contract type"))
+    contract_type = models.ForeignKey(ContractType, null=True, blank=True, verbose_name=_("Contract type"),
+                                      on_delete=models.SET_NULL)
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
-    sources = models.ForeignKey(Sources, null=True, blank=True)
+    sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.SET_NULL)
     responsible = models.ManyToManyField(Consultant, blank=True)
     state = models.CharField(max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"),
                              default=WAITING_INTERVIEWER_TO_BE_DESIGNED)
@@ -217,9 +222,37 @@ class Process(models.Model):
             return "0"
         return last_interview.rank
 
-    def trigger_notification(self, is_new=False):
+    def trigger_notification(self, is_new):
+        subject = None
+        body_template = None
         if is_new:
-            print("Send to HR - new process")
+            subject = _('New process')
+            body_template = "interview/email/new_process.txt"
+        elif self.state == Process.CANDIDATE_DECLINED:
+            subject = _('Process {process}: candidate declined').format(process=self)
+            body_template = "interview/email/candidate_declined.txt"
+
+        elif self.state == Process.HIRED:
+            subject=_("Process {process}: Candidate accepted our offer").format(process=self)
+            body_template = "interview/email/candidate_hired.txt"
+
+        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS:
+            subject=_("Process {process}: Candidate accepted our offer").format(process=self)
+            body_template = "interview/email/candidate_hired.txt"
+
+        elif self.state == Process.JOB_OFFER:
+            subject = _("Process {process}: job offer").format(process=self)
+            body_template = "interview/email/job_offer.txt"
+
+        if subject and body_template:
+            body = render_to_string(body_template, {'process': self})
+            recipient_list = [settings.MAIL_HR]
+            if self.subsidiary.responsible:
+                recipient_list.append(self.subsidiary.responsible.user.email)
+            mail.send_mail(subject=subject,
+                           message=body,
+                           from_email=settings.MAIL_FROM,
+                           recipient_list=recipient_list)
 
 
 class InterviewManager(models.Manager):
@@ -246,7 +279,7 @@ class Interview(models.Model):
 
     objects = InterviewManager()
 
-    process = models.ForeignKey(Process)
+    process = models.ForeignKey(Process, on_delete=models.CASCADE)
     state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
@@ -257,12 +290,13 @@ class Interview(models.Model):
                                      choices=MINUTE_FORMAT,
                                      default=MINUTE_FORMAT[0][0])
     suggested_interviewer = models.ForeignKey(Consultant, verbose_name=_("Suggested interviewer"),
-                                              related_name='suggested_interview_for', null=True, blank=True)
+                                              related_name='suggested_interview_for', null=True, blank=True,
+                                              on_delete=models.SET_NULL)
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
 
     def __str__(self):
         interviewers = ', '.join(i.user.trigramme for i in self.interviewers.all())
-        return f"#{self.rank} - {self.process} - {interviewers}"
+        return "#{rank} - {process} - {itws}".format(rank=self.rank, process=self.process, itws=interviewers)
 
     def save(self, *args, **kwargs):
         is_new = self.id is None
@@ -275,29 +309,25 @@ class Interview(models.Model):
         if is_new:
             self.state = Interview.WAITING_PLANIFICATION
 
-        if self.planned_date is None and self.state is None:
+        if self.state is None and self.planned_date is None:
             self.state = self.WAITING_PLANIFICATION
-        else:
-            if self.state == self.WAITING_PLANIFICATION and self.planned_date is not None:
-                self.state = self.PLANNED
+        elif self.state == self.WAITING_PLANIFICATION and self.planned_date is not None:
+            self.state = self.PLANNED
+            self.trigger_notification()
 
         super(Interview, self).save(*args, **kwargs)
         if is_new or (Interview.objects.filter(process=self.process).last() == self and self.process.is_open()):
             if self.state == self.WAITING_PLANIFICATION:
                 self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
-                self.process.save()
             elif self.state == self.PLANNED:
                 self.process.state = Process.INTERVIEW_IS_PLANNED
-                self.process.save()
             elif self.state == self.WAIT_INFORMATION:
                 self.process.state = Process.WAITING_ITW_MINUTE
-                self.process.save()
-            if self.state in (Interview.GO, Interview.NO_GO):
+            elif self.state in (Interview.GO, Interview.NO_GO):
                 self.process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
-                self.process.save()
+            self.process.save()
 
-        if is_new:
-            self.trigger_notification()
+        # self.trigger_notification()
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -317,19 +347,42 @@ class Interview(models.Model):
         return False
 
     def trigger_notification(self):
-        print("notification")
+        recipient_list = [settings.MAIL_HR]
+        if self.process.subsidiary.responsible:
+            recipient_list.append(self.process.subsidiary.responsible.user.email)
+        if self.id:
+            recipient_list = recipient_list  + [i.user.email for i in self.interviewers.all()]
 
+        subject = None
+        body_template = None
+        if self.state == Interview.WAITING_PLANIFICATION:
+            subject = _("New interview for {process}".format(process=self.process))
+            body_template = "interview/email/new_interview.txt"
 
-@receiver(post_save, sender=Interview)
-def interview_post_save(*args, **kwargs):
-    # print("post save")
-    # print(kwargs)
-    # print(kwargs["instance"].interviewers.all())
-    pass
+        elif self.state == Interview.PLANNED:
+            subject = _("Interview planned: {process}".format(process=self.process))
+            body_template = "interview/email/interview_planned.txt"
+
+        if subject and body_template:
+            body = render_to_string(body_template, {'process': self})
+            mail.send_mail(subject=subject,
+                           message=body,
+                           from_email=settings.MAIL_FROM,
+                           recipient_list=recipient_list)
+        # if self.
+        # body_template = "interview/email/new_interview.txt"
+        # body = render_to_string(body_template, {'interview': self})
+        # mail.send_mail(subject=_("New interview for {process}".format(process=self.process)),
+        #                message=body,
+        #                from_email=settings.MAIL_FROM,
+        #                recipient_list=recipient_list)
 
 
 @receiver(m2m_changed, sender=Interview.interviewers.through)
 def interview_m2m_changed(sender, **kwargs):
-    instance = kwargs["instance"]
-    instance.process.save()
-    pass
+    if kwargs['action'] == 'post_add':
+        instance = kwargs["instance"]
+        # update process state
+        instance.process.save()
+        # trigger notification
+        instance.trigger_notification()

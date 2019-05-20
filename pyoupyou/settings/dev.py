@@ -17,7 +17,6 @@ HAS_DDT = True
 
 INSTALLED_APPS += [
     'debug_toolbar',
-    'debug_toolbar_user_panel',
 ]
 
 MIDDLEWARE += [
@@ -25,7 +24,6 @@ MIDDLEWARE += [
 ]
 
 DEBUG_TOOLBAR_PANELS = [
-    'debug_toolbar_user_panel.panels.UserPanel',
     'debug_toolbar.panels.versions.VersionsPanel',
     'debug_toolbar.panels.timer.TimerPanel',
     'debug_toolbar.panels.settings.SettingsPanel',

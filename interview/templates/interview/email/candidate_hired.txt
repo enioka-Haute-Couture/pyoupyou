@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktrans %}Candidate {{ process.candidate }} accepted our offer{% endblocktrans %}
