@@ -40,7 +40,7 @@ class ProcessTable(tables.Table):
 
     class Meta:
         model = Process
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {'class': 'table table-striped table-condensed'}
         sequence = (
             "needs_attention",
@@ -91,7 +91,7 @@ class InterviewTable(tables.Table):
 
     class Meta:
         model = Interview
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
         sequence = ("needs_attention", "interviewers", "planned_date", "state", "actions")
         fields = sequence
@@ -486,7 +486,7 @@ class LoadTable(tables.Table):
     itw_not_planned_yet = tables.Column(verbose_name=_("To plan"))
 
     class Meta:
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
 
 def _interviewer_load(interviewer):
