@@ -223,7 +223,6 @@ class Process(models.Model):
         return last_interview.rank
 
     def trigger_notification(self, is_new):
-        print("trigger")
         subject = None
         body_template = None
         if is_new:
@@ -347,7 +346,9 @@ class Interview(models.Model):
 
     @property
     def interviewers_str(self):
-        return ', '.join(i.user.get_full_name() for i in self.interviewers.all())
+        if self.id:
+            return ', '.join(i.user.get_full_name() for i in self.interviewers.all())
+        return ''
 
     def trigger_notification(self):
         recipient_list = [settings.MAIL_HR]

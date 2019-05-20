@@ -436,7 +436,6 @@ def export_interviews_tsv(request):
             if last_itw.planned_date is not None:
                 last_event_date = last_itw.planned_date.date()
             else:
-                print("Past interview without date: {}".format(last_itw.id))
                 time_since_last_is_sound = False
         if interview.planned_date is None:
             time_since_last_is_sound = False
