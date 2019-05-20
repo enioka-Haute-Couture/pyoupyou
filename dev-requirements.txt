@@ -2,3 +2,4 @@
 django-debug-toolbar==1.7
 factory-boy
 tzlocal
+-e git://github.com/bport/django-debug-toolbar-user-panel.git#egg=django-debug-toolbar-user-panel

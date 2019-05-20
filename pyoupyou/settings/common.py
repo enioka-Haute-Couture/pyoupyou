@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
 TIME_ZONE = 'Europe/Paris'
 
@@ -122,7 +122,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-LANGUAGE_CODE = 'fr-fr'
 LOCALE_PATHS = ("locale/",)
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
