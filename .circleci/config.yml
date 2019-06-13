@@ -24,10 +24,10 @@ jobs:
               key: v1-dependencies-{{ checksum "requirements.txt" }}
 
           - run:
-          name: check migrations
-          command: |
-            . venv/bin/activate
-            ./manage.py makemigrations --check
+            name: check migrations
+            command: |
+              . venv/bin/activate
+              ./manage.py makemigrations --check
 
           - run:
             name: run tests
