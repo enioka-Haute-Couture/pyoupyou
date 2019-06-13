@@ -254,7 +254,7 @@ class Process(models.Model):
             mail.send_mail(subject=subject,
                            message=body,
                            from_email=settings.MAIL_FROM,
-                           recipient_list=recipient_list)
+                           recipient_list=set(recipient_list))
 
 
 class InterviewManager(models.Manager):
@@ -375,7 +375,7 @@ class Interview(models.Model):
             mail.send_mail(subject=subject,
                            message=body,
                            from_email=settings.MAIL_FROM,
-                           recipient_list=recipient_list)
+                           recipient_list=set(recipient_list))
 
 
 @receiver(m2m_changed, sender=Interview.interviewers.through)
