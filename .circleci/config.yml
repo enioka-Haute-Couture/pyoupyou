@@ -1,6 +1,13 @@
 version: 2
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-3.6
+      - test-3.5
+      - test-3.7
 jobs:
-  build:
+  test-3.6: &test-template
     working_directory: ~/pyoupyou
     docker:
       - image: circleci/python:3.6.4
@@ -44,3 +51,12 @@ jobs:
               destination: coverage_html
           - store_test_results:
               path: test-results
+  test-3.5:
+      <<: *test-template
+      docker:
+        - image: circleci/python:3.5
+
+  test-3.7:
+      <<: *test-template
+      docker:
+       - image: circleci/python:3.7
