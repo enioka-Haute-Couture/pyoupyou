@@ -370,7 +370,7 @@ class Interview(models.Model):
             body_template = "interview/email/interview_planned.txt"
 
         if subject and body_template:
-            url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip('/'))
+            url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip('/'))
             body = render_to_string(body_template, {'interview': self, 'url': url})
             mail.send_mail(subject=subject,
                            message=body,
