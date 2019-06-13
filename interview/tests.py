@@ -169,6 +169,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # When we create an interview
@@ -183,7 +184,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
         self.assertEqual(list(p.responsible.all()), [interviewer,])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # After interview planification
@@ -198,7 +199,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.PLANNED)
         self.assertEqual(list(p.responsible.all()), [interviewer,])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
@@ -221,7 +222,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.GO)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # After we go for a job offer
@@ -235,7 +236,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # After we hired the candidate or we didn't hired him (can be our offer is refused by the candidate for example)
@@ -247,5 +248,5 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
         self.assertEqual(list(p.responsible.all()), [])
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = 0

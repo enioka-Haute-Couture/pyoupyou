@@ -1,0 +1,42 @@
+version: 2
+jobs:
+  unittest:
+    working_directory: ~/circleci-demo-python-django
+    docker:
+      - image: circleci/python:3.6.4
+    steps:
+          - checkout
+          - restore_cache:
+              keys:
+                - v1-dependencies-{{ checksum "requirements.txt" }}
+                # fallback to using the latest cache if no exact match is found
+                - v1-dependencies-
+          - run:
+              name: install dependencies
+              command: |
+                python3 -m venv venv
+                . venv/bin/activate
+                pip install -r dev-requirements.txt
+
+          - save_cache:
+              paths:
+                - ./venv
+              key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+          - run:
+          name: check migrations
+          command: |
+            . venv/bin/activate
+            ./manage.py makemigrations --check
+
+          - run:
+            name: run tests
+            command: |
+              . venv/bin/activate
+              coverage run manage.py test
+              coverage html -d coverage_html
+          - store_artifacts:
+              path: coverage_html
+              destination: coverage_html
+          - store_test_results:
+              path: test-results
