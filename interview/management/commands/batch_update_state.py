@@ -2,7 +2,6 @@ import time
 
 import logging
 from django.core.management import BaseCommand
-from django.utils import log
 from django.utils.timezone import now
 from email.utils import parsedate_to_datetime
 

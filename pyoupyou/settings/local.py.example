@@ -7,3 +7,7 @@ from pyoupyou.settings.dev import *
 # If you are using prod settings you need to fill the following keys
 # ALLOWED_HOSTS = []
 # SECRET_KEY = '' # You can use the following command: generate_secret_key from django extensions
+
+# SITE_HOST = 'https://pyoupyou.com'
+# MAIL_HR = 'hr@company.com'
+# MAIL_FROM = 'noreply@company.com'

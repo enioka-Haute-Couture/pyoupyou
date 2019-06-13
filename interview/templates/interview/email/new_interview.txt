@@ -1,2 +1,4 @@
 {% load i18n %}
 {% blocktrans with itws=interview.interviewers_str candidate=interview.process.candidate%}{{ itws }} was assigned as {{  candidate }} interviewer(s).{% endblocktrans %}
+
+{{ url }}

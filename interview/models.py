@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
+import os
 
 from django.conf import settings
 from django.core import mail
@@ -245,7 +246,8 @@ class Process(models.Model):
             body_template = "interview/email/job_offer.txt"
 
         if subject and body_template:
-            body = render_to_string(body_template, {'process': self})
+            url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip('/'))
+            body = render_to_string(body_template, {'process': self, 'url': url})
             recipient_list = [settings.MAIL_HR]
             if self.subsidiary.responsible:
                 recipient_list.append(self.subsidiary.responsible.user.email)
@@ -368,7 +370,8 @@ class Interview(models.Model):
             body_template = "interview/email/interview_planned.txt"
 
         if subject and body_template:
-            body = render_to_string(body_template, {'interview': self})
+            url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip('/'))
+            body = render_to_string(body_template, {'interview': self, 'url': url})
             mail.send_mail(subject=subject,
                            message=body,
                            from_email=settings.MAIL_FROM,
