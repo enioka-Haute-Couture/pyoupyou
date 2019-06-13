@@ -26,7 +26,7 @@ pip install -r dev-requirements.txt
 
 # Contribute
 
-To contribute do Pull Request against this repository (https://github.com/bport/pyoupyou)
+To contribute do Pull Request against this repository (https://github.com/pyoupyou/pyoupyou)
 
 ## Style Guide
 
