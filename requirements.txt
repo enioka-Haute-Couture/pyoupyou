@@ -1,10 +1,10 @@
-django>=1.10.6,<1.11.0
+django==2.2.1
 django-bootstrap-static>=3.3.7,<3.4
-django-crispy-forms>=1.6.0,<1.7
-Django-Select2>=5.8.9,<5.9
-django-extensions>=1.7.7,<1.8
-django-tables2>=1.4.2,<1.5
+django-crispy-forms==1.7.2
+Django-Select2==7.0.3
+django-extensions==2.1.6
+django-tables2==2.0.6
 django-ical==1.4
-django-markwhat==1.5.1
-CommonMark==0.7.4
+django-markwhat==1.6.1
+CommonMark==0.8.1
 django-bleach==0.3.0

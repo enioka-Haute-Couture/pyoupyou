@@ -13,6 +13,7 @@ from interview.models import Consultant, Interview, Candidate, Process, Sources
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
+    queryset = Consultant.objects.filter(user__is_active=True)
     search_fields = [
         'user__trigramme__icontains',
         'user__full_name__icontains',
@@ -40,8 +41,8 @@ class ProcessCandidateForm(forms.ModelForm):
 
 
 class SelectOrCreate(SourcesWidget):
-    def render(self, name, value, attrs=None):
-        output = [super().render(name, value, attrs), ]
+    def render(self, *args, **kwargs):
+        output = [super().render(*args, **kwargs), ]
         output.append(render_to_string('interview/select_or_create_source.html'))
         return mark_safe('\n'.join(output))
 
@@ -131,7 +132,7 @@ class CloseForm(forms.ModelForm):
         model = Process
         fields = ['state', 'closed_comment']
     # we remove open choice
-    state = forms.ChoiceField(choices=Process.CLOSED_STATE)
+    state = forms.ChoiceField(choices=Process.CLOSED_STATE + ((Process.JOB_OFFER, _('Waiting candidate feedback after a job offer')),))
     helper = FormHelper()
     helper.form_tag = False
 

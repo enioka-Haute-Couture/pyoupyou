@@ -27,7 +27,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'ref.apps.RefConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -41,6 +40,7 @@ INSTALLED_APPS = [
     'bootstrap',
     'fontawesome',
     'django_select2',
+    'ref.apps.RefConfig',
     'interview.apps.InterviewConfig',
     'django_markwhat',
 ]
@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'fr-fr'
 
 TIME_ZONE = 'Europe/Paris'
 
@@ -122,7 +122,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-LANGUAGE_CODE = 'fr-fr'
 LOCALE_PATHS = ("locale/",)
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"

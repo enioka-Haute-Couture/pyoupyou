@@ -5,7 +5,7 @@ except ImportError:
     exit()
 
 try:
-    DATABASES
-except NameError:
-    print("You need to declare a database settings in your settings/local.py file")
-
+    DATABASES, SITE_HOST, MAIL_FROM, MAIL_HR
+except NameError as e:
+    print("{}. You need to declare it in settings in your settings/local.py file".format(e))
+    exit()

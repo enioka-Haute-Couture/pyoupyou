@@ -11,7 +11,7 @@ class Subsidiary(models.Model):
     """Internal company / organisation unit"""
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
-    responsible = models.ForeignKey('Consultant', null=True)
+    responsible = models.ForeignKey('Consultant', null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -110,7 +110,7 @@ class ConsultantManager(models.Manager):
 class Consultant(models.Model):
     """A consultant that can do recruitment meeting"""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"))
+    company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
     productive = models.BooleanField(_("Productive"), default=True)
 
     objects = ConsultantManager()

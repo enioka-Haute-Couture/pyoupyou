@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktrans with candidate=process.candidate %}New process for candidate {{ candidate }}{% endblocktrans %}
+
+{{ url }}

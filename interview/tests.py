@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.core import mail
 from django.test import TestCase, RequestFactory
 import datetime
 
@@ -11,33 +13,32 @@ import pytz
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
-from django.utils.translation import ugettext_lazy as _
 
 
-# class InterviewTestCase(TestCase):
-#     def test_new_interview_state_equals_need_plannification(self):
-#         p = ProcessFactory()
-#         i1 = Interview(process_id=p.id)
-#         i1.save()
-#         self.assertEqual(Interview.WAITING_PLANIFICATION, i1.state)
-#
-#     def test_set_interview_date_state_equals_planned(self):
-#         p = ProcessFactory()
-#         i1 = Interview(process_id=p.id)
-#         i1.save()
-#         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
-#         i1.save()
-#         self.assertEqual(Interview.PLANNED, i1.state)
-#
-#     def test_interview_replanned_after_state_set_keeps_state(self):
-#         p = ProcessFactory()
-#         i1 = Interview(process_id=p.id)
-#         i1.save()
-#         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
-#         i1.save()
-#         i1.state = Interview.GO
-#         i1.save()
-#         self.assertEqual(Interview.GO, i1.state)
+class InterviewTestCase(TestCase):
+    def test_new_interview_state_equals_need_plannification(self):
+        p = ProcessFactory()
+        i1 = Interview(process_id=p.id)
+        i1.save()
+        self.assertEqual(Interview.WAITING_PLANIFICATION, i1.state)
+
+    def test_set_interview_date_state_equals_planned(self):
+        p = ProcessFactory()
+        i1 = Interview(process_id=p.id)
+        i1.save()
+        i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
+        i1.save()
+        self.assertEqual(Interview.PLANNED, i1.state)
+
+    def test_interview_replanned_after_state_set_keeps_state(self):
+        p = ProcessFactory()
+        i1 = Interview(process_id=p.id)
+        i1.save()
+        i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris"))
+        i1.save()
+        i1.state = Interview.GO
+        i1.save()
+        self.assertEqual(Interview.GO, i1.state)
 
 
 class AccessRestrictionDateTestCase(TestCase):
@@ -60,8 +61,8 @@ class AccessRestrictionDateTestCase(TestCase):
         self.p.start_date = datetime.date(2016, 10, 10)
         self.p.save()
         self.i = InterviewFactory(process=self.p)
-        self.i.interviewers = [self.consultantOld, self.consultantNew]
-        self.i.save()
+        self.i.interviewers.set([self.consultantOld, self.consultantNew])
+        # self.i.save()
 
     def test_view_process(self):
         request = self.factory.get(reverse('process-details', kwargs={'process_id': self.p.id}))
@@ -137,8 +138,7 @@ class AccessRestrictionUserTestCase(TestCase):
 
         self.p = ProcessFactory()
         self.i = InterviewFactory(process=self.p)
-        self.i.interviewers = [self.consultantItw, ]
-        self.i.save()
+        self.i.interviewers.set([self.consultantItw, ])
 
     def test_only_assigned_user_can_edit_minute(self):
         request = self.factory.get(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
@@ -167,7 +167,9 @@ class StatusAndNotificationTestCase(TestCase):
         p = ProcessFactory(subsidiary=subsidiary)
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
-        # TODO check mail global HR
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        mail.outbox = []
 
         # When we create an interview
         # Process state will be: WAITING_INTERVIEW_PLANIFICATION
@@ -176,27 +178,28 @@ class StatusAndNotificationTestCase(TestCase):
         # Mail will be sent to global HR and interviewer
         i1 = Interview(process_id=p.id)
         i1.save()
-
         i1.interviewers.add(interviewer)
-        i1.save()
-
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
         self.assertEqual(list(p.responsible.all()), [interviewer,])
-        # TODO check mail global HR and interviewer
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        mail.outbox = []
 
         # After interview planification
         # Process state will be: INTERVIEW_IS_PLANNED
         # Interview state will be: PLANNED
         # Action responsible will be: Interviewer
         # Mail will be sent to global HR and interviewer if more than one
-        i1.planned_date = datetime.datetime.now() + datetime.timedelta(days=7)
+        i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris")) + datetime.timedelta(days=7)
         i1.save()
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.INTERVIEW_IS_PLANNED)
         self.assertEqual(i1.state, Interview.PLANNED)
         self.assertEqual(list(p.responsible.all()), [interviewer,])
-        # TODO assert notification recrutement team
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
         # WAITING_ITW_MINUTE (WM) for the process
@@ -217,7 +220,9 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
         self.assertEqual(i1.state, Interview.GO)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
-        # TODO assert notification recrutement team
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        mail.outbox = []
 
         # After we go for a job offer
         # Process state will be: JOB_OFFER
@@ -228,7 +233,10 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
-         # TODO assert notification recrutement team
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        mail.outbox = []
 
         # After we hired the candidate or we didn't hired him (can be our offer is refused by the candidate for example)
         # Process state will be: HIRED or JOB_OFFER_DECLINED
@@ -239,6 +247,5 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
         self.assertEqual(list(p.responsible.all()), [])
-        # TODO assert notification recrutement team
-
-
+        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        mail.outbox = 0

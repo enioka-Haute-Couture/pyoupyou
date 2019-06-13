@@ -36,11 +36,11 @@ class ProcessTable(tables.Table):
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(', '.join([f'<span title="{c.user.full_name}">{c.user. trigramme}</span>' for c in value.all()]))
+        return format_html(', '.join([f'<span title="{c.user.full_name}">{c.user.trigramme}</span>' for c in value.all()]))
 
     class Meta:
         model = Process
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {'class': 'table table-striped table-condensed'}
         sequence = (
             "needs_attention",
@@ -91,14 +91,14 @@ class InterviewTable(tables.Table):
 
     class Meta:
         model = Interview
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
         sequence = ("needs_attention", "interviewers", "planned_date", "state", "actions")
         fields = sequence
         order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
+            'class': lambda record: 'danger' if record.needs_attention else None # TODO bpo check if we really needs needs_attention function
         }
 
 
@@ -295,17 +295,17 @@ def minute(request, interview_id):
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     c = request.user.consultant
-    actions_needed_processes = Process.objects.for_user(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
+    actions_needed_processes = Process.objects.for_user(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c).select_related('candidate', 'subsidiary__responsible__user')
 
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
     related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).distinct()
+        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).select_related('candidate', 'subsidiary__responsible__user').distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.for_user(request.user). \
         filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).filter(
-        subsidiary=c.company)
+        subsidiary=c.company).select_related('candidate', 'subsidiary__responsible__user')
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
 
     config = RequestConfig(request)
@@ -436,7 +436,6 @@ def export_interviews_tsv(request):
             if last_itw.planned_date is not None:
                 last_event_date = last_itw.planned_date.date()
             else:
-                print("Past interview without date: {}".format(last_itw.id))
                 time_since_last_is_sound = False
         if interview.planned_date is None:
             time_since_last_is_sound = False
@@ -486,7 +485,7 @@ class LoadTable(tables.Table):
     itw_not_planned_yet = tables.Column(verbose_name=_("To plan"))
 
     class Meta:
-        template = 'interview/_tables.html'
+        template_name = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
 
 def _interviewer_load(interviewer):
