@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/circleci-demo-python-django
+    working_directory: ~/pyoupyou
     docker:
       - image: circleci/python:3.6.4
     steps:
@@ -23,6 +23,10 @@ jobs:
                 - ./venv
               key: v1-dependencies-{{ checksum "requirements.txt" }}
 
+          - run:
+              name: create settings
+              command: |
+                cp pyoupyou/settings/local-test.py pyoupyou/settings/local.py
           - run:
               name: check migrations
               command: |
