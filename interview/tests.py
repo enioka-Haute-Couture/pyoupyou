@@ -168,7 +168,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
 
