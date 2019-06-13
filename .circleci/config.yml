@@ -1,19 +1,4 @@
 version: 2
-workflows:
-  version: 2
-  test:
-    jobs:
-    - check
-    - test-3.6:
-      requires:
-        - check
-    - test-3.5:
-      requires:
-        - check
-    - test-3.7:
-      requires:
-        - check
-
 jobs:
   check:
     working_directory: ~/pyoupyou
@@ -96,3 +81,19 @@ jobs:
     <<: *test-template
     docker:
       - image: circleci/python:3.7
+
+
+workflows:
+  version: 2
+  test:
+    jobs:
+    - check
+#    - test-3.6:
+#      requires:
+#        - check
+#    - test-3.5:
+#      requires:
+#        - check
+#    - test-3.7:
+#      requires:
+#        - check
