@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  unittest:
+  build:
     working_directory: ~/circleci-demo-python-django
     docker:
       - image: circleci/python:3.6.4
