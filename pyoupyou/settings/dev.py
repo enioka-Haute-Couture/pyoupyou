@@ -41,7 +41,7 @@ DEBUG_TOOLBAR_PANELS = [
 ]
 
 DEBUG_TOOLBAR_CONFIG = {
-    'JQUERY_URL':'{}bootstrap/js/jquery.min.js'.format(STATIC_URL)
+    'JQUERY_URL': '{}bootstrap/js/jquery.min.js'.format(STATIC_URL)
 }
 
 # needed by django debug toolbar
