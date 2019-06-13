@@ -89,11 +89,19 @@ workflows:
     jobs:
       - check
       - test-3.6:
-        requires:
-          - check
+          requires:
+            - check
       - test-3.5:
-        requires:
-          - check
+          requires:
+            - check
       - test-3.7:
-        requires:
-          - check
+          requires:
+            - check
+{:workflows
+  {:test
+    {:jobs
+      [nil
+       {:test-3.6 (not (map? nil)), :requires (not (map? a-clojure.lang.LazySeq))}
+       {:test-3.5 (not (map? nil)), :requires (not (map? a-clojure.lang.LazySeq))}
+       {:test-3.7 (not (map? nil)), :requires (not (map? a-clojure.lang.LazySeq))}
+      ]}}}
