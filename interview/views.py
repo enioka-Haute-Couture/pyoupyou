@@ -36,7 +36,7 @@ class ProcessTable(tables.Table):
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(', '.join(['<span title="{fullname}">{trigramme}</span>'.format(username=c.user.full_name, trigramme=c.user.trigramme) for c in value.all()]))
+        return format_html(', '.join(['<span title="{fullname}">{trigramme}</span>'.format(fullname=c.user.full_name, trigramme=c.user.trigramme) for c in value.all()]))
 
     class Meta:
         model = Process
