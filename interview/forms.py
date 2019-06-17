@@ -55,6 +55,7 @@ class ProcessForm(forms.ModelForm):
         widgets = {
             'sources': SelectOrCreate
         }
+
     helper = FormHelper()
     helper.form_tag = False
 
@@ -63,6 +64,7 @@ class SourceForm(forms.ModelForm):
     class Meta:
         model = Sources
         fields = ['category', 'name']
+
     helper = FormHelper()
     helper.form_tag = False
 
@@ -81,31 +83,27 @@ class InterviewForm(forms.ModelForm):
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
 
 
-class InterviewFormPlan(InterviewForm):
+class InterviewFormPlan(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ['planned_date']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.helper.layout = Layout(
-            Div(
-                Column(
-                    'planned_date',
-                ),
-                css_class='relative'
-            )
-        )
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
 
 
-class InterviewFormEditInterviewers(InterviewForm):
+class InterviewFormEditInterviewers(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ['interviewers']
         widgets = {
             'interviewers': MultipleConsultantWidget,
         }
+
+    helper = FormHelper()
+    helper.form_method = 'POST'
+    helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
 
 
 class InterviewMinuteForm(forms.ModelForm):
@@ -131,6 +129,7 @@ class CloseForm(forms.ModelForm):
     class Meta:
         model = Process
         fields = ['state', 'closed_comment']
+
     # we remove open choice
     state = forms.ChoiceField(choices=Process.CLOSED_STATE + ((Process.JOB_OFFER, _('Waiting candidate feedback after a job offer')),))
     helper = FormHelper()
