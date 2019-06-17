@@ -1,3 +1,6 @@
+# 1.0.4 (2019-06-17)
+Fix interview form
+
 # 1.0.3 (2019-06-14)
 Fix key error on table rendering
 
