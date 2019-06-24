@@ -91,6 +91,7 @@ class InterviewFormPlan(forms.ModelForm):
     helper = FormHelper()
     helper.form_method = 'POST'
     helper.add_input(Submit('summit', _('Save'), css_class='btn-primary'))
+    helper.layout = Layout(Div(Column('planned_date',), css_class='relative'))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
