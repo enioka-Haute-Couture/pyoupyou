@@ -1,3 +1,6 @@
+# 1.0.5 (2019-06-24)
+Fix plan datepicker
+
 # 1.0.4 (2019-06-17)
 Fix interview form
 
