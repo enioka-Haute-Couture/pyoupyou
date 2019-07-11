@@ -10,6 +10,7 @@ import pytz
 
 test_tz = pytz.timezone("Europe/Paris")
 
+
 class CandidateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = 'interview.Candidate'

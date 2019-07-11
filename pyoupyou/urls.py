@@ -29,13 +29,16 @@ urlpatterns = [
     url(r'^process/(?P<process_id>\d+)/$', views.process, name="process-details"),
     url(r'^process/(?P<process_id>\d+)/close/$', views.close_process, name="process-close"),
     url(r'^process/(?P<process_id>\d+)/reopen/$', views.reopen_process, name="process-reopen"),
-    url(r'^process/(?P<process_id>\d+)/interview/$', views.interview, {"action":"edit"}, name="process-new-interview"),
-    url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/plan$', views.interview, {"action":"plan"}, name="interview-plan"),
-    url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$', views.interview, {"action":"edit"}, name="interview-edit"),
+    url(r'^process/(?P<process_id>\d+)/interview/$', views.interview, {"action": "edit"}, name="process-new-interview"),
+    url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/plan$', views.interview, {"action": "plan"},
+        name="interview-plan"),
+    url(r'^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$', views.interview, {"action": "edit"},
+        name="interview-edit"),
     url(r'^interview/(?P<interview_id>\d+)/minute/$', views.minute, name="interview-minute"),
     url(r'^interview/(?P<interview_id>\d+)/minute/edit/$', views.minute_edit, name="interview-minute-edit"),
     url(r'^reports/interviewers-load/$', views.interviewers_load, name="interviewers-load"),
-    url(r'^reports/interviewers-load/(?P<subsidiary_id>\d*)$', views.interviewers_load, name="interviewers-load-subdidiary"),
+    url(r'^reports/interviewers-load/(?P<subsidiary_id>\d*)$', views.interviewers_load,
+        name="interviewers-load-subdidiary"),
     url(r'^candidate/(?P<process_id>\d+)/$', views.edit_candidate, name="candidate"),
     url(r'^create_source/$', views.create_source_ajax, name="create_source"),
     url(r'^feed/pyoupyou_full.ics$', feeds.InterviewFeed(), name="calendar_full"),
@@ -49,9 +52,9 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
 if settings.HAS_DDT:
     import debug_toolbar
+
     urlpatterns = [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ] + urlpatterns
+                      url(r'^__debug__/', include(debug_toolbar.urls)),
+                  ] + urlpatterns

@@ -139,4 +139,4 @@ MINUTE_FORMAT = (
     ('rst', "ReStructured Text"),
 )
 
-USE_X_FORWARDED_HOST=True
+USE_X_FORWARDED_HOST = True

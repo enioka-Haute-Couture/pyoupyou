@@ -234,11 +234,12 @@ class Process(models.Model):
             body_template = "interview/email/candidate_declined.txt"
 
         elif self.state == Process.HIRED:
-            subject=_("Process {process}: Candidate accepted our offer").format(process=self)
+            subject = _("Process {process}: Candidate accepted our offer").format(process=self)
             body_template = "interview/email/candidate_hired.txt"
 
-        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS and self.interview_set.last().state in [Interview.GO, Interview.NO_GO]:
-            subject=_("Process {process}: {result}").format(process=self, result=self.interview_set.last().state)
+        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS \
+                and self.interview_set.last().state in [Interview.GO, Interview.NO_GO]:
+            subject = _("Process {process}: {result}").format(process=self, result=self.interview_set.last().state)
             body_template = "interview/email/minute_done.txt"
 
         elif self.state == Process.JOB_OFFER:
@@ -357,7 +358,7 @@ class Interview(models.Model):
         if self.process.subsidiary.responsible:
             recipient_list.append(self.process.subsidiary.responsible.user.email)
         if self.id:
-            recipient_list = recipient_list  + [i.user.email for i in self.interviewers.all()]
+            recipient_list = recipient_list + [i.user.email for i in self.interviewers.all()]
 
         subject = None
         body_template = None

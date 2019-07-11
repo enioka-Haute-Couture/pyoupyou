@@ -36,7 +36,8 @@ class ProcessTable(tables.Table):
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(', '.join(['<span title="{fullname}">{trigramme}</span>'.format(fullname=c.user.full_name, trigramme=c.user.trigramme) for c in value.all()]))
+        return format_html(', '.join(['<span title="{fullname}">{trigramme}</span>'.format(
+            fullname=c.user.full_name, trigramme=c.user.trigramme) for c in value.all()]))
 
     class Meta:
         model = Process
@@ -98,7 +99,7 @@ class InterviewTable(tables.Table):
         order_by = "id"
         empty_text = _('No data')
         row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None # TODO bpo check if we really needs needs_attention function
+            'class': lambda record: 'danger' if record.needs_attention else None
         }
 
 
@@ -158,8 +159,9 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = Process.objects.for_user(request.user).filter(end_date__isnull=False).select_related('candidate',
-                                                                                                            'contract_type')
+    closed_processes = Process.objects.for_user(request.user)\
+        .filter(end_date__isnull=False)\
+        .select_related('candidate', 'contract_type')
 
     closed_processes_table = ProcessEndTable(closed_processes, prefix='c')
 
@@ -295,12 +297,18 @@ def minute(request, interview_id):
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     c = request.user.consultant
-    actions_needed_processes = Process.objects.for_user(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c).select_related('candidate', 'subsidiary__responsible__user')
+    actions_needed_processes = Process.objects.for_user(request.user)\
+        .exclude(state__in=Process.CLOSED_STATE_VALUES)\
+        .filter(responsible=c)\
+        .select_related('candidate', 'subsidiary__responsible__user')
 
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
 
-    related_processes = Process.objects.for_user(request.user).filter(interview__interviewers__user=request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).select_related('candidate', 'subsidiary__responsible__user').distinct()
+    related_processes = Process.objects.for_user(request.user)\
+        .filter(interview__interviewers__user=request.user)\
+        .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))\
+        .select_related('candidate', 'subsidiary__responsible__user')\
+        .distinct()
     related_processes_table = ProcessTable(related_processes, prefix='r')
 
     subsidiary_processes = Process.objects.for_user(request.user). \
@@ -376,10 +384,12 @@ def edit_candidate(request, process_id):
 @user_passes_test(lambda u: u.is_active and u.is_superuser)
 def dump_data(request):
     out = StringIO()
-    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True, exclude=['auth.Permission', 'contenttypes'], stdout=out)
+    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True,
+                 exclude=['auth.Permission', 'contenttypes'], stdout=out)
     response = HttpResponse(out.getvalue(), content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename=pyoupyou_dump.json'
     return response
+
 
 @login_required
 @require_http_methods(["GET"])
@@ -449,25 +459,28 @@ def export_interviews_tsv(request):
         else:
             time_since_last_event = ""
 
-        ret.append("\t".join(str(x).replace("\t", " ") for x in [interview.process.id,
-                                                                 interview.process.candidate.name,
-                                                                 interview.process.subsidiary,
-                                                                 interview.process.start_date,
-                                                                 interview.process.end_date,
-                                                                 process_length,
-                                                                 interview.process.sources,
-                                                                 interview.process.contract_type,
-                                                                 interview.process.contract_start_date,
-                                                                 interview.process.contract_duration,
-                                                                 interview.process.state,
-                                                                 Interview.objects.filter(process=interview.process).count(),
-                                                                 int(process_length/Interview.objects.filter(process=interview.process).count()),
-                                                                 interview.id,
-                                                                 interview.state,
-                                                                 interviewers,
-                                                                 interview.rank,
-                                                                 time_since_last_event,
-                                                                 interview.planned_date]))
+        columns = [
+             interview.process.id,
+             interview.process.candidate.name,
+             interview.process.subsidiary,
+             interview.process.start_date,
+             interview.process.end_date,
+             process_length,
+             interview.process.sources,
+             interview.process.contract_type,
+             interview.process.contract_start_date,
+             interview.process.contract_duration,
+             interview.process.state,
+             Interview.objects.filter(process=interview.process).count(),
+             int(process_length / Interview.objects.filter(process=interview.process).count()),
+             interview.id,
+             interview.state,
+             interviewers,
+             interview.rank,
+             time_since_last_event,
+             interview.planned_date
+        ]
+        ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
 
     response = HttpResponse("\n".join(ret), content_type='text/plain; charset=utf-8')
     response["Content-Disposition"] = 'attachment; filename=all_interviews.tsv'
@@ -488,14 +501,28 @@ class LoadTable(tables.Table):
         template_name = 'interview/_tables.html'
         attrs = {"class": "table table-striped table-condensed"}
 
+
 def _interviewer_load(interviewer):
     a_month_ago = timezone.now() - datetime.timedelta(days=30)
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     end_of_today = timezone.now().replace(hour=23, minute=59, second=59)
-    itw_last_month = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_month_ago).filter(planned_date__lt=end_of_today).count()
-    itw_last_week = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=a_week_ago).filter(planned_date__lt=end_of_today).count()
-    itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=timezone.now()).count()
-    itw_not_planned_yet = Interview.objects.filter(interviewers=interviewer).filter(planned_date=None).filter(process__state__in=Process.OPEN_STATE_VALUES).count()
+    itw_last_month = Interview.objects\
+        .filter(interviewers=interviewer)\
+        .filter(planned_date__gte=a_month_ago)\
+        .filter(planned_date__lt=end_of_today)\
+        .count()
+    itw_last_week = Interview.objects\
+        .filter(interviewers=interviewer)\
+        .filter(planned_date__gte=a_week_ago)\
+        .filter(planned_date__lt=end_of_today).count()
+    itw_planned = Interview.objects.filter(interviewers=interviewer)\
+        .filter(planned_date__gte=timezone.now())\
+        .count()
+    itw_not_planned_yet = Interview.objects\
+        .filter(interviewers=interviewer)\
+        .filter(planned_date=None)\
+        .filter(process__state__in=Process.OPEN_STATE_VALUES)\
+        .count()
 
     load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
 
@@ -504,6 +531,7 @@ def _interviewer_load(interviewer):
             "itw_last_week": itw_last_week,
             "itw_not_planned_yet": itw_not_planned_yet,
             "itw_planned": itw_planned}
+
 
 @login_required
 @require_http_methods(["GET"])
@@ -534,5 +562,4 @@ def interviewers_load(request, subsidiary_id=None):
     RequestConfig(request, paginate={'per_page': 100}).configure(load_table)
     return render(request, "interview/interviewers-load.html", {"subsidiary": subsidiary,
                                                                 "subsidiaries": Subsidiary.objects.all(),
-                                                                "load_table": load_table })
-
+                                                                "load_table": load_table})

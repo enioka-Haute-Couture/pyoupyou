@@ -166,7 +166,7 @@ class StatusAndNotificationTestCase(TestCase):
         # Mail will be sent to global HR
         p = ProcessFactory(subsidiary=subsidiary)
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
@@ -182,9 +182,10 @@ class StatusAndNotificationTestCase(TestCase):
         i1.interviewers.add(interviewer)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
-        self.assertEqual(list(p.responsible.all()), [interviewer,])
+        self.assertEqual(list(p.responsible.all()), [interviewer, ])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to,
+                              [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # After interview planification
@@ -197,9 +198,10 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.INTERVIEW_IS_PLANNED)
         self.assertEqual(i1.state, Interview.PLANNED)
-        self.assertEqual(list(p.responsible.all()), [interviewer,])
+        self.assertEqual(list(p.responsible.all()), [interviewer, ])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to,
+                              [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
@@ -208,7 +210,7 @@ class StatusAndNotificationTestCase(TestCase):
         i1.save()
         self.assertEqual(i1.state, Interview.WAIT_INFORMATION)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_ITW_MINUTE)
-        self.assertEqual(list(p.responsible.all()), [interviewer,])
+        self.assertEqual(list(p.responsible.all()), [interviewer, ])
 
         # After Go/No Go
         # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
@@ -218,9 +220,10 @@ class StatusAndNotificationTestCase(TestCase):
         i1.state = Interview.GO
         i1.save()
 
-        self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
+        self.assertEqual(Process.objects.get(id=p.id).state,
+                         Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
         self.assertEqual(i1.state, Interview.GO)
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
@@ -234,7 +237,7 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible,])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []

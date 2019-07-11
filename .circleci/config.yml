@@ -32,6 +32,11 @@ jobs:
           command: |
             . venv/bin/activate
             ./manage.py makemigrations --check
+      - run:
+          name: pep8
+          command: |
+            . venv/bin/activate
+            pycodestyle --config=.pep8 .
 
   test-3.6: &test-template
     working_directory: ~/pyoupyou
