@@ -102,6 +102,7 @@ class InterviewTable(tables.Table):
         }
 
 
+
 @login_required
 @require_http_methods(["GET"])
 def process(request, process_id):
@@ -230,10 +231,14 @@ def interview(request, process_id=None, interview_id=None, action=None):
     if interview_id is not None:
         try:
             interview = Interview.objects.for_user(request.user).get(id=interview_id)
+            if action == 'plan' and request.user.consultant not in interview.interviewers.all():
+                return HttpResponseNotFound()
+
         except Interview.DoesNotExist:
             return HttpResponseNotFound()
     else:
         interview = Interview(process_id=process_id)
+
     if request.method == 'POST':
         form = InterviewForm(request.POST, instance=interview)
         if form.is_valid():
@@ -268,8 +273,8 @@ def minute_edit(request, interview_id):
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(viewname="process-details",
-                                                kwargs={"process_id": interview.process.id}))
+            return HttpResponseRedirect(reverse(viewname="interview-minute",
+                                                kwargs={"interview_id": interview.id}))
     else:
         form = InterviewMinuteForm(instance=interview)
 

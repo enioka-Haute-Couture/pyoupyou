@@ -1,5 +1,6 @@
 # Upcoming version
 - Rework interview table
+- Minute page use read mode even for interviewer when minute exist. Redirect to read mode after editing (allow user to correct malformatted markdown)  
 - Update to django 2.2.3
 - Fix coding style pep8
 # 1.0.5 (2019-06-24)
