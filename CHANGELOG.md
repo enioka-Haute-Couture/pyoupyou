@@ -1,3 +1,7 @@
+# Upcoming version
+- Rework interview table
+- Update to django 2.2.3
+- Fix coding style pep8
 # 1.0.5 (2019-06-24)
 Fix plan datepicker
 

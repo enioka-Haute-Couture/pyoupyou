@@ -1,16 +1,8 @@
 {% load i18n %}
-{% if user.consultant in record.interviewers.all %}
-<a class="btn btn-info btn-xs row-action" href="{% url 'interview-plan' record.process_id record.pk %}">
-<i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}
-</a>
-{% endif %}
-<a class="btn btn-info btn-xs row-action" href="{% if user.consultant in record.interviewers.all %}
+<a class="btn btn-info btn-xs row-action" href="{% if user.consultant in record.interviewers.all and not record.minute%}
                                                 {% url 'interview-minute-edit' interview_id=record.pk %}
                                                 {% else %}
                                                 {% url 'interview-minute' interview_id=record.pk %}
                                                 {% endif %}">
 <i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "MinuteShort" %}
-</a>
-<a class="btn btn-info btn-xs row-action" href="{% url 'interview-edit' record.process_id record.pk %}">
-<i class="fa fa-pencil-square-o" aria-hidden="true"></i> {% trans "Edit" %}
 </a>

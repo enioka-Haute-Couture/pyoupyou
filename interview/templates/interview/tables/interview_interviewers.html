@@ -1,0 +1,7 @@
+{% load i18n %}
+{% for i in record.interviewers.all  %}
+    {{i}}{% if not forloop.last %}, {% endif %}
+{% endfor %}
+<a href="{% url 'interview-edit' record.process_id record.pk %}">
+<i class="fa fa-pencil" aria-hidden="true"></i>
+</a>

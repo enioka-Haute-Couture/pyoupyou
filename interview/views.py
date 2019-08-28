@@ -82,13 +82,12 @@ class ProcessEndTable(ProcessTable):
 
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
-    actions = tables.TemplateColumn(verbose_name='', orderable=False,
+    interviewers = tables.TemplateColumn(verbose_name=_('interviewers'), orderable=False, template_name='interview/tables/interview_interviewers.html')
+    planned_date = tables.TemplateColumn(verbose_name=_('Planned date'), orderable=False, template_name='interview/tables/interview_planned_date.html')
+    actions = tables.TemplateColumn(verbose_name=_('Minute'), orderable=False,
                                     template_name='interview/tables/interview_actions.html')
     needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
                                             verbose_name="", orderable=False)
-
-    def render_interviewers(self, value):
-        return ', '.join(str(c) for c in value.all())
 
     class Meta:
         model = Interview

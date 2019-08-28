@@ -1,0 +1,19 @@
+{% load i18n %}
+{% if user.consultant not in record.interviewers.all %}
+    {% if record.planned_date %}
+        {{ record.planned_date }}
+    {% else %}
+        —
+    {% endif %}
+{% else %}
+    {% if record.planned_date %}
+        {{ record.planned_date }}
+        <a href="{% url 'interview-plan' record.process_id record.pk %}">
+        <i class="fa fa-pencil" aria-hidden="true"></i>
+        </a>
+    {% else %}
+        <a class="btn btn-info btn-xs row-action" href="{% url 'interview-plan' record.process_id record.pk %}">
+        <i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}
+        </a>
+    {% endif %}
+{% endif %}
