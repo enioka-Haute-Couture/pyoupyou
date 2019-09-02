@@ -9,19 +9,19 @@ http://www.gnu.org/licenses/agpl-3.0.html
 
 ## Dependencies
 
-- Python 3.6 (not tested with other versions)
-- pip for installing requirements
+- Python >= 3.5
+- pipenv
 
 ## Dev environment
 
 ```
-pip install -r dev-requirements.txt
+pipenv install --dev
 ```
 
 ## Prod environment
 
 ```
-- pip install -r prod-requirements.txt
+- pipenv install
 ```
 
 # Contribute
@@ -30,11 +30,7 @@ To contribute do Pull Request against this repository (https://github.com/pyoupy
 
 ## Style Guide
 
-We follow [pep8](https://www.python.org/dev/peps/pep-0008/). However we accept line up to 120 characters.
-
-Exception are made for django generated code like migrations.
-
-`pycodestyle --config=.pep8 .`
+We use black to enforce coding style, you just need to run `black .` before commiting.
 
 ### Formatting string
 
@@ -43,3 +39,29 @@ To format string using format will be prefered over the % syntax. In order to fa
 ```
 "This is a {state} example".format(state="good")
 ```
+
+# Setup prod
+
+## Create local settings file
+
+Based on local.py.example create a local.py file containing keys referenced by local.py.example and database configuration.
+
+https://docs.djangoproject.com/en/2.2/ref/settings/#databases
+
+## Install dependencies, collect static and migrate database
+```
+# install dependencies
+export PIPENV_VENV_IN_PROJECT=true # To create virtualenv on the project folder under .venv
+pipenv install
+
+# collect static files
+PYOUPYOU_ENV="prod" pipenv run ./manage.py collectstatic
+
+# migrate database
+PYOUPYOU_ENV="prod" pipenv run ./manage.py migrate
+
+```
+
+## Run
+
+In order to run it you can use a wsgi capable webserver (apache mod_wsgi, gunicorn, uWSGI...), ensure to set PYOUPYOU_ENV variable to *prod*
