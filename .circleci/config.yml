@@ -25,10 +25,6 @@ jobs:
           key: v1-dependencies-{{ checksum "Pipfile.lock" }}
 
       - run:
-          name: create settings
-          command: |
-            cp pyoupyou/settings/local-test.py pyoupyou/settings/local.py
-      - run:
           name: check migrations
           command: |
             pipenv run ./manage.py makemigrations --check
@@ -64,11 +60,6 @@ jobs:
           paths:
             - ./.venv
           key: v1-dependencies-{{ checksum "Pipfile.lock" }}
-
-      - run:
-          name: create settings
-          command: |
-            cp pyoupyou/settings/local-test.py pyoupyou/settings/local.py
 
       - run:
           name: run tests

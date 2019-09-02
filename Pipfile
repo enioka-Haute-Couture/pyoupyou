@@ -22,6 +22,7 @@ django-markwhat = "==1.6.1"
 commonmark = "==0.8.1"
 django-bleach = "==0.3.0"
 Django = "==2.2.5"
+django-split-settings = "*"
 
 [requires]
 python_version = "3.7"

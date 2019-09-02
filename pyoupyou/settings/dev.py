@@ -35,4 +35,16 @@ DEBUG_TOOLBAR_CONFIG = {"JQUERY_URL": "{}bootstrap/js/jquery.min.js".format(STAT
 # needed by django debug toolbar
 INTERNAL_IPS = ["127.0.0.1"]
 
+SITE_HOST = "http://localhost:8000"
+LOGIN_URL = "/admin/login/"
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {"pyoupyou": {"handlers": ["console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO")}},
+}
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+MAIL_HR = "hr@enioka.com"
+MAIL_FROM = "pyoupyou@enioka.com"
