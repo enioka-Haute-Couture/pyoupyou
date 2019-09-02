@@ -8,12 +8,11 @@ jobs:
           PIPENV_VENV_IN_PROJECT: true
     steps:
       - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin /usr/local/lib/python3.6/site-packages
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "Pipfile.lock" }}
+            - dependencies-{{ checksum "Pipfile.lock" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - dependencies-
       - run:
           name: install dependencies
           command: |
@@ -23,8 +22,6 @@ jobs:
       - save_cache:
           paths:
             - ./.venv
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.6/site-packages"
           key: v1-dependencies-{{ checksum "Pipfile.lock" }}
 
       - run:
@@ -52,12 +49,11 @@ jobs:
           PIPENV_VENV_IN_PROJECT: true
     steps:
       - checkout
-      - run: sudo chown -R circleci:circleci /usr/local/bin /usr/local/lib/python3.6/site-packages
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "Pipfile.lock" }}
+            - dependencies-{{ checksum "Pipfile.lock" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - dependencies-
       - run:
           name: install dependencies
           command: |
@@ -67,8 +63,6 @@ jobs:
       - save_cache:
           paths:
             - ./.venv
-            - "/usr/local/bin"
-            - "/usr/local/lib/python3.6/site-packages"
           key: v1-dependencies-{{ checksum "Pipfile.lock" }}
 
       - run:
