@@ -12,61 +12,98 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('auth', '0008_alter_user_username_max_length'),
-    ]
+    dependencies = [("auth", "0008_alter_user_username_max_length")]
 
     operations = [
         migrations.CreateModel(
-            name='PyouPyouUser',
+            name="PyouPyouUser",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('trigramme', models.CharField(max_length=4, unique=True)),
-                ('full_name', models.CharField(blank=True, max_length=50, verbose_name='full name')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='email address')),
-                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
-                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                ("last_login", models.DateTimeField(blank=True, null=True, verbose_name="last login")),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                ("trigramme", models.CharField(max_length=4, unique=True)),
+                ("full_name", models.CharField(blank=True, max_length=50, verbose_name="full name")),
+                ("email", models.EmailField(blank=True, max_length=254, verbose_name="email address")),
+                (
+                    "is_staff",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates whether the user can log into this admin site.",
+                        verbose_name="staff status",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
+                        verbose_name="active",
+                    ),
+                ),
+                ("date_joined", models.DateTimeField(default=django.utils.timezone.now, verbose_name="date joined")),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
-            options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-            },
+            options={"verbose_name": "user", "verbose_name_plural": "users"},
         ),
         migrations.CreateModel(
-            name='Consultant',
+            name="Consultant",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('productive', models.BooleanField(default=True, verbose_name='Productive')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("productive", models.BooleanField(default=True, verbose_name="Productive")),
             ],
         ),
         migrations.CreateModel(
-            name='Subsidiary',
+            name="Subsidiary",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, unique=True, verbose_name='Name')),
-                ('code', models.CharField(max_length=3, unique=True, verbose_name='Code')),
-                ('responsible', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='ref.Consultant')),
+                ("id", models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=200, unique=True, verbose_name="Name")),
+                ("code", models.CharField(max_length=3, unique=True, verbose_name="Code")),
+                (
+                    "responsible",
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="ref.Consultant"),
+                ),
             ],
-            options={
-                'verbose_name': 'Subsidiary',
-                'verbose_name_plural': 'Subsidiaries',
-                'ordering': ['name'],
-            },
+            options={"verbose_name": "Subsidiary", "verbose_name_plural": "Subsidiaries", "ordering": ["name"]},
         ),
         migrations.AddField(
-            model_name='consultant',
-            name='company',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ref.Subsidiary', verbose_name='Subsidiary'),
+            model_name="consultant",
+            name="company",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="ref.Subsidiary", verbose_name="Subsidiary"
+            ),
         ),
         migrations.AddField(
-            model_name='consultant',
-            name='user',
+            model_name="consultant",
+            name="user",
             field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
     ]

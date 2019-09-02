@@ -46,13 +46,13 @@ class AccessRestrictionDateTestCase(TestCase):
         self.factory = RequestFactory()
 
         sub = SubsidiaryFactory()
-        self.consultantOld = Consultant.objects.create_consultant('OLD', 'old@mail.com', sub, 'OLD')
+        self.consultantOld = Consultant.objects.create_consultant("OLD", "old@mail.com", sub, "OLD")
         sub.responsible = self.consultantOld
         sub.responsible.save()
         userOld = self.consultantOld.user
         userOld.date_joined = datetime.date(2016, 1, 1)
         userOld.save()
-        self.consultantNew = Consultant.objects.create_consultant('NEW', 'new@mail.com', sub, 'NEW')
+        self.consultantNew = Consultant.objects.create_consultant("NEW", "new@mail.com", sub, "NEW")
         userNew = self.consultantNew.user
         userNew.date_joined = datetime.date(2017, 11, 1)
         userNew.save()
@@ -65,7 +65,7 @@ class AccessRestrictionDateTestCase(TestCase):
         # self.i.save()
 
     def test_view_process(self):
-        request = self.factory.get(reverse('process-details', kwargs={'process_id': self.p.id}))
+        request = self.factory.get(reverse("process-details", kwargs={"process_id": self.p.id}))
 
         request.user = self.consultantOld.user
         response = process(request, self.p.id)
@@ -76,14 +76,14 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_close_process(self):
-        request = self.factory.post(reverse('process-close', kwargs={'process_id': self.p.id}))
+        request = self.factory.post(reverse("process-close", kwargs={"process_id": self.p.id}))
 
         request.user = self.consultantNew.user
         response = close_process(request, self.p.id)
         self.assertEqual(response.status_code, 404)
 
     def test_view_reopen_process(self):
-        request = self.factory.get(reverse('process-reopen', kwargs={'process_id': self.p.id}))
+        request = self.factory.get(reverse("process-reopen", kwargs={"process_id": self.p.id}))
 
         request.user = self.consultantNew.user
         response = reopen_process(request, self.p.id)
@@ -91,7 +91,8 @@ class AccessRestrictionDateTestCase(TestCase):
 
     def test_view_interview_plan(self):
         request = self.factory.post(
-            reverse('interview-plan', kwargs={'process_id': self.p.id, 'interview_id': self.i.id}))
+            reverse("interview-plan", kwargs={"process_id": self.p.id, "interview_id": self.i.id})
+        )
 
         request.user = self.consultantNew.user
         response = interview(request, self.p.id, self.i.id, "plan")
@@ -99,14 +100,15 @@ class AccessRestrictionDateTestCase(TestCase):
 
     def test_view_interview_edit(self):
         request = self.factory.post(
-            reverse('interview-edit', kwargs={'process_id': self.p.id, 'interview_id': self.i.id}))
+            reverse("interview-edit", kwargs={"process_id": self.p.id, "interview_id": self.i.id})
+        )
 
         request.user = self.consultantNew.user
         response = interview(request, self.p.id, self.i.id, "edit")
         self.assertEqual(response.status_code, 404)
 
     def test_view_interview_minute_form(self):
-        request = self.factory.get(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse("interview-minute-edit", kwargs={"interview_id": self.i.id}))
 
         request.user = self.consultantOld.user
         response = minute_edit(request, self.i.id)
@@ -117,7 +119,7 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_interview_minute(self):
-        request = self.factory.get(reverse('interview-minute', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse("interview-minute", kwargs={"interview_id": self.i.id}))
 
         request.user = self.consultantOld.user
         response = minute(request, self.i.id)
@@ -133,15 +135,15 @@ class AccessRestrictionUserTestCase(TestCase):
         self.factory = RequestFactory()
 
         sub = SubsidiaryFactory()
-        self.consultantItw = Consultant.objects.create_consultant('ITW', 'itw@mail.com', sub, 'ITW')
-        self.consultantRestricted = Consultant.objects.create_consultant('RES', 'res@mail.com', sub, 'RES')
+        self.consultantItw = Consultant.objects.create_consultant("ITW", "itw@mail.com", sub, "ITW")
+        self.consultantRestricted = Consultant.objects.create_consultant("RES", "res@mail.com", sub, "RES")
 
         self.p = ProcessFactory()
         self.i = InterviewFactory(process=self.p)
-        self.i.interviewers.set([self.consultantItw, ])
+        self.i.interviewers.set([self.consultantItw])
 
     def test_only_assigned_user_can_edit_minute(self):
-        request = self.factory.get(reverse('interview-minute-edit', kwargs={'interview_id': self.i.id}))
+        request = self.factory.get(reverse("interview-minute-edit", kwargs={"interview_id": self.i.id}))
 
         request.user = self.consultantItw.user
         response = minute_edit(request, self.i.id)
@@ -166,7 +168,7 @@ class StatusAndNotificationTestCase(TestCase):
         # Mail will be sent to global HR
         p = ProcessFactory(subsidiary=subsidiary)
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
@@ -182,10 +184,11 @@ class StatusAndNotificationTestCase(TestCase):
         i1.interviewers.add(interviewer)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
-        self.assertEqual(list(p.responsible.all()), [interviewer, ])
+        self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to,
-                              [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(
+            mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email]
+        )
         mail.outbox = []
 
         # After interview planification
@@ -198,10 +201,12 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.INTERVIEW_IS_PLANNED)
         self.assertEqual(i1.state, Interview.PLANNED)
-        self.assertEqual(list(p.responsible.all()), [interviewer, ])
+
+        self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to,
-                              [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(
+            mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email]
+        )
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
@@ -210,7 +215,7 @@ class StatusAndNotificationTestCase(TestCase):
         i1.save()
         self.assertEqual(i1.state, Interview.WAIT_INFORMATION)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_ITW_MINUTE)
-        self.assertEqual(list(p.responsible.all()), [interviewer, ])
+        self.assertEqual(list(p.responsible.all()), [interviewer])
 
         # After Go/No Go
         # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
@@ -220,10 +225,11 @@ class StatusAndNotificationTestCase(TestCase):
         i1.state = Interview.GO
         i1.save()
 
-        self.assertEqual(Process.objects.get(id=p.id).state,
-                         Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS)
+        self.assertEqual(
+            Process.objects.get(id=p.id).state, Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+        )
         self.assertEqual(i1.state, Interview.GO)
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
@@ -236,8 +242,7 @@ class StatusAndNotificationTestCase(TestCase):
         p.save()
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
-        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible, ])
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []

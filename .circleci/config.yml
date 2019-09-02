@@ -14,13 +14,13 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            python3 -m venv .venv
+            . .venv/bin/activate
             pip install -r dev-requirements.txt
 
       - save_cache:
           paths:
-            - ./venv
+            - ./.venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
@@ -30,13 +30,13 @@ jobs:
       - run:
           name: check migrations
           command: |
-            . venv/bin/activate
+            . .venv/bin/activate
             ./manage.py makemigrations --check
       - run:
-          name: pep8
+          name: check coding style (black)
           command: |
-            . venv/bin/activate
-            pycodestyle --config=.pep8 .
+            . .venv/bin/activate
+            black --check .
 
   test-3.6: &test-template
     working_directory: ~/pyoupyou
@@ -52,13 +52,13 @@ jobs:
       - run:
           name: install dependencies
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            python3 -m venv .venv
+            . .venv/bin/activate
             pip install -r dev-requirements.txt
 
       - save_cache:
           paths:
-            - ./venv
+            - ./.venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
       - run:
@@ -69,7 +69,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            . venv/bin/activate
+            . .venv/bin/activate
             coverage run manage.py test
             coverage html -d coverage_html
       - store_artifacts:

@@ -6,34 +6,47 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0008_auto_20180526_1140'),
-    ]
+    dependencies = [("interview", "0008_auto_20180526_1140")]
 
     operations = [
         migrations.AlterField(
-            model_name='interview',
-            name='suggested_interviewer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='suggested_interview_for', to='ref.Consultant', verbose_name='Suggested interviewer'),
+            model_name="interview",
+            name="suggested_interviewer",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="suggested_interview_for",
+                to="ref.Consultant",
+                verbose_name="Suggested interviewer",
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='contract_type',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='interview.ContractType', verbose_name='Contract type'),
+            model_name="process",
+            name="contract_type",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="interview.ContractType",
+                verbose_name="Contract type",
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='responsible',
-            field=models.ManyToManyField(blank=True, to='ref.Consultant'),
+            model_name="process", name="responsible", field=models.ManyToManyField(blank=True, to="ref.Consultant")
         ),
         migrations.AlterField(
-            model_name='process',
-            name='sources',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='interview.Sources'),
+            model_name="process",
+            name="sources",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to="interview.Sources"
+            ),
         ),
         migrations.AlterField(
-            model_name='sources',
-            name='category',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='interview.SourcesCategory'),
+            model_name="sources",
+            name="category",
+            field=models.ForeignKey(
+                null=True, on_delete=django.db.models.deletion.SET_NULL, to="interview.SourcesCategory"
+            ),
         ),
     ]

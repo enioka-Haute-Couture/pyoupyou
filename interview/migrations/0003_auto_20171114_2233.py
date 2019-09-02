@@ -9,62 +9,66 @@ import interview.models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0002_auto_20170517_1542'),
-    ]
+    dependencies = [("interview", "0002_auto_20170517_1542")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='candidate',
-            options={'verbose_name': 'Candidate'},
-        ),
-        migrations.AlterModelOptions(
-            name='contracttype',
-            options={'verbose_name': 'Contract type'},
-        ),
-        migrations.AddField(
-            model_name='sources',
-            name='archived',
-            field=models.BooleanField(default=False),
+        migrations.AlterModelOptions(name="candidate", options={"verbose_name": "Candidate"}),
+        migrations.AlterModelOptions(name="contracttype", options={"verbose_name": "Contract type"}),
+        migrations.AddField(model_name="sources", name="archived", field=models.BooleanField(default=False)),
+        migrations.AlterField(
+            model_name="document",
+            name="candidate",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="interview.Candidate", verbose_name="Candidate"
+            ),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='candidate',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='interview.Candidate', verbose_name='Candidate'),
+            model_name="document",
+            name="content",
+            field=models.FileField(upload_to=interview.models.document_path, verbose_name="Content file"),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='content',
-            field=models.FileField(upload_to=interview.models.document_path, verbose_name='Content file'),
+            model_name="document",
+            name="created_date",
+            field=models.DateTimeField(auto_now_add=True, verbose_name="Creation date"),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='created_date',
-            field=models.DateTimeField(auto_now_add=True, verbose_name='Creation date'),
+            model_name="document",
+            name="document_type",
+            field=models.CharField(
+                choices=[("CV", "CV"), ("CL", "Cover Letter"), ("OT", "Others")],
+                max_length=2,
+                verbose_name="Kind of document",
+            ),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='document_type',
-            field=models.CharField(choices=[('CV', 'CV'), ('CL', 'Cover Letter'), ('OT', 'Others')], max_length=2, verbose_name='Kind of document'),
+            model_name="document",
+            name="still_valid",
+            field=models.BooleanField(default=True, verbose_name="Still valid"),
         ),
         migrations.AlterField(
-            model_name='document',
-            name='still_valid',
-            field=models.BooleanField(default=True, verbose_name='Still valid'),
+            model_name="process",
+            name="candidate",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="interview.Candidate", verbose_name="Candidate"
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='candidate',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='interview.Candidate', verbose_name='Candidate'),
+            model_name="process",
+            name="contract_type",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="interview.ContractType",
+                verbose_name="Contract type",
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='contract_type',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='interview.ContractType', verbose_name='Contract type'),
-        ),
-        migrations.AlterField(
-            model_name='process',
-            name='subsidiary',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ref.Subsidiary', verbose_name='Subsidiary'),
+            model_name="process",
+            name="subsidiary",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="ref.Subsidiary", verbose_name="Subsidiary"
+            ),
         ),
     ]

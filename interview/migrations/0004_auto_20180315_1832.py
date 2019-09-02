@@ -7,19 +7,24 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0003_auto_20171114_2233'),
-    ]
+    dependencies = [("interview", "0003_auto_20171114_2233")]
 
     operations = [
-        migrations.RenameField(
-            model_name='process',
-            old_name='closed_reason',
-            new_name='state',
-        ),
+        migrations.RenameField(model_name="process", old_name="closed_reason", new_name="state"),
         migrations.AlterField(
-            model_name='interview',
-            name='next_state',
-            field=models.CharField(choices=[('NP', 'NEED PLANIFICATION'), ('PL', 'PLANNED'), ('GO', 'GO'), ('NO', 'NO'), ('DR', 'DRAFT'), ('WI', 'WAIT INFORMATION')], max_length=3, verbose_name='next state'),
+            model_name="interview",
+            name="next_state",
+            field=models.CharField(
+                choices=[
+                    ("NP", "NEED PLANIFICATION"),
+                    ("PL", "PLANNED"),
+                    ("GO", "GO"),
+                    ("NO", "NO"),
+                    ("DR", "DRAFT"),
+                    ("WI", "WAIT INFORMATION"),
+                ],
+                max_length=3,
+                verbose_name="next state",
+            ),
         ),
     ]

@@ -7,25 +7,32 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('ref', '0001_initial'),
-        ('interview', '0004_auto_20180315_1832'),
-    ]
+    dependencies = [("ref", "0001_initial"), ("interview", "0004_auto_20180315_1832")]
 
     operations = [
-        migrations.RenameField(
-            model_name='interview',
-            old_name='next_state',
-            new_name='state',
-        ),
+        migrations.RenameField(model_name="interview", old_name="next_state", new_name="state"),
         migrations.AddField(
-            model_name='process',
-            name='responsible',
-            field=models.ManyToManyField(blank=True, to='ref.Consultant'),
+            model_name="process", name="responsible", field=models.ManyToManyField(blank=True, to="ref.Consultant")
         ),
         migrations.AlterField(
-            model_name='process',
-            name='state',
-            field=models.CharField(choices=[('OP', 'Open'), ('WA', 'Waiting interviewer to be designed'), ('WK', 'Waiting next interview designation or process termination'), ('WP', 'Waiting interview planification'), ('WM', 'Waiting interview minute'), ('WI', 'Waiting interview'), ('NG', 'Last interviewer interupt process'), ('CD', 'Candidate declined our offer'), ('HI', 'Candidate accepted our offer'), ('NO', 'Closed - other reason')], default='WA', max_length=3, verbose_name='Closed reason'),
+            model_name="process",
+            name="state",
+            field=models.CharField(
+                choices=[
+                    ("OP", "Open"),
+                    ("WA", "Waiting interviewer to be designed"),
+                    ("WK", "Waiting next interview designation or process termination"),
+                    ("WP", "Waiting interview planification"),
+                    ("WM", "Waiting interview minute"),
+                    ("WI", "Waiting interview"),
+                    ("NG", "Last interviewer interupt process"),
+                    ("CD", "Candidate declined our offer"),
+                    ("HI", "Candidate accepted our offer"),
+                    ("NO", "Closed - other reason"),
+                ],
+                default="WA",
+                max_length=3,
+                verbose_name="Closed reason",
+            ),
         ),
     ]

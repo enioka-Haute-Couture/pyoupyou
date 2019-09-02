@@ -7,14 +7,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0006_auto_20180526_0938'),
-    ]
+    dependencies = [("interview", "0006_auto_20180526_0938")]
 
     operations = [
         migrations.AlterField(
-            model_name='process',
-            name='responsible',
-            field=models.ManyToManyField(blank=True, null=True, to='ref.Consultant'),
-        ),
+            model_name="process",
+            name="responsible",
+            field=models.ManyToManyField(blank=True, null=True, to="ref.Consultant"),
+        )
     ]
