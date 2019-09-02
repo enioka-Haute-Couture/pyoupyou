@@ -78,8 +78,7 @@ jobs:
       - store_artifacts:
           path: coverage_html
           destination: coverage_html
-      - store_test_results:
-          path: test-results
+
   test-3.5:
     <<: *test-template
     docker:
