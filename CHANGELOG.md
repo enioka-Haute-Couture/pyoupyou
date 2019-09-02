@@ -4,6 +4,7 @@
 - Update to django 2.2.3
 - Fix coding style pep8
 - Use black to enforce coding style
+- Migrate from requirements.txt to Pipfile
 # 1.0.5 (2019-06-24)
 Fix plan datepicker
 

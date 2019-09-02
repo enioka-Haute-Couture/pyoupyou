@@ -4,24 +4,28 @@ jobs:
     working_directory: ~/pyoupyou
     docker:
       - image: circleci/python:3.6
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
     steps:
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin /usr/local/lib/python3.6/site-packages
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-{{ checksum "Pipfile.lock" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run:
           name: install dependencies
           command: |
-            python3 -m venv .venv
-            . .venv/bin/activate
-            pip install -r dev-requirements.txt
+            sudo pip install pipenv
+            pipenv install --dev
 
       - save_cache:
           paths:
             - ./.venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
+          key: v1-dependencies-{{ checksum "Pipfile.lock" }}
 
       - run:
           name: create settings
@@ -30,36 +34,42 @@ jobs:
       - run:
           name: check migrations
           command: |
-            . .venv/bin/activate
-            ./manage.py makemigrations --check
+            pipenv run ./manage.py makemigrations --check
       - run:
           name: check coding style (black)
           command: |
-            . .venv/bin/activate
-            black --check .
+            pipenv run black --check .
+      - run:
+          name: check safety
+          command: |
+            pipenv check
 
   test-3.6: &test-template
     working_directory: ~/pyoupyou
     docker:
       - image: circleci/python:3.6
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
     steps:
       - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin /usr/local/lib/python3.6/site-packages
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "requirements.txt" }}
+            - v1-dependencies-{{ checksum "Pipfile.lock" }}
             # fallback to using the latest cache if no exact match is found
             - v1-dependencies-
       - run:
           name: install dependencies
           command: |
-            python3 -m venv .venv
-            . .venv/bin/activate
-            pip install -r dev-requirements.txt
+            sudo pip install pipenv
+            pipenv install --dev
 
       - save_cache:
           paths:
             - ./.venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
+          key: v1-dependencies-{{ checksum "Pipfile.lock" }}
 
       - run:
           name: create settings
@@ -69,9 +79,8 @@ jobs:
       - run:
           name: run tests
           command: |
-            . .venv/bin/activate
-            coverage run manage.py test
-            coverage html -d coverage_html
+            pipenv run coverage run ./manage.py test
+            pipenv run coverage html -d coverage_html
       - store_artifacts:
           path: coverage_html
           destination: coverage_html
@@ -81,11 +90,15 @@ jobs:
     <<: *test-template
     docker:
       - image: circleci/python:3.5
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
 
   test-3.7:
     <<: *test-template
     docker:
       - image: circleci/python:3.7
+        environment:
+          PIPENV_VENV_IN_PROJECT: true
 
 
 workflows:
