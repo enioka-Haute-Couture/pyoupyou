@@ -20,29 +20,46 @@ from django_tables2 import RequestConfig
 import django_tables2 as tables
 
 from interview.models import Process, Document, Interview
-from interview.forms import ProcessCandidateForm, InterviewMinuteForm, ProcessForm, InterviewFormPlan, \
-    InterviewFormEditInterviewers, SourceForm, CloseForm
+from interview.forms import (
+    ProcessCandidateForm,
+    InterviewMinuteForm,
+    ProcessForm,
+    InterviewFormPlan,
+    InterviewFormEditInterviewers,
+    SourceForm,
+    CloseForm,
+)
 
 from ref.models import Consultant, Subsidiary
 
 
 class ProcessTable(tables.Table):
-    needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
-                                            verbose_name="", orderable=False)
-    actions = tables.TemplateColumn(verbose_name='', orderable=False,
-                                    template_name='interview/tables/process_actions.html')
-    candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=('candidate__name',))
-    contract_type = tables.Column(order_by=('contract_type__name',))
+    needs_attention = tables.TemplateColumn(
+        template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
+    )
+    actions = tables.TemplateColumn(
+        verbose_name="", orderable=False, template_name="interview/tables/process_actions.html"
+    )
+    candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=("candidate__name",))
+    contract_type = tables.Column(order_by=("contract_type__name",))
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(', '.join(['<span title="{fullname}">{trigramme}</span>'.format(
-            fullname=c.user.full_name, trigramme=c.user.trigramme) for c in value.all()]))
+        return format_html(
+            ", ".join(
+                [
+                    '<span title="{fullname}">{trigramme}</span>'.format(
+                        fullname=c.user.full_name, trigramme=c.user.trigramme
+                    )
+                    for c in value.all()
+                ]
+            )
+        )
 
     class Meta:
         model = Process
-        template_name = 'interview/_tables.html'
-        attrs = {'class': 'table table-striped table-condensed'}
+        template_name = "interview/_tables.html"
+        attrs = {"class": "table table-striped table-condensed"}
         sequence = (
             "needs_attention",
             "current_rank",
@@ -52,14 +69,12 @@ class ProcessTable(tables.Table):
             "contract_type",
             "state",
             "responsible",
-            "actions"
+            "actions",
         )
         fields = sequence
         order_by = "start_date"
-        empty_text = _('No data')
-        row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
-        }
+        empty_text = _("No data")
+        row_attrs = {"class": lambda record: "danger" if record.needs_attention else None}
 
 
 class ProcessEndTable(ProcessTable):
@@ -73,7 +88,7 @@ class ProcessEndTable(ProcessTable):
             "end_date",
             "contract_type",
             "state",
-            "actions"
+            "actions",
         )
         fields = sequence
 
@@ -82,25 +97,28 @@ class ProcessEndTable(ProcessTable):
 
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
-    interviewers = tables.TemplateColumn(verbose_name=_('interviewers'), orderable=False, template_name='interview/tables/interview_interviewers.html')
-    planned_date = tables.TemplateColumn(verbose_name=_('Planned date'), orderable=False, template_name='interview/tables/interview_planned_date.html')
-    actions = tables.TemplateColumn(verbose_name=_('Minute'), orderable=False,
-                                    template_name='interview/tables/interview_actions.html')
-    needs_attention = tables.TemplateColumn(template_name='interview/tables/needs_attention_cell.html',
-                                            verbose_name="", orderable=False)
+    interviewers = tables.TemplateColumn(
+        verbose_name=_("interviewers"), orderable=False, template_name="interview/tables/interview_interviewers.html"
+    )
+    planned_date = tables.TemplateColumn(
+        verbose_name=_("Planned date"), orderable=False, template_name="interview/tables/interview_planned_date.html"
+    )
+    actions = tables.TemplateColumn(
+        verbose_name=_("Minute"), orderable=False, template_name="interview/tables/interview_actions.html"
+    )
+    needs_attention = tables.TemplateColumn(
+        template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
+    )
 
     class Meta:
         model = Interview
-        template_name = 'interview/_tables.html'
+        template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
         sequence = ("needs_attention", "interviewers", "planned_date", "state", "actions")
         fields = sequence
         order_by = "id"
-        empty_text = _('No data')
-        row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
-        }
-
+        empty_text = _("No data")
+        row_attrs = {"class": lambda record: "danger" if record.needs_attention else None}
 
 
 @login_required
@@ -110,18 +128,23 @@ def process(request, process_id):
         process = Process.objects.for_user(request.user).get(id=process_id)
     except Process.DoesNotExist:
         return HttpResponseNotFound()
-    interviews = Interview.objects.for_user(request.user).filter(process=process).prefetch_related('process__candidate',
-                                                                                                   'interviewers')
+    interviews = (
+        Interview.objects.for_user(request.user)
+        .filter(process=process)
+        .prefetch_related("process__candidate", "interviewers")
+    )
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
 
     documents = Document.objects.filter(candidate=process.candidate)
-    context = {"process": process,
-               "documents": documents,
-               "interviews_for_process_table": interviews_for_process_table,
-               "interviews": interviews,
-               "close_form": close_form}
+    context = {
+        "process": process,
+        "documents": documents,
+        "interviews_for_process_table": interviews_for_process_table,
+        "interviews": interviews,
+        "close_form": close_form,
+    }
     return render(request, "interview/process_detail.html", context)
 
 
@@ -151,7 +174,7 @@ def reopen_process(request, process_id):
 
     process.end_date = None
     process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
-    process.closed_comment = ''
+    process.closed_comment = ""
     process.save()
     return HttpResponseRedirect(process.get_absolute_url())
 
@@ -159,19 +182,18 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = Process.objects.for_user(request.user)\
-        .filter(end_date__isnull=False)\
-        .select_related('candidate', 'contract_type')
+    closed_processes = (
+        Process.objects.for_user(request.user)
+        .filter(end_date__isnull=False)
+        .select_related("candidate", "contract_type")
+    )
 
-    closed_processes_table = ProcessEndTable(closed_processes, prefix='c')
+    closed_processes_table = ProcessEndTable(closed_processes, prefix="c")
 
     config = RequestConfig(request)
     config.configure(closed_processes_table)
 
-    context = {
-        'title': _('Closed processes'),
-        'table': closed_processes_table,
-    }
+    context = {"title": _("Closed processes"), "table": closed_processes_table}
 
     return render(request, "interview/single_table.html", context)
 
@@ -183,30 +205,30 @@ def processes(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     recently_closed_processes = Process.objects.for_user(request.user).filter(end_date__gte=a_week_ago)
 
-    open_processes_table = ProcessTable(open_processes, prefix='o')
-    recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix='c')
+    open_processes_table = ProcessTable(open_processes, prefix="o")
+    recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix="c")
 
     config = RequestConfig(request)
     config.configure(open_processes_table)
     config.configure(recently_closed_processes_table)
 
-    context = {"open_processes_table": open_processes_table,
-               "recently_closed_processes_table": recently_closed_processes_table}
+    context = {
+        "open_processes_table": open_processes_table,
+        "recently_closed_processes_table": recently_closed_processes_table,
+    }
     return render(request, "interview/list_processes.html", context)
 
 
 @login_required
 def new_candidate(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
         process_form = ProcessForm(data=request.POST)
         if candidate_form.is_valid() and process_form.is_valid():
             candidate = candidate_form.save()
-            content = request.FILES.get('cv', None)
+            content = request.FILES.get("cv", None)
             if content:
-                Document.objects.create(document_type='CV',
-                                        content=content,
-                                        candidate=candidate)
+                Document.objects.create(document_type="CV", content=content, candidate=candidate)
             process = process_form.save(commit=False)
             process.candidate = candidate
             process.save()
@@ -214,10 +236,12 @@ def new_candidate(request):
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
-    source_form = SourceForm(prefix='source')
-    return render(request, "interview/new_candidate.html", {"candidate_form": candidate_form,
-                                                            "process_form": process_form,
-                                                            "source_form": source_form})
+    source_form = SourceForm(prefix="source")
+    return render(
+        request,
+        "interview/new_candidate.html",
+        {"candidate_form": candidate_form, "process_form": process_form, "source_form": source_form},
+    )
 
 
 @require_http_methods(["GET", "POST"])
@@ -231,7 +255,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     if interview_id is not None:
         try:
             interview = Interview.objects.for_user(request.user).get(id=interview_id)
-            if action == 'plan' and request.user.consultant not in interview.interviewers.all():
+            if action == "plan" and request.user.consultant not in interview.interviewers.all():
                 return HttpResponseNotFound()
 
         except Interview.DoesNotExist:
@@ -239,19 +263,17 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         interview = Interview(process_id=process_id)
 
-    if request.method == 'POST':
+    if request.method == "POST":
         form = InterviewForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(viewname="process-details",
-                                                kwargs={"process_id": process_id}))
+            return HttpResponseRedirect(reverse(viewname="process-details", kwargs={"process_id": process_id}))
     else:
         form = InterviewForm(instance=interview)
 
     process = Process.objects.for_user(request.user).get(id=process_id)
 
-    return render(request, "interview/interview.html", {'form': form,
-                                                        'process': process})
+    return render(request, "interview/interview.html", {"form": form, "process": process})
 
 
 @login_required
@@ -265,22 +287,23 @@ def minute_edit(request, interview_id):
     # check if user is allowed to edit
     if request.user.consultant not in interview.interviewers.all():
         return HttpResponseNotFound()
-    if request.method == 'POST':
-        if 'itw-go' in request.POST:
+    if request.method == "POST":
+        if "itw-go" in request.POST:
             interview.state = Interview.GO
-        elif 'itw-no' in request.POST:
+        elif "itw-no" in request.POST:
             interview.state = Interview.NO_GO
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(viewname="interview-minute",
-                                                kwargs={"interview_id": interview.id}))
+            return HttpResponseRedirect(reverse(viewname="interview-minute", kwargs={"interview_id": interview.id}))
     else:
         form = InterviewMinuteForm(instance=interview)
 
-    return render(request, "interview/interview_minute_form.html", {'form': form,
-                                                                    "process": interview.process,
-                                                                    "interview": interview})
+    return render(
+        request,
+        "interview/interview_minute_form.html",
+        {"form": form, "process": interview.process, "interview": interview},
+    )
 
 
 @login_required
@@ -291,8 +314,7 @@ def minute(request, interview_id):
     except Interview.DoesNotExist:
         return HttpResponseNotFound()
 
-    context = {'interview': interview,
-               'process': interview.process}
+    context = {"interview": interview, "process": interview.process}
     return render(request, "interview/interview_minute.html", context)
 
 
@@ -301,24 +323,31 @@ def minute(request, interview_id):
 def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     c = request.user.consultant
-    actions_needed_processes = Process.objects.for_user(request.user)\
-        .exclude(state__in=Process.CLOSED_STATE_VALUES)\
-        .filter(responsible=c)\
-        .select_related('candidate', 'subsidiary__responsible__user')
+    actions_needed_processes = (
+        Process.objects.for_user(request.user)
+        .exclude(state__in=Process.CLOSED_STATE_VALUES)
+        .filter(responsible=c)
+        .select_related("candidate", "subsidiary__responsible__user")
+    )
 
-    actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix='a')
+    actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix="a")
 
-    related_processes = Process.objects.for_user(request.user)\
-        .filter(interview__interviewers__user=request.user)\
-        .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))\
-        .select_related('candidate', 'subsidiary__responsible__user')\
+    related_processes = (
+        Process.objects.for_user(request.user)
+        .filter(interview__interviewers__user=request.user)
+        .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
+        .select_related("candidate", "subsidiary__responsible__user")
         .distinct()
-    related_processes_table = ProcessTable(related_processes, prefix='r')
+    )
+    related_processes_table = ProcessTable(related_processes, prefix="r")
 
-    subsidiary_processes = Process.objects.for_user(request.user). \
-        filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES)).filter(
-        subsidiary=c.company).select_related('candidate', 'subsidiary__responsible__user')
-    subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix='s')
+    subsidiary_processes = (
+        Process.objects.for_user(request.user)
+        .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
+        .filter(subsidiary=c.company)
+        .select_related("candidate", "subsidiary__responsible__user")
+    )
+    subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix="s")
 
     config = RequestConfig(request)
     config.configure(actions_needed_processes_table)
@@ -337,13 +366,13 @@ def dashboard(request):
 @login_required
 @require_http_methods(["POST"])
 def create_source_ajax(request):
-    form = SourceForm(request.POST, prefix='source')
+    form = SourceForm(request.POST, prefix="source")
     if form.is_valid():
         form.save()
         data = {}
         return JsonResponse(data)
     else:
-        data = {'error': form.errors}
+        data = {"error": form.errors}
         return JsonResponse(data)
 
 
@@ -351,12 +380,12 @@ def create_source_ajax(request):
 @require_http_methods(["GET", "POST"])
 def edit_candidate(request, process_id):
     try:
-        process = Process.objects.for_user(request.user).select_related('candidate').get(id=process_id)
+        process = Process.objects.for_user(request.user).select_related("candidate").get(id=process_id)
     except Process.DoesNotExist:
         return HttpResponseNotFound()
     candidate = process.candidate
 
-    if request.method == 'POST':
+    if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES, instance=candidate)
         process_form = ProcessForm(data=request.POST, instance=process)
 
@@ -365,9 +394,7 @@ def edit_candidate(request, process_id):
             candidate = candidate_form.save()
             content = request.FILES.get("cv", None)
             if content:
-                Document.objects.create(document_type='CV',
-                                        content=content,
-                                        candidate=candidate)
+                Document.objects.create(document_type="CV", content=content, candidate=candidate)
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
@@ -375,12 +402,12 @@ def edit_candidate(request, process_id):
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
         process_form = ProcessForm(instance=process)
-    source_form = SourceForm(prefix='source')
+    source_form = SourceForm(prefix="source")
     data = {
-        'process': process,
-        'candidate_form': candidate_form,
-        'process_form': process_form,
-        'source_form': source_form,
+        "process": process,
+        "candidate_form": candidate_form,
+        "process_form": process_form,
+        "source_form": source_form,
     }
     return render(request, "interview/new_candidate.html", data)
 
@@ -388,10 +415,15 @@ def edit_candidate(request, process_id):
 @user_passes_test(lambda u: u.is_active and u.is_superuser)
 def dump_data(request):
     out = StringIO()
-    call_command('dumpdata', use_natural_foreign_keys=True, use_base_manager=True,
-                 exclude=['auth.Permission', 'contenttypes'], stdout=out)
-    response = HttpResponse(out.getvalue(), content_type='application/json')
-    response['Content-Disposition'] = 'attachment; filename=pyoupyou_dump.json'
+    call_command(
+        "dumpdata",
+        use_natural_foreign_keys=True,
+        use_base_manager=True,
+        exclude=["auth.Permission", "contenttypes"],
+        stdout=out,
+    )
+    response = HttpResponse(out.getvalue(), content_type="application/json")
+    response["Content-Disposition"] = "attachment; filename=pyoupyou_dump.json"
     return response
 
 
@@ -401,25 +433,32 @@ def export_interviews_tsv(request):
     interviews = Interview.objects.for_user(request.user)
     ret = []
 
-    ret.append("\t".join(str(x).replace("\t", " ") for x in ["process.id",
-                                                             "candidate.name",
-                                                             "subsidiary",
-                                                             "start_date",
-                                                             "end_date",
-                                                             "process length",
-                                                             "sources",
-                                                             "contract_type",
-                                                             "contract_start_date",
-                                                             "contract_duration",
-                                                             "process state",
-                                                             "process itw count",
-                                                             "mean days between itws",
-                                                             "interview.id",
-                                                             "state",
-                                                             "interviewers",
-                                                             "interview rank",
-                                                             "days since last",
-                                                             "planned_date"]))
+    ret.append(
+        "\t".join(
+            str(x).replace("\t", " ")
+            for x in [
+                "process.id",
+                "candidate.name",
+                "subsidiary",
+                "start_date",
+                "end_date",
+                "process length",
+                "sources",
+                "contract_type",
+                "contract_start_date",
+                "contract_duration",
+                "process state",
+                "process itw count",
+                "mean days between itws",
+                "interview.id",
+                "state",
+                "interviewers",
+                "interview rank",
+                "days since last",
+                "planned_date",
+            ]
+        )
+    )
     for interview in interviews:
         interviewers = ""
         for i in interview.interviewers.all():
@@ -445,8 +484,7 @@ def export_interviews_tsv(request):
         last_event_date = interview.process.start_date
         next_event_date = None
         if interview.rank > 1:
-            last_itw = Interview.objects.filter(process=interview.process,
-                                                rank=interview.rank - 1).first()
+            last_itw = Interview.objects.filter(process=interview.process, rank=interview.rank - 1).first()
             if last_itw.planned_date is not None:
                 last_event_date = last_itw.planned_date.date()
             else:
@@ -464,37 +502,36 @@ def export_interviews_tsv(request):
             time_since_last_event = ""
 
         columns = [
-             interview.process.id,
-             interview.process.candidate.name,
-             interview.process.subsidiary,
-             interview.process.start_date,
-             interview.process.end_date,
-             process_length,
-             interview.process.sources,
-             interview.process.contract_type,
-             interview.process.contract_start_date,
-             interview.process.contract_duration,
-             interview.process.state,
-             Interview.objects.filter(process=interview.process).count(),
-             int(process_length / Interview.objects.filter(process=interview.process).count()),
-             interview.id,
-             interview.state,
-             interviewers,
-             interview.rank,
-             time_since_last_event,
-             interview.planned_date
+            interview.process.id,
+            interview.process.candidate.name,
+            interview.process.subsidiary,
+            interview.process.start_date,
+            interview.process.end_date,
+            process_length,
+            interview.process.sources,
+            interview.process.contract_type,
+            interview.process.contract_start_date,
+            interview.process.contract_duration,
+            interview.process.state,
+            Interview.objects.filter(process=interview.process).count(),
+            int(process_length / Interview.objects.filter(process=interview.process).count()),
+            interview.id,
+            interview.state,
+            interviewers,
+            interview.rank,
+            time_since_last_event,
+            interview.planned_date,
         ]
         ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
 
-    response = HttpResponse("\n".join(ret), content_type='text/plain; charset=utf-8')
-    response["Content-Disposition"] = 'attachment; filename=all_interviews.tsv'
+    response = HttpResponse("\n".join(ret), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = "attachment; filename=all_interviews.tsv"
     return response
 
 
 class LoadTable(tables.Table):
     subsidiary = tables.Column(verbose_name=_("Subsidiary"))
-    interviewer = tables.Column(verbose_name=_("Interviewer"),
-                                attrs={"td": {"style": "font-weight: bold"}})
+    interviewer = tables.Column(verbose_name=_("Interviewer"), attrs={"td": {"style": "font-weight: bold"}})
     load = tables.Column(verbose_name=_("Load"))
     itw_last_month = tables.Column(verbose_name=_("Past month"))
     itw_last_week = tables.Column(verbose_name=_("Past week"))
@@ -502,7 +539,7 @@ class LoadTable(tables.Table):
     itw_not_planned_yet = tables.Column(verbose_name=_("To plan"))
 
     class Meta:
-        template_name = 'interview/_tables.html'
+        template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
 
 
@@ -510,31 +547,36 @@ def _interviewer_load(interviewer):
     a_month_ago = timezone.now() - datetime.timedelta(days=30)
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     end_of_today = timezone.now().replace(hour=23, minute=59, second=59)
-    itw_last_month = Interview.objects\
-        .filter(interviewers=interviewer)\
-        .filter(planned_date__gte=a_month_ago)\
-        .filter(planned_date__lt=end_of_today)\
-        .count()
-    itw_last_week = Interview.objects\
-        .filter(interviewers=interviewer)\
-        .filter(planned_date__gte=a_week_ago)\
-        .filter(planned_date__lt=end_of_today).count()
-    itw_planned = Interview.objects.filter(interviewers=interviewer)\
-        .filter(planned_date__gte=timezone.now())\
-        .count()
-    itw_not_planned_yet = Interview.objects\
-        .filter(interviewers=interviewer)\
-        .filter(planned_date=None)\
-        .filter(process__state__in=Process.OPEN_STATE_VALUES)\
-        .count()
 
-    load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2*itw_last_week + itw_last_month - 4
+    itw_last_month = (
+        Interview.objects.filter(interviewers=interviewer)
+        .filter(planned_date__gte=a_month_ago)
+        .filter(planned_date__lt=end_of_today)
+        .count()
+    )
+    itw_last_week = (
+        Interview.objects.filter(interviewers=interviewer)
+        .filter(planned_date__gte=a_week_ago)
+        .filter(planned_date__lt=end_of_today)
+        .count()
+    )
+    itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=timezone.now()).count()
+    itw_not_planned_yet = (
+        Interview.objects.filter(interviewers=interviewer)
+        .filter(planned_date=None)
+        .filter(process__state__in=Process.OPEN_STATE_VALUES)
+        .count()
+    )
 
-    return {"load": load,
-            "itw_last_month": itw_last_month,
-            "itw_last_week": itw_last_week,
-            "itw_not_planned_yet": itw_not_planned_yet,
-            "itw_planned": itw_planned}
+    load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2 * itw_last_week + itw_last_month - 4
+
+    return {
+        "load": load,
+        "itw_last_month": itw_last_month,
+        "itw_last_week": itw_last_week,
+        "itw_not_planned_yet": itw_not_planned_yet,
+        "itw_planned": itw_planned,
+    }
 
 
 @login_required
@@ -554,16 +596,22 @@ def interviewers_load(request, subsidiary_id=None):
     data = []
     for c in consultants_qs.filter(productive=True).order_by("company", "user__full_name"):
         load = _interviewer_load(c)
-        data.append({"subsidiary": c.company,
-                     "interviewer": c,
-                     "load": load["load"],
-                     "itw_last_month": load["itw_last_month"],
-                     "itw_last_week": load["itw_last_week"],
-                     "itw_not_planned_yet": load["itw_not_planned_yet"],
-                     "itw_planned": load["itw_planned"]})
+        data.append(
+            {
+                "subsidiary": c.company,
+                "interviewer": c,
+                "load": load["load"],
+                "itw_last_month": load["itw_last_month"],
+                "itw_last_week": load["itw_last_week"],
+                "itw_not_planned_yet": load["itw_not_planned_yet"],
+                "itw_planned": load["itw_planned"],
+            }
+        )
 
     load_table = LoadTable(data, order_by="-load")
-    RequestConfig(request, paginate={'per_page': 100}).configure(load_table)
-    return render(request, "interview/interviewers-load.html", {"subsidiary": subsidiary,
-                                                                "subsidiaries": Subsidiary.objects.all(),
-                                                                "load_table": load_table})
+    RequestConfig(request, paginate={"per_page": 100}).configure(load_table)
+    return render(
+        request,
+        "interview/interviewers-load.html",
+        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "load_table": load_table},
+    )

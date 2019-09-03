@@ -1,8 +1,15 @@
-try:
-    from pyoupyou.settings.local import *
-except ImportError:
-    print("You need to create a settings/local.py file. You can use local.example.py to help you")
+import os
+
+from split_settings.tools import optional, include
+
+env = os.environ.get("PYOUPYOU_ENV", None)
+
+if env not in ("dev", "prod"):
+    print("You need to set PYOUPYOU_ENV environment variable to 'dev' or 'prod'")
     exit()
+
+include("common.py", f"{env}.py", optional("local.py"))
+
 
 try:
     DATABASES, SITE_HOST, MAIL_FROM, MAIL_HR

@@ -1,8 +1,11 @@
 # Upcoming version
 - Rework interview table
 - Minute page use read mode even for interviewer when minute exist. Redirect to read mode after editing (allow user to correct malformatted markdown)  
-- Update to django 2.2.3
+- Update to django 2.2.5
 - Fix coding style pep8
+- Use black to enforce coding style
+- Migrate from requirements.txt to Pipfile
+- Use django-split-settings
 # 1.0.5 (2019-06-24)
 Fix plan datepicker
 
@@ -19,7 +22,6 @@ Fix python 3.5 support
 Add missing migration
 
 # 1.0.0 (2019-06-13)
-
 First official release
 
 

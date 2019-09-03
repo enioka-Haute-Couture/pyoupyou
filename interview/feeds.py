@@ -12,20 +12,21 @@ class InterviewFeed(ICalFeed):
     """
     A simple event calender
     """
-    product_id = '-//pyoupyou//Full'
-    timezone = 'Europe/Paris'
+
+    product_id = "-//pyoupyou//Full"
+    timezone = "Europe/Paris"
     file_name = "pyoupyou_full.ics"
 
     def __call__(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
-            return HttpResponse('Unauthenticated user', status=401)
+            return HttpResponse("Unauthenticated user", status=401)
         return super().__call__(request, *args, **kwargs)
 
     def items(self):
-        return Interview.objects.filter(planned_date__isnull=False).order_by('-planned_date')
+        return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
 
     def item_title(self, item):
-        itws = ', '.join([i.user.trigramme for i in item.interviewers.all()])
+        itws = ", ".join([i.user.trigramme for i in item.interviewers.all()])
         return escape(force_text("#{} {} [{}]".format(item.rank, item.process.candidate.name, itws)))
 
     def item_description(self, item):

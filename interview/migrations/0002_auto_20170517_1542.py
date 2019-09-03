@@ -10,39 +10,38 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('ref', '0001_initial'),
-        ('interview', '0001_initial'),
-    ]
+    dependencies = [("ref", "0001_initial"), ("interview", "0001_initial")]
 
     operations = [
         migrations.AddField(
-            model_name='process',
-            name='subsidiary',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ref.Subsidiary'),
+            model_name="process",
+            name="subsidiary",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="ref.Subsidiary"),
         ),
         migrations.AddField(
-            model_name='interview',
-            name='interviewers',
-            field=models.ManyToManyField(to='ref.Consultant'),
+            model_name="interview", name="interviewers", field=models.ManyToManyField(to="ref.Consultant")
         ),
         migrations.AddField(
-            model_name='interview',
-            name='process',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='interview.Process'),
+            model_name="interview",
+            name="process",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="interview.Process"),
         ),
         migrations.AddField(
-            model_name='interview',
-            name='suggested_interviewer',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='suggested_interview_for', to='ref.Consultant', verbose_name='Suggested interviewer'),
+            model_name="interview",
+            name="suggested_interviewer",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="suggested_interview_for",
+                to="ref.Consultant",
+                verbose_name="Suggested interviewer",
+            ),
         ),
         migrations.AddField(
-            model_name='document',
-            name='candidate',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='interview.Candidate'),
+            model_name="document",
+            name="candidate",
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="interview.Candidate"),
         ),
-        migrations.AlterUniqueTogether(
-            name='interview',
-            unique_together=set([('process', 'rank')]),
-        ),
+        migrations.AlterUniqueTogether(name="interview", unique_together=set([("process", "rank")])),
     ]
