@@ -65,4 +65,5 @@ if settings.DEBUG:
 
 if settings.HAS_DDT:
     import debug_toolbar
+
     urlpatterns = [url(r"^__debug__/", include(debug_toolbar.urls))] + urlpatterns

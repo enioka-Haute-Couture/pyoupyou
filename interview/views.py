@@ -118,9 +118,7 @@ class InterviewTable(tables.Table):
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
-        row_attrs = {
-            'class': lambda record: 'danger' if record.needs_attention else None
-        }
+        row_attrs = {"class": lambda record: "danger" if record.needs_attention else None}
 
 
 @login_required
@@ -503,7 +501,6 @@ def export_interviews_tsv(request):
         else:
             time_since_last_event = ""
 
-
         columns = [
             interview.process.id,
             interview.process.candidate.name,
@@ -523,7 +520,7 @@ def export_interviews_tsv(request):
             interviewers,
             interview.rank,
             time_since_last_event,
-            interview.planned_date
+            interview.planned_date,
         ]
         ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
 
@@ -580,7 +577,6 @@ def _interviewer_load(interviewer):
         "itw_not_planned_yet": itw_not_planned_yet,
         "itw_planned": itw_planned,
     }
-
 
 
 @login_required
