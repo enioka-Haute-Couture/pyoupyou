@@ -8,7 +8,7 @@ if env not in ("dev", "prod"):
     print("You need to set PYOUPYOU_ENV environment variable to 'dev' or 'prod'")
     exit()
 
-include("common.py", f"{env}.py", optional("local.py"))
+include("common.py", "{env}.py".format(env), optional("local.py"))
 
 
 try:

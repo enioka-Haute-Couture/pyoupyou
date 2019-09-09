@@ -1,3 +1,6 @@
+# 1.1.1 (2019-09-09)
+Fix python 3.5 support
+
 # 1.1.0 (2019-09-09)
 - Rework interview table
 - Minute page use read mode even for interviewer when minute exist. Redirect to read mode after editing (allow user to correct malformatted markdown)  
