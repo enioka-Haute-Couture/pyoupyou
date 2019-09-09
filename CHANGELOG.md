@@ -1,4 +1,4 @@
-# Upcoming version
+# 1.1.0 (2019-09-09)
 - Rework interview table
 - Minute page use read mode even for interviewer when minute exist. Redirect to read mode after editing (allow user to correct malformatted markdown)  
 - Update to django 2.2.5
