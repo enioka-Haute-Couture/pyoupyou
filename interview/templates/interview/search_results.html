@@ -1,0 +1,8 @@
+{% extends "interview/base.html" %}
+{% block content %}
+    <ul>
+        {% for result in results %}
+            <li>{{ result }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

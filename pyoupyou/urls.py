@@ -55,6 +55,7 @@ urlpatterns = [
     url(r"^feed/pyoupyou_full.ics$", feeds.InterviewFeed(), name="calendar_full"),
     url(r"^export/all_interviews.tsv$", views.export_interviews_tsv, name="export_interviews_tsv"),
     url(r"^select2/", include("django_select2.urls")),
+    url(r"^search/", views.search, name="search"),
 ]
 
 if settings.DEBUG:
