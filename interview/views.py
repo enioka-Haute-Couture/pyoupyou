@@ -615,3 +615,24 @@ def interviewers_load(request, subsidiary_id=None):
         "interview/interviewers-load.html",
         {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "load_table": load_table},
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def search(request):
+    q = request.GET.get("q", "")
+
+    results = (
+        Process.objects.for_user(request.user)
+        .filter(Q(candidate__name__icontains=q) | Q(candidate__email__icontains=q))
+        .distinct()
+    )
+
+    search_result = ProcessEndTable(results, prefix="c")
+
+    config = RequestConfig(request)
+    config.configure(search_result)
+
+    context = {"title": _('Search result for "{q}"').format(q=q), "table": search_result, "search_query": q}
+
+    return render(request, "interview/single_table.html", context)

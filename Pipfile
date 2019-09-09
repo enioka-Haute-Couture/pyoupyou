@@ -10,6 +10,7 @@ factory-boy = "*"
 tzlocal = "*"
 coverage = "*"
 debug-toolbar-user-panel = {editable = true,git = "https://github.com/bport/django-debug-toolbar-user-panel.git"}
+ipython = "*"
 
 [packages]
 django-bootstrap-static = ">=3.3.7,<3.4"
