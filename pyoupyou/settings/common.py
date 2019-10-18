@@ -110,4 +110,6 @@ MEDIA_URL = "/media/"
 
 MINUTE_FORMAT = (("md", "Markdown"), ("rst", "ReStructured Text"))
 
+STALE_DAYS = 7
+
 USE_X_FORWARDED_HOST = True

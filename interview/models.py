@@ -13,7 +13,7 @@ from django.utils.text import slugify
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from pyoupyou.settings import MINUTE_FORMAT
+from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Consultant, Subsidiary
 
 
@@ -110,8 +110,6 @@ class Process(models.Model):
     HIRED = "HI"
     OTHER = "NO"
     JOB_OFFER = "JO"
-
-    STALE_DAYS = 7
 
     CLOSED_STATE = (
         (NO_GO, _("Last interviewer interupt process")),
@@ -232,7 +230,7 @@ class Process(models.Model):
 
     @property
     def is_stale(self):
-        return self.last_state_change - now() > datetime.timedelta(days=self.STALE_DAYS)
+        return now() - self.last_state_change > datetime.timedelta(days=STALE_DAYS)
 
     @property
     def needs_attention(self):
