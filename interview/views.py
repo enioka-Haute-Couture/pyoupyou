@@ -266,7 +266,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
     if request.method == "POST":
         ret = HttpResponseRedirect(reverse(viewname="process-details", kwargs={"process_id": process_id}))
         if action == "planning-request":
-            print("TOGGLE", interview.state)
             interview.toggle_planning_request()
             return ret
         form = InterviewForm(request.POST, instance=interview)
