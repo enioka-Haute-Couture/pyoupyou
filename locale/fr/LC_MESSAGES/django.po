@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-18 15:57+0200\n"
+"POT-Creation-Date: 2019-10-18 16:08+0200\n"
 "PO-Revision-Date: 2018-05-17 10:04+0200\n"
 "Last-Translator: Sebastien Renard <renard@kde.org>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -79,13 +79,13 @@ msgstr "Terminé - autre raison"
 
 #: interview/models.py:124
 msgid "Waiting interview planification"
-msgstr "Attente de la planification de l'entretien"
+msgstr "Attente de la demande de planification de l'entretien"
 
 #: interview/models.py:125
 #, fuzzy
 #| msgid "Waiting interview planification"
 msgid "Waiting for interview planification response"
-msgstr "Attente de la planification de l'entretien"
+msgstr "Attente de réponse pour la planification de l'entretien"
 
 #: interview/models.py:126
 msgid "Waiting interview minute"
@@ -141,101 +141,101 @@ msgstr ""
 msgid "Closed comment"
 msgstr "Commentaire de fin de processus"
 
-#: interview/models.py:220
+#: interview/models.py:224
 #: interview/templates/interview/interview_minute.html:10
 #: interview/templates/interview/interview_minute_form.html:9
 msgid "for subsidiary"
 msgstr "pour la filiale"
 
-#: interview/models.py:253
+#: interview/models.py:261
 #, python-brace-format
 msgid "New process {candidate}"
 msgstr "Nouveau candidat {candidate}"
 
-#: interview/models.py:256
+#: interview/models.py:264
 #, python-brace-format
 msgid "Process {process}: candidate declined"
 msgstr ""
 
-#: interview/models.py:260
+#: interview/models.py:268
 #, python-brace-format
 msgid "Process {process}: Candidate accepted our offer"
 msgstr "Processus {process}: Le candidat a accepté notre offre"
 
-#: interview/models.py:268
+#: interview/models.py:276
 #, python-brace-format
 msgid "Process {process}: {result}"
 msgstr "Processus {process}: {result}"
 
-#: interview/models.py:272
+#: interview/models.py:280
 #, python-brace-format
 msgid "Process {process}: job offer"
 msgstr "Processus {process}: job offer"
 
-#: interview/models.py:301
+#: interview/models.py:309
 msgid "NEED PLANIFICATION"
-msgstr "En attente de planification"
+msgstr "En attente de demande de planification"
 
-#: interview/models.py:302
+#: interview/models.py:310
 msgid "WAIT PLANIFICATION RESPONSE"
 msgstr "En attente de réponse pour planification"
 
-#: interview/models.py:303
+#: interview/models.py:311
 msgid "PLANNED"
 msgstr "Planifié"
 
-#: interview/models.py:304
+#: interview/models.py:312
 #: interview/templates/interview/interview_minute_form.html:15
 msgid "GO"
 msgstr "GO"
 
-#: interview/models.py:305
+#: interview/models.py:313
 #: interview/templates/interview/interview_minute_form.html:16
 msgid "NO"
 msgstr "NON"
 
-#: interview/models.py:306
+#: interview/models.py:314
 msgid "DRAFT"
 msgstr "Brouillon"
 
-#: interview/models.py:307
+#: interview/models.py:315
 msgid "WAIT INFORMATION"
 msgstr "Attente information"
 
-#: interview/models.py:313
+#: interview/models.py:321
 msgid "next state"
 msgstr "prochain état"
 
-#: interview/models.py:314
+#: interview/models.py:322
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:315 interview/views.py:104
+#: interview/models.py:323 interview/views.py:104
 msgid "Planned date"
 msgstr "Date prévue"
 
-#: interview/models.py:318
+#: interview/models.py:326
 #: interview/templates/interview/interview_minute.html:18
 #: interview/views.py:107
 msgid "Minute"
 msgstr "Compte-rendu"
 
-#: interview/models.py:322
+#: interview/models.py:330
 #: interview/templates/interview/interview_minute.html:29
 msgid "Suggested interviewer"
 msgstr "Interviewer suggéré"
 
-#: interview/models.py:328
+#: interview/models.py:336
 #: interview/templates/interview/interview_minute.html:31
 msgid "Next interview goal"
 msgstr "Objectif du prochain entretien"
 
-#: interview/models.py:412
+#: interview/models.py:420
 #, python-brace-format
 msgid "New interview for {process}"
 msgstr "Nouvel entretien pour {process}"
 
-#: interview/models.py:416
+#: interview/models.py:424
 #, python-brace-format
 msgid "Interview planned: {process}"
 msgstr "Entretien planifié : {process}"
@@ -573,21 +573,21 @@ msgstr "Utilisateurs"
 msgid "Productive"
 msgstr "Productif"
 
-#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_form_helper.py:140
-#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_form_helper.py:150
+#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_form_helper.py:139
+#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_form_helper.py:149
 #: venv/lib/python3.7/site-packages/django/forms/fields.py:53
 msgid "This field is required."
 msgstr ""
 
-#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout.py:355
+#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout.py:323
 msgid "i18n text"
 msgstr ""
 
-#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout.py:357
+#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout.py:323
 msgid "i18n legend"
 msgstr ""
 
-#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout_objects.py:127
+#: venv/lib/python3.7/site-packages/crispy_forms/tests/test_layout_objects.py:131
 #: venv/lib/python3.7/site-packages/django/core/validators.py:31
 msgid "Enter a valid value."
 msgstr ""
@@ -1173,7 +1173,7 @@ msgstr ""
 msgid "\"%(pk)s\" is not a valid value."
 msgstr ""
 
-#: venv/lib/python3.7/site-packages/django/forms/utils.py:162
+#: venv/lib/python3.7/site-packages/django/forms/utils.py:157
 #, python-format
 msgid ""
 "%(datetime)s couldn't be interpreted in time zone %(current_timezone)s; it "
