@@ -12,8 +12,20 @@
         <i class="fa fa-pencil" aria-hidden="true"></i>
         </a>
     {% else %}
-        <a class="btn btn-info btn-xs row-action" href="{% url 'interview-plan' record.process_id record.pk %}">
-        <i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}
-        </a>
+        <form action="{% url 'interview-planning-request' record.process_id record.pk %}" method="POST">
+            {% csrf_token %}
+            {% if record.planning_request_sent %}
+                <button class="btn btn-success btn-xs row-action" type="submit">
+                    <i class="fa fa-paper-plane-o" aria-hidden="true"></i> {% trans "Sent" %}
+                </button>
+            {% else %}
+                <button class="btn btn-warning btn-xs row-action" type="submit">
+                    <i class="fa fa-calendar-times-o" aria-hidden="true"></i> {% trans "Not Sent" %}
+                </button>
+            {% endif %}
+            <a class="btn btn-info btn-xs row-action" href="{% url 'interview-plan' record.process_id record.pk %}">
+                <i class="fa fa-calendar-o" aria-hidden="true"></i> {% trans "Plan" %}
+            </a>
+        </form>
     {% endif %}
 {% endif %}

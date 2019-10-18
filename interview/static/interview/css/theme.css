@@ -57,3 +57,7 @@ th.asc .sort-icon::before {
 .no-go {
     margin-right: 10px;
 }
+
+.row-action {
+    margin-left: 0;
+}
