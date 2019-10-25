@@ -109,6 +109,7 @@ class InterviewTable(tables.Table):
     needs_attention = tables.TemplateColumn(
         template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
     )
+    state = tables.TemplateColumn(template_name="interview/tables/interview_state.html", orderable=False)
 
     class Meta:
         model = Interview
@@ -251,11 +252,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
     """
-    InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if interview_id is not None:
         try:
             interview = Interview.objects.for_user(request.user).get(id=interview_id)
-            if action == "plan" and request.user.consultant not in interview.interviewers.all():
+            if action in ["plan", "planning-request"] and request.user.consultant not in interview.interviewers.all():
                 return HttpResponseNotFound()
 
         except Interview.DoesNotExist:
@@ -263,11 +263,16 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         interview = Interview(process_id=process_id)
 
+    InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if request.method == "POST":
+        ret = HttpResponseRedirect(reverse(viewname="process-details", kwargs={"process_id": process_id}))
+        if action == "planning-request":
+            interview.toggle_planning_request()
+            return ret
         form = InterviewForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(viewname="process-details", kwargs={"process_id": process_id}))
+            return ret
     else:
         form = InterviewForm(instance=interview)
 

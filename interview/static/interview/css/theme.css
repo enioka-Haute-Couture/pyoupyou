@@ -16,7 +16,7 @@ th.asc .sort-icon::before {
 }
 
 .row-action {
-    margin-left: 5px;
+    margin-left: 0;
 }
 
 .relative {
@@ -56,4 +56,13 @@ th.asc .sort-icon::before {
 
 .no-go {
     margin-right: 10px;
+}
+
+.d-flex {
+    display:flex;
+    justify-content: space-between;
+}
+
+.ml-2 {
+    margin-left: 5px;
 }

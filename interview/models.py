@@ -10,9 +10,10 @@ from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils.text import slugify
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
-from pyoupyou.settings import MINUTE_FORMAT
+from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Consultant, Subsidiary
 
 
@@ -98,6 +99,7 @@ class ProcessManager(models.Manager):
 
 class Process(models.Model):
     WAITING_INTERVIEW_PLANIFICATION = "WP"
+    WAITING_INTERVIEW_PLANIFICATION_RESPONSE = "WR"
     INTERVIEW_IS_PLANNED = "WI"
     WAITING_ITW_MINUTE = "WM"
     OPEN = "OP"
@@ -118,6 +120,7 @@ class Process(models.Model):
 
     INTERVIEW_STATE = (
         (WAITING_INTERVIEW_PLANIFICATION, _("Waiting interview planification")),
+        (WAITING_INTERVIEW_PLANIFICATION_RESPONSE, _("Waiting for interview planification response")),
         (WAITING_ITW_MINUTE, _("Waiting interview minute")),
         (INTERVIEW_IS_PLANNED, _("Waiting interview")),
     )
@@ -138,6 +141,7 @@ class Process(models.Model):
 
     ALL_STATE_VALUES = [
         WAITING_INTERVIEW_PLANIFICATION,
+        WAITING_INTERVIEW_PLANIFICATION_RESPONSE,
         INTERVIEW_IS_PLANNED,
         WAITING_ITW_MINUTE,
         OPEN,
@@ -168,10 +172,17 @@ class Process(models.Model):
     state = models.CharField(
         max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=WAITING_INTERVIEWER_TO_BE_DESIGNED
     )
+    last_state_change = models.DateTimeField(verbose_name=_("Last State Change"), default=now)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         is_new = False if self.id else True
+        if is_new:
+            self.last_state_change = now()
+        else:
+            old = Process.objects.get(id=self.id)
+            if old.state != self.state:
+                self.last_state_change = now()
         super().save(force_insert, force_update, using, update_fields)
         if self.state in (
             Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
@@ -183,7 +194,11 @@ class Process(models.Model):
                 self.responsible.add(self.subsidiary.responsible)
         if self.state in (Process.CANDIDATE_DECLINED, Process.HIRED):
             self.responsible.clear()
-        if self.state in (Process.WAITING_INTERVIEW_PLANIFICATION, Process.INTERVIEW_IS_PLANNED):
+        if self.state in (
+            Process.WAITING_INTERVIEW_PLANIFICATION,
+            Process.WAITING_INTERVIEW_PLANIFICATION_RESPONSE,
+            Process.INTERVIEW_IS_PLANNED,
+        ):
             self.responsible.clear()
             for interviewer in self.interview_set.last().interviewers.all():
                 self.responsible.add(interviewer)
@@ -214,12 +229,20 @@ class Process(models.Model):
         return self.end_date > datetime.date.today()
 
     @property
+    def is_stale(self):
+        return now() - self.last_state_change > datetime.timedelta(days=STALE_DAYS)
+
+    @property
     def needs_attention(self):
-        return self.is_active and self.state in (
-            Process.WAITING_ITW_MINUTE,
-            Process.WAITING_INTERVIEW_PLANIFICATION,
-            Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
-            Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+        return self.is_active and (
+            self.is_stale
+            or self.state
+            in (
+                Process.WAITING_ITW_MINUTE,
+                Process.WAITING_INTERVIEW_PLANIFICATION,
+                Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
+                Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
+            )
         )
 
     @property
@@ -273,6 +296,7 @@ class InterviewManager(models.Manager):
 
 class Interview(models.Model):
     WAITING_PLANIFICATION = "NP"
+    WAITING_PLANIFICATION_RESPONSE = "PR"
     PLANNED = "PL"
     GO = "GO"
     NO_GO = "NO"
@@ -281,6 +305,7 @@ class Interview(models.Model):
 
     ITW_STATE = (
         (WAITING_PLANIFICATION, _("NEED PLANIFICATION")),
+        (WAITING_PLANIFICATION_RESPONSE, _("WAIT PLANIFICATION RESPONSE")),
         (PLANNED, _("PLANNED")),
         (GO, _("GO")),
         (NO_GO, _("NO")),
@@ -325,14 +350,21 @@ class Interview(models.Model):
 
         if self.state is None and self.planned_date is None:
             self.state = self.WAITING_PLANIFICATION
-        elif self.state == self.WAITING_PLANIFICATION and self.planned_date is not None:
+        elif (
+            self.state in [self.WAITING_PLANIFICATION, self.WAITING_PLANIFICATION_RESPONSE]
+            and self.planned_date is not None
+        ):
             self.state = self.PLANNED
             self.trigger_notification()
+        elif self.state == self.PLANNED and self.planned_date is None:
+            self.state = self.WAITING_PLANIFICATION
 
         super(Interview, self).save(*args, **kwargs)
         if is_new or (Interview.objects.filter(process=self.process).last() == self and self.process.is_open()):
             if self.state == self.WAITING_PLANIFICATION:
                 self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
+            if self.state == self.WAITING_PLANIFICATION_RESPONSE:
+                self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION_RESPONSE
             elif self.state == self.PLANNED:
                 self.process.state = Process.INTERVIEW_IS_PLANNED
             elif self.state == self.WAIT_INFORMATION:
@@ -346,13 +378,24 @@ class Interview(models.Model):
 
         return reverse("interview-minute", args=[str(self.id)])
 
+    @property
+    def planning_request_sent(self):
+        return self.planned_date is not None or self.state == self.WAITING_PLANIFICATION_RESPONSE
+
+    def toggle_planning_request(self):
+        if self.state == self.WAITING_PLANIFICATION:
+            self.state = self.WAITING_PLANIFICATION_RESPONSE
+        elif self.state == self.WAITING_PLANIFICATION_RESPONSE:
+            self.state = self.WAITING_PLANIFICATION
+        self.save()
+
     class Meta:
         unique_together = (("process", "rank"),)
         ordering = ["process", "rank"]
 
     @property
     def needs_attention(self):
-        if self.planned_date is None:
+        if not self.planning_request_sent:
             return True
         if self.planned_date and self.planned_date.date() < datetime.date.today():
             if self.state in [self.PLANNED, self.WAITING_PLANIFICATION] or not self.minute:

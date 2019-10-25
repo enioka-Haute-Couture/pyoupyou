@@ -37,6 +37,12 @@ urlpatterns = [
         name="interview-plan",
     ),
     url(
+        r"^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/planning-request$",
+        views.interview,
+        {"action": "planning-request"},
+        name="interview-planning-request",
+    ),
+    url(
         r"^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$",
         views.interview,
         {"action": "edit"},
