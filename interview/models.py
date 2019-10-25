@@ -350,7 +350,10 @@ class Interview(models.Model):
 
         if self.state is None and self.planned_date is None:
             self.state = self.WAITING_PLANIFICATION
-        elif self.state == self.WAITING_PLANIFICATION and self.planned_date is not None:
+        elif (
+            self.state in [self.WAITING_PLANIFICATION, self.WAITING_PLANIFICATION_RESPONSE]
+            and self.planned_date is not None
+        ):
             self.state = self.PLANNED
             self.trigger_notification()
         elif self.state == self.PLANNED and self.planned_date is None:

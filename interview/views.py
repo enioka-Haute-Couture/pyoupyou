@@ -109,6 +109,7 @@ class InterviewTable(tables.Table):
     needs_attention = tables.TemplateColumn(
         template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
     )
+    state = tables.TemplateColumn(template_name="interview/tables/interview_state.html", orderable=False)
 
     class Meta:
         model = Interview
