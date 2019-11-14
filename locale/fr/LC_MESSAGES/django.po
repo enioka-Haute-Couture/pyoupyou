@@ -307,9 +307,9 @@ msgstr "Le candidat %(candidate)s a accepté notre offre"
 
 #: interview/templates/interview/email/interview_planned.txt:2
 #, python-format
-msgid "Interview for %(candidate)s was planned by %(itws)s (%(planned_date)s)"
+msgid "Interview for %(candidate)s was planned with %(itws)s (%(planned_date)s)"
 msgstr ""
-"Un entretien pour %(candidate)s a été planifié par %(itws)s "
+"Un entretien pour %(candidate)s a été planifié avec %(itws)s "
 "(%(planned_date)s)"
 
 #: interview/templates/interview/email/job_offer.txt:2

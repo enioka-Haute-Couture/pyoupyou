@@ -1,4 +1,4 @@
 {% load i18n %}
-{% blocktrans with candidate=interview.process.candidate itws=interview.interviewers_str planned_date=interview.planned_date %}Interview for {{ candidate }} was planned by {{ itws }} ({{ planned_date }}){% endblocktrans %}
+{% blocktrans with candidate=interview.process.candidate itws=interview.interviewers_str planned_date=interview.planned_date %}Interview for {{ candidate }} was planned with {{ itws }} ({{ planned_date }}){% endblocktrans %}
 
 {{ url }}
