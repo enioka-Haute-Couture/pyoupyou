@@ -35,7 +35,8 @@ from interview.forms import (
     InterviewFormEditInterviewers,
     SourceForm,
     CloseForm,
-    UploadSeekubeFileForm)
+    UploadSeekubeFileForm,
+)
 
 from ref.models import Consultant, Subsidiary
 
@@ -650,9 +651,10 @@ def search(request):
     return render(request, "interview/single_table.html", context)
 
 
-RE_NAME_SOURCE = re.compile(r'DESCRIPTION:Entretien avec (?P<name>.*) sur #(?P<source>.*)')
-RE_DATE = re.compile(r'DTSTART:(?P<date>.*)')
-RE_CV_URL = re.compile(r'Lien du CV : (?P<url>.*)')
+RE_NAME_SOURCE = re.compile(r"DESCRIPTION:Entretien avec (?P<name>.*) sur #(?P<source>.*)")
+RE_DATE = re.compile(r"DTSTART:(?P<date>.*)")
+RE_CV_URL = re.compile(r"Lien du CV : (?P<url>.*)")
+
 
 @login_required
 @require_http_methods(["GET", "POST"])
@@ -664,36 +666,37 @@ def import_seekube(request):
         form = UploadSeekubeFileForm(data=request.POST, files=request.FILES)
 
         if form.is_valid():
-            # try:
+            try:
                 file = request.FILES.get("file")
                 content = file.read().decode("utf-8")
 
                 result = RE_NAME_SOURCE.search(content)
-                extracted_name = result.group('name')
-                extracted_source = result.group('source')
-                extracted_cv_url = RE_CV_URL.search(content).group('url')
-                extracted_date = RE_DATE.search(content).group('date')
+                extracted_name = result.group("name")
+                extracted_source = result.group("source")
+                extracted_cv_url = RE_CV_URL.search(content).group("url")
+                extracted_date = RE_DATE.search(content).group("date")
                 extracted_date = datetime.strptime(extracted_date, "%Y%m%dT%H%M%S%z")
                 candidate = Candidate.objects.create(name=extracted_name)
-                source, created = Sources.objects.get_or_create(name=extracted_source, category=SourcesCategory.objects.get(id=settings.SEEKUBE_SOURCE_ID))
-                process = Process.objects.create(candidate=candidate, subsidiary=request.user.consultant.company, sources=source)
+                source, created = Sources.objects.get_or_create(
+                    name=extracted_source, category=SourcesCategory.objects.get(id=settings.SEEKUBE_SOURCE_ID)
+                )
+                process = Process.objects.create(
+                    candidate=candidate, subsidiary=request.user.consultant.company, sources=source
+                )
                 itw = Interview.objects.create(process=process, planned_date=extracted_date)
                 itw.interviewers.add(request.user.consultant)
                 cv_content = requests.get(extracted_cv_url).content
-                ext = '.' + extracted_cv_url.split('.')[-1]
+                ext = "." + extracted_cv_url.split(".")[-1]
                 file_tmp = NamedTemporaryFile(delete=True, suffix=ext)
                 file_tmp.write(cv_content)
                 file_tmp.flush()
                 Document.objects.create(document_type="CV", content=File(file_tmp), candidate=candidate)
                 return HttpResponseRedirect(process.get_absolute_url())
-            # except Exception as e:
-            #     form.add_error(None, _('Processing seekube ics failed'))
+            except Exception:
+                form.add_error(None, _("Processing seekube ics failed"))
 
-    return render(
-        request,
-        "interview/seekube_import.html",
-        {"form": form},
-    )
+    return render(request, "interview/seekube_import.html", {"form": form})
+
+
 #
 # def import_seekube_validate(request):
-

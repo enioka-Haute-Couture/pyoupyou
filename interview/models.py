@@ -175,6 +175,8 @@ class Process(models.Model):
     last_state_change = models.DateTimeField(verbose_name=_("Last State Change"), default=now)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
+    other_informations = models.TextField(verbose_name=_("Other informations"), blank=True)
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         is_new = False if self.id else True
         if is_new:

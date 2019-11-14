@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-14 15:48+0100\n"
+"POT-Creation-Date: 2019-11-14 16:06+0100\n"
 "PO-Revision-Date: 2018-05-17 10:04+0200\n"
 "Last-Translator: Sebastien Renard <renard@kde.org>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -17,18 +17,18 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: interview/forms.py:75 interview/forms.py:85 interview/forms.py:97
-#: interview/forms.py:116 interview/templates/interview/candidate.html:14
+#: interview/forms.py:74 interview/forms.py:84 interview/forms.py:96
+#: interview/forms.py:115 interview/templates/interview/candidate.html:14
 #: interview/templates/interview/new_candidate.html:11
 #: interview/templates/interview/new_candidate.html:26
 msgid "Save"
 msgstr "Enregistrer"
 
-#: interview/forms.py:126 interview/models.py:136
+#: interview/forms.py:125 interview/models.py:136
 msgid "Waiting candidate feedback after a job offer"
 msgstr "Proposition en cours, attente du retour du candidat"
 
-#: interview/forms.py:143 interview/templates/interview/base.html:49
+#: interview/forms.py:142 interview/templates/interview/base.html:49
 msgid "Import"
 msgstr "Importer"
 
@@ -145,101 +145,105 @@ msgstr ""
 msgid "Closed comment"
 msgstr "Commentaire de fin de processus"
 
-#: interview/models.py:222
+#: interview/models.py:178
+msgid "Other informations"
+msgstr "Informations complémentaires"
+
+#: interview/models.py:224
 #: interview/templates/interview/interview_minute.html:10
 #: interview/templates/interview/interview_minute_form.html:9
 msgid "for subsidiary"
 msgstr "pour la filiale"
 
-#: interview/models.py:259
+#: interview/models.py:261
 #, python-brace-format
 msgid "New process {candidate}"
 msgstr "Nouveau candidat {candidate}"
 
-#: interview/models.py:262
+#: interview/models.py:264
 #, python-brace-format
 msgid "Process {process}: candidate declined"
 msgstr "Processus {process}: Le candidat a décline notre offre"
 
-#: interview/models.py:266
+#: interview/models.py:268
 #, python-brace-format
 msgid "Process {process}: Candidate accepted our offer"
 msgstr "Processus {process}: Le candidat a accepté notre offre"
 
-#: interview/models.py:274
+#: interview/models.py:276
 #, python-brace-format
 msgid "Process {process}: {result}"
 msgstr "Processus {process}: {result}"
 
-#: interview/models.py:278
+#: interview/models.py:280
 #, python-brace-format
 msgid "Process {process}: job offer"
 msgstr "Processus {process}: job offer"
 
-#: interview/models.py:307
+#: interview/models.py:309
 msgid "NEED PLANIFICATION"
 msgstr "En attente de planification"
 
-#: interview/models.py:308
+#: interview/models.py:310
 msgid "WAIT PLANIFICATION RESPONSE"
 msgstr "En attente de réponse pour planification"
 
-#: interview/models.py:309
+#: interview/models.py:311
 msgid "PLANNED"
 msgstr "Planifié"
 
-#: interview/models.py:310
+#: interview/models.py:312
 #: interview/templates/interview/interview_minute_form.html:15
 msgid "GO"
 msgstr "GO"
 
-#: interview/models.py:311
+#: interview/models.py:313
 #: interview/templates/interview/interview_minute_form.html:16
 msgid "NO"
 msgstr "NON"
 
-#: interview/models.py:312
+#: interview/models.py:314
 msgid "DRAFT"
 msgstr "Brouillon"
 
-#: interview/models.py:313
+#: interview/models.py:315
 msgid "WAIT INFORMATION"
 msgstr "Attente information"
 
-#: interview/models.py:319
+#: interview/models.py:321
 msgid "next state"
 msgstr "état"
 
-#: interview/models.py:320
+#: interview/models.py:322
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:321 interview/views.py:111
+#: interview/models.py:323 interview/views.py:111
 msgid "Planned date"
 msgstr "Date prévue"
 
-#: interview/models.py:324
+#: interview/models.py:326
 #: interview/templates/interview/interview_minute.html:18
 #: interview/views.py:114
 msgid "Minute"
 msgstr "Compte-rendu"
 
-#: interview/models.py:328
+#: interview/models.py:330
 #: interview/templates/interview/interview_minute.html:29
 msgid "Suggested interviewer"
 msgstr "Interviewer suggéré"
 
-#: interview/models.py:334
+#: interview/models.py:336
 #: interview/templates/interview/interview_minute.html:31
 msgid "Next interview goal"
 msgstr "Objectif du prochain entretien"
 
-#: interview/models.py:421
+#: interview/models.py:423
 #, python-brace-format
 msgid "New interview for {process}"
 msgstr "Nouvel entretien pour {process}"
 
-#: interview/models.py:425
+#: interview/models.py:427
 #, python-brace-format
 msgid "Interview planned: {process}"
 msgstr "Entretien planifié : {process}"
@@ -518,10 +522,6 @@ msgstr "À planifier"
 msgid "Search result for \"{q}\""
 msgstr "Résultats de recherche pour \"{q}\""
 
-#: interview/views.py:690
-msgid "Processing seekube ics failed"
-msgstr "Erreur lors du traitement du fichier ics seekube"
-
 #: ref/admin.py:11
 msgid "Personal info"
 msgstr "Informations personnelles"
@@ -585,6 +585,9 @@ msgstr "Utilisateurs"
 #: ref/models.py:113
 msgid "Productive"
 msgstr "Productif"
+
+#~ msgid "Processing seekube ics failed"
+#~ msgstr "Erreur lors du traitement du fichier ics seekube"
 
 #, fuzzy
 #~| msgid "email address"

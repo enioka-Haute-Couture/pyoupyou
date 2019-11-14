@@ -9,7 +9,6 @@ from crispy_forms.layout import Layout, Div, Submit, Column
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Consultant, Interview, Candidate, Process, Sources
-from ref.models import Subsidiary
 
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
@@ -46,7 +45,7 @@ class SelectOrCreate(SourcesWidget):
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        exclude = ["candidate", "start_date", "end_date", "state", "closed_comment", "responsible"]
+        exclude = ["candidate", "start_date", "end_date", "state", "closed_comment", "responsible", "last_state_change"]
 
         widgets = {"sources": SelectOrCreate}
 

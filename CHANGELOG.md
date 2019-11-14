@@ -1,6 +1,7 @@
-# 1.2.0 (in development)
+# 1.2.0 (2019-11-14)
 - Add state when a candidate was contacted and we wait his feedback for interview planning
 - Add view to import seekube ics file. Need to add a settings to your local.py file SEEKUBE_SOURCE_ID parameter
+- Add other information field to a process
 
 # 1.1.1 (2019-09-09)
 Fix python 3.5 support
