@@ -1,0 +1,15 @@
+{% extends 'interview/base.html' %}
+{% load crispy_forms_tags %}
+{% load admin_urls %}
+{% load i18n %}
+
+{% block content %}
+<div class="container">
+    <div class="lead">
+        {% trans "Import seekube ics" %}
+    </div>
+    <form method="post" id="itw-minute" enctype="multipart/form-data">
+        {% crispy form %}
+    </form>
+</div>
+{% endblock %}

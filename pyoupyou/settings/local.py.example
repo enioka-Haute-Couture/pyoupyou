@@ -5,3 +5,4 @@
 # SITE_HOST = 'https://pyoupyou.com'
 # MAIL_HR = 'hr@company.com'
 # MAIL_FROM = 'noreply@company.com'
+# SEEKUBE_SOURCE_ID = 5

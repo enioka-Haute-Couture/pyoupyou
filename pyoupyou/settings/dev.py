@@ -48,3 +48,5 @@ LOGGING = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 MAIL_HR = "hr@enioka.com"
 MAIL_FROM = "pyoupyou@enioka.com"
+
+SEEKUBE_SOURCE_ID = 5

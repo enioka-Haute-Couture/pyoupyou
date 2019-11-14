@@ -35,7 +35,7 @@
         <div class="container">
 
             <div class="navbar-header">
-                <a class="navbar-brand" href="{% url 'dashboard' %}">PyouPyou - [{{ user }}]</a>
+                <a class="navbar-brand" href="{% url 'dashboard' %}">[{{ user }}]</a>
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
                     <i class="fa fa-bars fa-2x"></i>
                 </button>
@@ -46,6 +46,7 @@
                     <li class="active" ><a href="{% url 'process-closed-list' %}">{% trans "Closed processes" %}</a></li>
                     <li><a href="{% url 'candidate-new' %}">{% trans "New candidate" %}</a></li>
                     <li><a href="{% url 'interviewers-load' %}">{% trans "Load" %}</a></li>
+                    <li><a href="{% url 'import-seekube' %}">{% trans "Import" %}</a></li>
                     {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>{% endif %}
                     <li><form class="navbar-form" role="search" action="{% url 'search' %}" method="GET">
                         <input type="text" class="form-control" placeholder="{% trans "Search" %}" name="q" value="{{ search_query }}">

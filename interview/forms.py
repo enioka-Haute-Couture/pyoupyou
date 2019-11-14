@@ -9,6 +9,7 @@ from crispy_forms.layout import Layout, Div, Submit, Column
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Consultant, Interview, Candidate, Process, Sources
+from ref.models import Subsidiary
 
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
@@ -133,3 +134,10 @@ class CloseForm(forms.ModelForm):
         if self.instance.interview_set.last() and self.instance.interview_set.last().state == Interview.GO:
             default_choice = Process.HIRED
         self.fields["state"].initial = default_choice
+
+
+class UploadSeekubeFileForm(forms.Form):
+    file = forms.FileField()
+    helper = FormHelper()
+    helper.form_method = "POST"
+    helper.add_input(Submit("summit", _("Import"), css_class="btn-primary"))
