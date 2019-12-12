@@ -11,7 +11,7 @@ django-markwhat==1.6.1
 django-select2==7.0.3
 django-split-settings==0.3.0
 django-tables2==2.0.6
-django==2.2.5
+django==2.2.8
 future==0.17.1
 icalendar==4.0.3
 python-dateutil==2.8.0
