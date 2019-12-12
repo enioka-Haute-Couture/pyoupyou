@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
 import re
-from datetime import datetime
 
 import requests
 from django.conf import settings
@@ -675,7 +674,7 @@ def import_seekube(request):
                 extracted_source = result.group("source")
                 extracted_cv_url = RE_CV_URL.search(content).group("url")
                 extracted_date = RE_DATE.search(content).group("date")
-                extracted_date = datetime.strptime(extracted_date, "%Y%m%dT%H%M%S%z")
+                extracted_date = datetime.datetime.strptime(extracted_date, "%Y%m%dT%H%M%S%z")
                 candidate = Candidate.objects.create(name=extracted_name)
                 source, created = Sources.objects.get_or_create(
                     name=extracted_source, category=SourcesCategory.objects.get(id=settings.SEEKUBE_SOURCE_ID)

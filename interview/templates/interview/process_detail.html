@@ -96,7 +96,16 @@
                 {% endif %}
             </div>
         </div>
-
+    {% if process.other_informations %}
+    <div class="row">
+        <div class="col-md-12">
+            <p>
+                <dt>{% trans "Other informations" %}</dt>
+                <dd>{{ process.other_informations }}</dd>
+            </p>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="panel panel-primary">
         <div class="panel-heading">
