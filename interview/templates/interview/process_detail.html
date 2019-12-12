@@ -48,6 +48,12 @@
                         <dd>{{ process.sources.category }} - {{ process.sources.name }}</dd>
                         </p>
                         {% endif %}
+                    {% if process.offer %}
+                        <p>
+                            <dt>{% trans "Offer" %}</dt>
+                        <dd>{{ process.offer.name }}</dd>
+                        </p>
+                    {% endif %}
                         <p>
                         <dt>{% trans "Documents" %}</dt>
                         <dd>

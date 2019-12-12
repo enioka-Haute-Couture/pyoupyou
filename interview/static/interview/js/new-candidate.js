@@ -41,3 +41,22 @@ $('#create-source ').on('submit', function(event){
     });
     return false;
 });
+
+$('#create-offer ').on('submit', function(event){
+    event.preventDefault();
+    $.ajax({
+        url : "/create_offer/",
+        type : "POST",
+        data : { 'offer-name': $('#id_offer-name').val(), 'offer-subsidiary': $('#id_offer-subsidiary').val() },
+        success : function(json) {
+            $('#id_offer-name').val('');
+            $('#id_offer-subsidiary').val('');
+            $('#create-offer').modal('hide')
+        },
+
+        error : function(xhr,errmsg,err) {
+//TODO
+        }
+    });
+    return false;
+});

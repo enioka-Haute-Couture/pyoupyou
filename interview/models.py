@@ -92,6 +92,15 @@ class Document(models.Model):
         return ("{candidate} - {document_type}").format(candidate=self.candidate, document_type=self.document_type)
 
 
+class Offer(models.Model):
+    name = models.CharField(max_length=50)
+    subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), on_delete=models.CASCADE)
+    archived = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+
+
 class ProcessManager(models.Manager):
     def for_user(self, user):
         return super(ProcessManager, self).get_queryset().filter(start_date__gte=user.date_joined)
@@ -174,6 +183,8 @@ class Process(models.Model):
     )
     last_state_change = models.DateTimeField(verbose_name=_("Last State Change"), default=now)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
+
+    offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.SET_NULL)
 
     other_informations = models.TextField(verbose_name=_("Other informations"), blank=True)
 

@@ -8,7 +8,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, Column
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
-from interview.models import Consultant, Interview, Candidate, Process, Sources
+from interview.models import Consultant, Interview, Candidate, Process, Sources, Offer
 
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
@@ -35,10 +35,21 @@ class ProcessCandidateForm(forms.ModelForm):
     helper.form_tag = False
 
 
-class SelectOrCreate(SourcesWidget):
+class SelectOrCreateSource(SourcesWidget):
     def render(self, *args, **kwargs):
         output = [super().render(*args, **kwargs)]
         output.append(render_to_string("interview/select_or_create_source.html"))
+        return mark_safe("\n".join(output))
+
+
+class SelectOrCreateOffer(ModelSelect2Widget):
+    model = Offer
+    queryset = Offer.objects.filter(archived=False)
+    search_fields = ["name__icontains"]
+
+    def render(self, *args, **kwargs):
+        output = [super().render(*args, **kwargs)]
+        output.append(render_to_string("interview/select_or_create_offer.html"))
         return mark_safe("\n".join(output))
 
 
@@ -47,7 +58,7 @@ class ProcessForm(forms.ModelForm):
         model = Process
         exclude = ["candidate", "start_date", "end_date", "state", "closed_comment", "responsible", "last_state_change"]
 
-        widgets = {"sources": SelectOrCreate}
+        widgets = {"sources": SelectOrCreateSource, "offer": SelectOrCreateOffer}
 
     helper = FormHelper()
     helper.form_tag = False
@@ -57,6 +68,15 @@ class SourceForm(forms.ModelForm):
     class Meta:
         model = Sources
         fields = ["category", "name"]
+
+    helper = FormHelper()
+    helper.form_tag = False
+
+
+class OfferForm(forms.ModelForm):
+    class Meta:
+        model = Offer
+        fields = ["subsidiary", "name"]
 
     helper = FormHelper()
     helper.form_tag = False

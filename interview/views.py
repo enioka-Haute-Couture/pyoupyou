@@ -35,6 +35,7 @@ from interview.forms import (
     SourceForm,
     CloseForm,
     UploadSeekubeFileForm,
+    OfferForm,
 )
 
 from ref.models import Consultant, Subsidiary
@@ -245,10 +246,16 @@ def new_candidate(request):
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
     source_form = SourceForm(prefix="source")
+    offer_form = OfferForm(prefix="offer")
     return render(
         request,
         "interview/new_candidate.html",
-        {"candidate_form": candidate_form, "process_form": process_form, "source_form": source_form},
+        {
+            "candidate_form": candidate_form,
+            "process_form": process_form,
+            "source_form": source_form,
+            "offer_form": offer_form,
+        },
     )
 
 
@@ -379,6 +386,19 @@ def dashboard(request):
 @require_http_methods(["POST"])
 def create_source_ajax(request):
     form = SourceForm(request.POST, prefix="source")
+    if form.is_valid():
+        form.save()
+        data = {}
+        return JsonResponse(data)
+    else:
+        data = {"error": form.errors}
+        return JsonResponse(data)
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_offer_ajax(request):
+    form = OfferForm(request.POST, prefix="offer")
     if form.is_valid():
         form.save()
         data = {}
