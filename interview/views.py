@@ -677,6 +677,8 @@ RE_CV_URL = re.compile(r"(Lien CV Candidat : )(?P<url>.*)\\nPour modifier ou sup
 RE_EMAIL = re.compile(r"Email : (?P<email>.*) \\nLien Profil Candidat")
 RE_PHONE = re.compile(r"Téléphone : (?P<phone>\d+)")
 RE_DESCRIPTION = re.compile(r"DESCRIPTION:(?P<description>(.|\n)*)LAST-MODIFIED")
+
+
 @login_required
 @require_http_methods(["GET", "POST"])
 def import_seekube(request):
@@ -691,7 +693,7 @@ def import_seekube(request):
                 file = request.FILES.get("file")
                 content = file.read().decode("utf-8")
                 description = RE_DESCRIPTION.search(content, re.MULTILINE).group("description")
-                description = "".join([l.lstrip()  for l in description.splitlines()])
+                description = "".join([l.lstrip() for l in description.splitlines()])
                 print(description)
                 extracted_name = RE_NAME.search(content).group("name")
                 extracted_source = RE_SOURCE.search(description).group("source")
