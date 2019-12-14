@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from interview.models import ContractType, Candidate, Document, Process, Interview, SourcesCategory, Sources
+from interview.models import ContractType, Candidate, Document, Process, Interview, SourcesCategory, Sources, Offer
 
 
 @admin.register(ContractType)
@@ -53,4 +53,11 @@ class SourcesCategoryAdmin(admin.ModelAdmin):
 class SourcesAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "category", "archived")
     list_filter = ("category", "archived")
+    search_fields = ("name",)
+
+
+@admin.register(Offer)
+class OfferAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "subsidiary", "archived")
+    list_filter = ("subsidiary", "archived")
     search_fields = ("name",)

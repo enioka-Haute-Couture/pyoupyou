@@ -98,7 +98,7 @@ class Offer(models.Model):
     archived = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.name
+        return "{name} ({sub})".format(name=self.name, sub=self.subsidiary)
 
 
 class ProcessManager(models.Manager):
@@ -184,7 +184,7 @@ class Process(models.Model):
     last_state_change = models.DateTimeField(verbose_name=_("Last State Change"), default=now)
     closed_comment = models.TextField(verbose_name=_("Closed comment"), blank=True)
 
-    offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.SET_NULL)
+    offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Offer"))
 
     other_informations = models.TextField(verbose_name=_("Other informations"), blank=True)
 

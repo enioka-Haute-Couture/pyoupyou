@@ -45,7 +45,7 @@ class SelectOrCreateSource(SourcesWidget):
 class SelectOrCreateOffer(ModelSelect2Widget):
     model = Offer
     queryset = Offer.objects.filter(archived=False)
-    search_fields = ["name__icontains"]
+    search_fields = ["name__icontains", "subsidiary__name__icontains"]
 
     def render(self, *args, **kwargs):
         output = [super().render(*args, **kwargs)]
