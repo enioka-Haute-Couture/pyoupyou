@@ -670,11 +670,13 @@ def search(request):
     return render(request, "interview/single_table.html", context)
 
 
-RE_NAME_SOURCE = re.compile(r"DESCRIPTION:Entretien avec (?P<name>.*) sur #(?P<source>.*)")
+RE_NAME = re.compile(r"SUMMARY:(?P<name>.*) - Entretien")
+RE_SOURCE = re.compile(r"https:\/\/app\.seekube\.com\/jobdating-(?P<source>.*)\/recruiter\/jobdating\/interview\?")
 RE_DATE = re.compile(r"DTSTART:(?P<date>.*)")
-RE_CV_URL = re.compile(r"Lien du CV : (?P<url>.*)")
-
-
+RE_CV_URL = re.compile(r"(Lien CV Candidat : )(?P<url>.*)\\nPour modifier ou supprimer")
+RE_EMAIL = re.compile(r"Email : (?P<email>.*) \\nLien Profil Candidat")
+RE_PHONE = re.compile(r"Téléphone : (?P<phone>\d+)")
+RE_DESCRIPTION = re.compile(r"DESCRIPTION:(?P<description>(.|\n)*)LAST-MODIFIED")
 @login_required
 @require_http_methods(["GET", "POST"])
 def import_seekube(request):
@@ -688,14 +690,22 @@ def import_seekube(request):
             try:
                 file = request.FILES.get("file")
                 content = file.read().decode("utf-8")
-
-                result = RE_NAME_SOURCE.search(content)
-                extracted_name = result.group("name")
-                extracted_source = result.group("source")
-                extracted_cv_url = RE_CV_URL.search(content).group("url")
-                extracted_date = RE_DATE.search(content).group("date")
+                description = RE_DESCRIPTION.search(content, re.MULTILINE).group("description")
+                description = "".join([l.lstrip()  for l in description.splitlines()])
+                print(description)
+                extracted_name = RE_NAME.search(content).group("name")
+                extracted_source = RE_SOURCE.search(description).group("source")
+                print(extracted_source)
+                extracted_cv_url = RE_CV_URL.search(description).group("url")
+                print(extracted_cv_url)
+                extracted_date = RE_DATE.search(content).group("date").replace("Z", "+0000").strip()
                 extracted_date = datetime.datetime.strptime(extracted_date, "%Y%m%dT%H%M%S%z")
-                candidate = Candidate.objects.create(name=extracted_name)
+                print(extracted_date)
+                extracted_phone = RE_PHONE.search(description).group("phone")
+                print(extracted_phone)
+                extracted_email = RE_EMAIL.search(description).group("email")
+                print(extracted_email)
+                candidate = Candidate.objects.create(name=extracted_name, email=extracted_email, phone=extracted_phone)
                 source, created = Sources.objects.get_or_create(
                     name=extracted_source, category=SourcesCategory.objects.get(id=settings.SEEKUBE_SOURCE_ID)
                 )
@@ -711,7 +721,8 @@ def import_seekube(request):
                 file_tmp.flush()
                 Document.objects.create(document_type="CV", content=File(file_tmp), candidate=candidate)
                 return HttpResponseRedirect(process.get_absolute_url())
-            except Exception:
+            except Exception as e:
+                print(e)
                 form.add_error(None, _("Processing seekube ics failed"))
 
     return render(request, "interview/seekube_import.html", {"form": form})
