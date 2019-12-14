@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/pyoupyou/pyoupyou/tree/master.svg?style=svg)](https://circleci.com/gh/pyoupyou/pyoupyou/tree/master)
+
 **pyoupyou** is a recruitment management software that make life easier for all people involved in the recruitment process
  
 # LICENSE
