@@ -435,11 +435,14 @@ def edit_candidate(request, process_id):
         candidate_form = ProcessCandidateForm(instance=candidate)
         process_form = ProcessForm(instance=process)
     source_form = SourceForm(prefix="source")
+    offer_form = OfferForm(prefix="offer")
+
     data = {
         "process": process,
         "candidate_form": candidate_form,
         "process_form": process_form,
         "source_form": source_form,
+        "offer_form": offer_form,
     }
     return render(request, "interview/new_candidate.html", data)
 
