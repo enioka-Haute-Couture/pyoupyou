@@ -36,7 +36,11 @@ jobs:
           name: check safety
           command: |
             pipenv check
-
+      - run:
+          name: check requirements.txt is up to date
+          command: |
+            pipenv lock --requirements > requirements2.txt
+            diff requirements.txt requirements2.txt
   test-3.6: &test-template
     working_directory: ~/pyoupyou
     docker:
