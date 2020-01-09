@@ -71,11 +71,38 @@ jobs:
           destination: coverage_html
 
   test-3.5:
-    <<: *test-template
+    working-directory: ~/pyoupyou
     docker:
       - image: circleci/python:3.5
         environment:
           PIPENV_VENV_IN_PROJECT: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - dependencies-{{ checksum "Pipfile.lock" }}
+            # fallback to using the latest cache if no exact match is found
+            - dependencies-
+      - run:
+          name: install dependencies
+          command: |
+            sed -i '/black = "==19.3b0"/d' ./Pipfile
+            sudo pip install pipenv
+            pipenv install --dev
+
+      - save_cache:
+          paths:
+            - ./.venv
+          key: v1-dependencies-{{ checksum "Pipfile.lock" }}
+
+      - run:
+          name: run tests
+          command: |
+            pipenv run coverage run ./manage.py test
+            pipenv run coverage html -d coverage_html
+      - store_artifacts:
+          path: coverage_html
+          destination: coverage_html
 
   test-3.7:
     <<: *test-template
