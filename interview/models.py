@@ -43,6 +43,9 @@ class Sources(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        ordering = ["name"]
+
 
 class CandidateManager(models.Manager):
     def for_user(self, user):
