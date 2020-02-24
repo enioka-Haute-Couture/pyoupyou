@@ -28,13 +28,14 @@ class ProcessAdmin(admin.ModelAdmin):
         "id",
         "candidate",
         "subsidiary",
+        "sources",
         "start_date",
         "end_date",
         "contract_type",
         "salary_expectation",
         "contract_duration",
     )
-    list_filter = ("candidate", "subsidiary", "start_date", "end_date", "contract_type")
+    list_filter = ("sources", "subsidiary", "start_date", "end_date", "contract_type")
 
 
 @admin.register(Interview)
