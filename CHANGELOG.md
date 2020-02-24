@@ -1,3 +1,7 @@
+# 1.3.0 (2020-02-24)
+- Add sources to process admin
+- Sort sources by name
+
 # 1.2.0 (2020-01-09)
 - Add state when a candidate was contacted and we wait his feedback for interview planning
 - Add view to import seekube ics file. Need to add a settings to your local.py file SEEKUBE_SOURCE_ID parameter
