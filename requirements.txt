@@ -1,5 +1,5 @@
--i https://pypi.org/simple
-bleach==3.1.0
+-i https://pypi.org/simple/
+bleach==3.1.4
 certifi==2019.11.28
 chardet==3.0.4
 commonmark==0.8.1
@@ -15,12 +15,12 @@ django-split-settings==0.3.0
 django-tables2==2.0.6
 django==2.2.8
 future==0.18.2
-icalendar==4.0.4
+icalendar==4.0.5
 idna==2.8
 python-dateutil==2.8.1
 pytz==2019.3
 requests==2.22.0
-six==1.13.0
-sqlparse==0.3.0
-urllib3==1.25.7
+six==1.14.0
+sqlparse==0.3.1
+urllib3==1.25.8
 webencodings==0.5.1
