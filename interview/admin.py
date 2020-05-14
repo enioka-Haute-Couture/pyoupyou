@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
+
 
 from interview.models import ContractType, Candidate, Document, Process, Interview, SourcesCategory, Sources, Offer
 
@@ -52,9 +55,14 @@ class SourcesCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Sources)
 class SourcesAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "category", "archived")
+    list_display = ("id", "name", "category", "archived", "processes_list_url")
     list_filter = ("category", "archived")
     search_fields = ("name",)
+
+    def processes_list_url(self, obj):
+        return format_html("<a href='{url}'>🔗</a>", url=reverse("process-list-source", args=[str(obj.id)]))
+
+    processes_list_url.short_description = "URL"
 
 
 @admin.register(Offer)

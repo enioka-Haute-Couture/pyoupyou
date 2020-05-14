@@ -44,8 +44,8 @@
                     <p>
                     {% if process.sources %}
                         <p>
-                        <dt>{% trans "source" %}</dt>
-                        <dd>{{ process.sources.category }} - {{ process.sources.name }}</dd>
+                          <dt>{% trans "Source" %}</dt>
+                          <dd><a href="{% url 'process-list-source' process.sources.id %}">{{ process.sources.name }} ({{ process.sources.category }})</a></dd>
                         </p>
                         {% endif %}
                     {% if process.offer %}

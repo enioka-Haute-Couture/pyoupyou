@@ -209,6 +209,28 @@ def closed_processes(request):
 
 @login_required
 @require_http_methods(["GET"])
+def processes_for_source(request, source_id):
+    try:
+        source = Sources.objects.get(id=source_id)
+    except Sources.DoesNotExist:
+        return HttpResponseNotFound()
+
+    processes = (
+        Process.objects.for_user(request.user).filter(sources_id=source_id).select_related("candidate", "contract_type")
+    )
+
+    processes_table = ProcessEndTable(processes, prefix="c")
+
+    config = RequestConfig(request)
+    config.configure(processes_table)
+
+    context = {"title": source.name + " (" + source.category.name + ")", "table": processes_table}
+
+    return render(request, "interview/single_table.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
 def processes(request):
     open_processes = Process.objects.for_user(request.user).filter(end_date__isnull=True)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)

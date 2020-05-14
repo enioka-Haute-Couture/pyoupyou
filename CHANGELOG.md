@@ -1,3 +1,6 @@
+# 1.4.0 (2020-05-14)
+- Add a page listing processes for a given source
+
 # 1.3.0 (2020-02-24)
 - Add sources to process admin
 - Sort sources by name
