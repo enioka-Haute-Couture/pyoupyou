@@ -35,7 +35,7 @@ jobs:
       - run:
           name: check safety
           command: |
-            pipenv check
+            PIPENV_PYUP_API_KEY="" pipenv check
       - run:
           name: check requirements.txt is up to date
           command: |
