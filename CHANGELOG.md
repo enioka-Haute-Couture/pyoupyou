@@ -1,3 +1,9 @@
+# 1.4.1 ()
+- Catch and add log when interview rank does not match its process length (FIX all_interviews.tsv export)
+- Caution, this is the first use of:
+  - the logger in the web context
+  - the `warning` level for the debugger
+
 # 1.4.0 (2020-05-14)
 - Add a page listing processes for a given source
 

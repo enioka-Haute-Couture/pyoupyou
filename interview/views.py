@@ -3,6 +3,7 @@ import datetime
 import re
 
 import requests
+import logging
 from django.conf import settings
 
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -39,6 +40,8 @@ from interview.forms import (
 )
 
 from ref.models import Consultant, Subsidiary
+
+logger = logging.getLogger("pyoupyou.web")
 
 
 class ProcessTable(tables.Table):
@@ -541,11 +544,16 @@ def export_interviews_tsv(request):
         last_event_date = interview.process.start_date
         next_event_date = None
         if interview.rank > 1:
-            last_itw = Interview.objects.filter(process=interview.process, rank=interview.rank - 1).first()
-            if last_itw.planned_date is not None:
-                last_event_date = last_itw.planned_date.date()
-            else:
+            try:
+                last_itw = Interview.objects.get(process=interview.process, rank=interview.rank - 1)
+                if last_itw.planned_date is not None:
+                    last_event_date = last_itw.planned_date.date()
+                else:
+                    time_since_last_is_sound = False
+            except (Interview.DoesNotExist, Interview.MultipleObjectsReturned):
+                logger.warning("Interview rank and process length mismatch: {p}".format(p=interview.process))
                 time_since_last_is_sound = False
+
         if interview.planned_date is None:
             time_since_last_is_sound = False
         else:
