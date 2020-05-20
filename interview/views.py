@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.management import call_command
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -487,7 +487,17 @@ def dump_data(request):
 @login_required
 @require_http_methods(["GET"])
 def export_interviews_tsv(request):
-    interviews = Interview.objects.for_user(request.user)
+    consultants = Consultant.objects.filter(productive=True).select_related("user").select_related("company")
+    interviews = (
+        Interview.objects.for_user(request.user)
+        .select_related("process")
+        .select_related("process__sources")
+        .select_related("process__contract_type")
+        .select_related("process__candidate")
+        .select_related("process__subsidiary")
+        .prefetch_related(Prefetch("interviewers", queryset=consultants))
+    )
+
     ret = []
 
     ret.append(
@@ -516,32 +526,52 @@ def export_interviews_tsv(request):
             ]
         )
     )
+    processes_length = {}
+    processes_itw_count = {}
     for interview in interviews:
         interviewers = ""
         for i in interview.interviewers.all():
             interviewers += i.user.trigramme + "_"
         interviewers = interviewers[:-1]
 
-        # Compute process length (in days)
-        process_length = 0
-        end_date = None
-        if interview.process.end_date:
-            end_date = interview.process.end_date
-        else:
-            last_interview = Interview.objects.filter(process=interview.process).order_by("planned_date").last()
-            if last_interview is None or last_interview.planned_date is None:
-                end_date = datetime.datetime.now().date()
+        if interview.process.id not in processes_length:
+
+            # Compute process length (in days)
+            process_length = 0
+            end_date = None
+            if interview.process.end_date:
+                end_date = interview.process.end_date
             else:
-                end_date = last_interview.planned_date.date()
-        process_length = end_date - interview.process.start_date
-        process_length = process_length.days
+                last_interview = (
+                    Interview.objects.for_user(request.user)
+                    .filter(process=interview.process)
+                    .order_by("planned_date")
+                    .last()
+                )
+                if last_interview is None or last_interview.planned_date is None:
+                    end_date = datetime.datetime.now().date()
+                else:
+                    end_date = last_interview.planned_date.date()
+
+            process_length = (end_date - interview.process.start_date).days
+            processes_length[interview.process.id] = process_length
+
+            process_interview_count = Interview.objects.for_user(request.user).filter(process=interview.process).count()
+            processes_itw_count[interview.process.id] = process_interview_count
+        else:
+            process_length = processes_length[interview.process.id]
+            process_interview_count = processes_itw_count[interview.process.id]
 
         # Compute time elapsed since last event (previous interview or beginning of process)
         time_since_last_is_sound = True
         last_event_date = interview.process.start_date
         next_event_date = None
         if interview.rank > 1:
-            last_itw = Interview.objects.filter(process=interview.process, rank=interview.rank - 1).first()
+            last_itw = (
+                Interview.objects.for_user(request.user)
+                .filter(process=interview.process, rank=interview.rank - 1)
+                .first()
+            )
             if last_itw.planned_date is not None:
                 last_event_date = last_itw.planned_date.date()
             else:
@@ -570,8 +600,8 @@ def export_interviews_tsv(request):
             interview.process.contract_start_date,
             interview.process.contract_duration,
             interview.process.state,
-            Interview.objects.filter(process=interview.process).count(),
-            int(process_length / Interview.objects.filter(process=interview.process).count()),
+            process_interview_count,
+            int(process_length / process_interview_count),
             interview.id,
             interview.state,
             interviewers,
@@ -583,6 +613,7 @@ def export_interviews_tsv(request):
 
     response = HttpResponse("\n".join(ret), content_type="text/plain; charset=utf-8")
     response["Content-Disposition"] = "attachment; filename=all_interviews.tsv"
+
     return response
 
 
