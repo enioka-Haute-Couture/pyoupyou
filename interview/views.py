@@ -484,6 +484,79 @@ def dump_data(request):
     return response
 
 
+def process_stats(process):
+    """Compute process length (in days and itw count), shared by TSV exports"""
+    process_length = 0
+    end_date = None
+    if process.end_date:
+        end_date = process.end_date
+    else:
+        last_interview = Interview.objects.filter(process=process).order_by("planned_date").last()
+        if last_interview is None or last_interview.planned_date is None:
+            end_date = datetime.datetime.now().date()
+        else:
+            end_date = last_interview.planned_date.date()
+
+    process_length = (end_date - process.start_date).days
+    process_interview_count = Interview.objects.filter(process=process).count()
+
+    return process_length, process_interview_count
+
+
+@login_required
+@require_http_methods(["GET"])
+def export_processes_tsv(request):
+    processes = Process.objects.for_user(request.user).prefetch_related("interview_set")
+
+    ret = []
+
+    ret.append(
+        "\t".join(
+            str(x).replace("\t", " ")
+            for x in [
+                "process.id",
+                "candidate.name",
+                "subsidiary",
+                "start_date",
+                "end_date",
+                "process length",
+                "sources",
+                "source_category",
+                "contract_type",
+                "contract_start_date",
+                "contract_duration",
+                "process state",
+                "process itw count",
+                "mean days between itws",
+            ]
+        )
+    )
+    for process in processes:
+        process_length, process_interview_count = process_stats(process)
+        columns = [
+            process.id,
+            process.candidate.name,
+            process.subsidiary,
+            process.start_date,
+            process.end_date,
+            process_length,
+            process.sources,
+            "" if process.sources is None else process.sources.category.name,
+            process.contract_type,
+            process.contract_start_date,
+            process.contract_duration,
+            process.state,
+            process_interview_count,
+            0 if process_interview_count == 0 else int(process_length / process_interview_count),
+        ]
+        ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
+
+    response = HttpResponse("\n".join(ret), content_type="text/plain; charset=utf-8")
+    response["Content-Disposition"] = "attachment; filename=all_processes.tsv"
+
+    return response
+
+
 @login_required
 @require_http_methods(["GET"])
 def export_interviews_tsv(request):
@@ -535,28 +608,8 @@ def export_interviews_tsv(request):
         interviewers = interviewers[:-1]
 
         if interview.process.id not in processes_length:
-
-            # Compute process length (in days)
-            process_length = 0
-            end_date = None
-            if interview.process.end_date:
-                end_date = interview.process.end_date
-            else:
-                last_interview = (
-                    Interview.objects.for_user(request.user)
-                    .filter(process=interview.process)
-                    .order_by("planned_date")
-                    .last()
-                )
-                if last_interview is None or last_interview.planned_date is None:
-                    end_date = datetime.datetime.now().date()
-                else:
-                    end_date = last_interview.planned_date.date()
-
-            process_length = (end_date - interview.process.start_date).days
+            process_length, process_interview_count = process_stats(interview.process)
             processes_length[interview.process.id] = process_length
-
-            process_interview_count = Interview.objects.for_user(request.user).filter(process=interview.process).count()
             processes_itw_count[interview.process.id] = process_interview_count
         else:
             process_length = processes_length[interview.process.id]
@@ -601,7 +654,7 @@ def export_interviews_tsv(request):
             interview.process.contract_duration,
             interview.process.state,
             process_interview_count,
-            int(process_length / process_interview_count),
+            0 if process_interview_count == 0 else int(process_length / process_interview_count),
             interview.id,
             interview.state,
             interviewers,
