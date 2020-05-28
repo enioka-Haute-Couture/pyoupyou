@@ -1,4 +1,6 @@
-# 1.X.1 ()
+# 1.5.0 (2020-05-28)
+- Speed up interviews export
+- Add processes export
 - Dev dependencies updates (debug toolbar)
 
 # 1.4.0 (2020-05-14)
