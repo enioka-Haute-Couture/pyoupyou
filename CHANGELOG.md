@@ -1,3 +1,6 @@
+# 1.X.1 ()
+- Dev dependencies updates (debug toolbar)
+
 # 1.4.0 (2020-05-14)
 - Add a page listing processes for a given source
 
