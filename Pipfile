@@ -9,7 +9,7 @@ django-debug-toolbar = "==2.2"
 factory-boy = "*"
 tzlocal = "*"
 coverage = "*"
-debug-toolbar-user-panel = {editable = true,git = "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git"}
+debug-toolbar-user-panel = {editable = true,git = "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git", ref="1481b04e0cbbf7db35bf43061883535ef25892f5"}
 ipython = "*"
 django-debug-toolbar-request-history = "*"
 
