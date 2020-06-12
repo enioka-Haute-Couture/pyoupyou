@@ -41,6 +41,22 @@ To format string using format will be prefered over the % syntax. In order to fa
 ```
 "This is a {state} example".format(state="good")
 ```
+# Setup dev
+
+```
+# Switch to pipenv
+pipenv shell
+
+# set environment to dev, will load settings in pyoupyou/settings/dev.py
+export PYOUPYOU_ENV=dev
+
+# Migrate Database, create schema ....
+python manage.py migrate
+
+# launch the dev server
+python manage.py runserver
+# pyoupyou is now launched at http://127.0.0.1:8000/
+```
 
 # Setup prod
 
