@@ -66,3 +66,12 @@ th.asc .sort-icon::before {
 .ml-2 {
     margin-left: 5px;
 }
+
+.filters {
+    margin-bottom: 15px;
+}
+
+.filters .form-inline .controls {
+    display: inline;
+    margin-right: 15px;
+}

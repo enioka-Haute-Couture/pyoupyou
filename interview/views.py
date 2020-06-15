@@ -2,30 +2,30 @@
 import datetime
 import re
 
+from plotly.offline import plot
+import plotly.figure_factory as ff
+
+import django_tables2 as tables
 import requests
 from django.conf import settings
-
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.management import call_command
-from django.db.models import Q, Prefetch
+from django.db import transaction
+from django.db.models import Q, Prefetch, F
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.six import StringIO
-from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.six import StringIO
 from django.utils.translation import ugettext as _
-from django.db import transaction
-
+from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
-import django_tables2 as tables
 
-from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate
+from interview.filters import ProcessFilter
 from interview.forms import (
     ProcessCandidateForm,
     InterviewMinuteForm,
@@ -37,7 +37,7 @@ from interview.forms import (
     UploadSeekubeFileForm,
     OfferForm,
 )
-
+from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate
 from ref.models import Consultant, Subsidiary
 
 
@@ -839,5 +839,46 @@ def import_seekube(request):
     return render(request, "interview/seekube_import.html", {"form": form})
 
 
-#
-# def import_seekube_validate(request):
+@login_required
+@require_http_methods(["GET"])
+def gantt(request):
+    state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
+    today = datetime.date.today()
+    processes = Process.objects.filter(state__in=state_filter)
+    filter = ProcessFilter(request.GET, queryset=processes)
+
+    processes_dict = []
+    max_end_date = datetime.date.today()
+    for process in filter.qs:
+        if process.contract_type.has_duration:
+            if not process.contract_start_date or not process.contract_duration:
+                continue
+            if process.contract_start_date < today - datetime.timedelta(30) * process.contract_duration:
+                continue
+        elif process.state in [Process.JOB_OFFER, Process.HIRED]:
+            continue
+
+        duration = process.contract_duration
+        start_date = process.contract_start_date or process.start_date
+        end_date = start_date + datetime.timedelta(30) * duration if duration else None
+        if end_date:
+            max_end_date = max(end_date, max_end_date)
+        processes_dict.append(
+            {
+                "Task": process.candidate.name,
+                "ContractType": process.contract_type.name,
+                "Start": start_date,
+                "Finish": end_date,
+            }
+        )
+
+    for process in processes_dict:
+        if not process["Finish"]:
+            process["Finish"] = max_end_date
+
+    fig = ff.create_gantt(processes_dict, index_col="ContractType", show_colorbar=True)
+    grant_chart = plot(fig, output_type="div")
+
+    context = {"gantt": grant_chart, "filter": filter}
+
+    return render(request, "interview/gantt.html", context)

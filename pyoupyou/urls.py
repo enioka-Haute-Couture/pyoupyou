@@ -66,6 +66,7 @@ urlpatterns = [
     url(r"^export/all_processes.tsv$", views.export_processes_tsv, name="export_processess_tsv"),
     url(r"^select2/", include("django_select2.urls")),
     url(r"^search/", views.search, name="search"),
+    url(r"^gantt/", views.gantt, name="gantt"),
 ]
 
 if settings.DEBUG:
