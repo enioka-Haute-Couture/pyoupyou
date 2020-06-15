@@ -844,7 +844,7 @@ def import_seekube(request):
 def gantt(request):
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = datetime.date.today()
-    processes = Process.objects.filter(state__in=state_filter)
+    processes = Process.objects.filter(state__in=state_filter).select_related("contract_type", "candidate")
     filter = ProcessFilter(request.GET, queryset=processes)
 
     processes_dict = []
