@@ -20,7 +20,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.six import StringIO
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext as _t
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
@@ -876,8 +876,14 @@ def gantt(request):
         if not process["Finish"]:
             process["Finish"] = max_end_date
 
-    fig = ff.create_gantt(processes_dict, index_col="ContractType", show_colorbar=True)
-    grant_chart = plot(fig, output_type="div")
+    fig = ff.create_gantt(
+        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True
+    )
+    fig.layout.update({"title": {"text": _t("Contracts")}, "xaxis": {"rangeslider": {"visible": False}}})
+
+    config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
+
+    grant_chart = plot(fig, output_type="div", config=config)
 
     context = {"gantt": grant_chart, "filter": filter}
 
