@@ -880,7 +880,11 @@ def gantt(request):
         processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True
     )
     fig.layout.update(
-        {"title": {"text": _t("Contracts")}, "xaxis": {"rangeslider": {"visible": False}, "rangeselector": None}}
+        {
+            "title": {"text": _t("Contracts")},
+            "xaxis": {"rangeslider": {"visible": False}, "rangeselector": None, "fixedrange": True},
+            "yaxis": {"fixedrange": True},
+        }
     )
 
     config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
