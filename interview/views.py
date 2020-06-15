@@ -879,7 +879,7 @@ def gantt(request):
     fig = ff.create_gantt(
         processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True
     )
-    fig.layout.update({"title": {"text": _t("Contracts")}, "xaxis": {"rangeslider": {"visible": False}}})
+    fig.layout.update({"title": {"text": _t("Contracts")}, "xaxis": {"rangeslider": {"visible": False}, "rangeselector": None}})
 
     config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
 

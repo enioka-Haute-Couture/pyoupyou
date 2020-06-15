@@ -6,8 +6,6 @@
 {% block more_css %}
     <script type="application/javascript">
       $(function () {
-        $('form').addClass('relative');
-
         $('#id_contract_start_date').datetimepicker({
             locale: 'fr',
             format: "DD/MM/YYYY",
@@ -31,7 +29,7 @@
 
 {% block content %}
 <div class="container">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" class="relative" enctype="multipart/form-data">
         {% crispy candidate_form %}
         {% crispy process_form %}
         <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">
