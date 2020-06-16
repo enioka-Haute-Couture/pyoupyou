@@ -867,7 +867,7 @@ def gantt(request):
             max_end_date = max(end_date, max_end_date)
         processes_dict.append(
             {
-                "Task": process.candidate.name,
+                "Task": "<a href='{}'> {} </a>".format(process.get_absolute_url(), process.candidate.name),
                 "ContractType": process.contract_type.name,
                 "Start": start_date,
                 "Finish": end_date,
