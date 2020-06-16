@@ -850,6 +850,8 @@ def gantt(request):
     processes_dict = []
     max_end_date = datetime.date.today()
     for process in filter.qs:
+        if process.contract_type is None:
+            continue
         if process.contract_type.has_duration:
             if not process.contract_start_date or not process.contract_duration:
                 continue
