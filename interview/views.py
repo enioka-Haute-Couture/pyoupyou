@@ -857,7 +857,7 @@ def gantt(request):
                 continue
             if process.contract_start_date < today - datetime.timedelta(30) * process.contract_duration:
                 continue
-        elif process.state in [Process.JOB_OFFER, Process.HIRED]:
+        elif process.state in [Process.JOB_OFFER, Process.HIRED] and (not process.contract_start_date or process.contract_start_date < today - datetime.timedelta(7)):
             continue
 
         duration = process.contract_duration
