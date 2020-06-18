@@ -849,6 +849,7 @@ def gantt(request):
 
     processes_dict = []
     max_end_date = datetime.date.today()
+
     for process in filter.qs:
         if process.contract_type is None:
             continue
@@ -857,6 +858,7 @@ def gantt(request):
                 continue
             if process.contract_start_date < today - datetime.timedelta(30) * process.contract_duration:
                 continue
+
         elif process.state in [Process.JOB_OFFER, Process.HIRED] and (not process.contract_start_date or process.contract_start_date < today - datetime.timedelta(7)):
             continue
 
@@ -865,9 +867,15 @@ def gantt(request):
         end_date = start_date + datetime.timedelta(30) * duration if duration else None
         if end_date:
             max_end_date = max(end_date, max_end_date)
+        if process.state == Process.JOB_OFFER:
+            state = "📝"
+        elif process.state == Process.HIRED:
+            state = "✔️"
+        else:
+            state = "🕒"
         processes_dict.append(
             {
-                "Task": "<a href='{}'> {} </a>".format(process.get_absolute_url(), process.candidate.name),
+                "Task": "<a href='{}'>{} {}</a>".format(process.get_absolute_url(), process.candidate.name, state),
                 "ContractType": process.contract_type.name,
                 "Start": start_date,
                 "Finish": end_date,
