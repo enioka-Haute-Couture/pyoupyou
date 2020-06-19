@@ -1,5 +1,6 @@
 # 1.6.0 (2020-06-15)
 - Add gantt diagram to show contract start date
+- Add list of active sources
 
 # 1.5.0 (2020-05-28)
 - Speed up interviews export
