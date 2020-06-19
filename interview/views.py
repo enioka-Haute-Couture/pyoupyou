@@ -859,7 +859,9 @@ def gantt(request):
             if process.contract_start_date < today - datetime.timedelta(30) * process.contract_duration:
                 continue
 
-        elif process.state in [Process.JOB_OFFER, Process.HIRED] and (not process.contract_start_date or process.contract_start_date < today - datetime.timedelta(7)):
+        elif process.state in [Process.JOB_OFFER, Process.HIRED] and (
+            not process.contract_start_date or process.contract_start_date < today - datetime.timedelta(7)
+        ):
             continue
 
         duration = process.contract_duration
@@ -872,7 +874,7 @@ def gantt(request):
         elif process.state == Process.HIRED:
             state = "✔️"
         else:
-            state = "🕒"
+            state = ""
         processes_dict.append(
             {
                 "Task": "<a href='{}'>{} {}</a>".format(process.get_absolute_url(), process.candidate.name, state),
