@@ -1,4 +1,4 @@
--i https://pypi.org/simple
+-i https://pypi.org/simple/
 bleach==3.1.5
 certifi==2020.4.5.2
 chardet==3.0.4
@@ -14,7 +14,7 @@ django-markwhat==1.6.1
 django-select2==7.0.3
 django-split-settings==0.3.0
 django-tables2==2.0.6
-django==2.2.12
+django==2.2.13
 future==0.18.2
 icalendar==4.0.6
 idna==2.9
