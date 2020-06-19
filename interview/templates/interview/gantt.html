@@ -1,0 +1,18 @@
+{% extends 'interview/base.html' %}
+{% load crispy_forms_tags %}
+
+<body>
+{% block content %}
+    <div class="container">
+        <div class="filters">
+            <form class="form-inline" method="get">
+                {{ filter.form|crispy }}
+                <input class="btn btn-default" type="submit" value="Filter" />
+            </form>
+        </div>
+        <div id="chart_div">
+            {{ gantt|safe }}
+        </div>
+    </div>
+{% endblock %}
+

@@ -9,13 +9,13 @@ django-debug-toolbar = "==2.2"
 factory-boy = "*"
 tzlocal = "*"
 coverage = "*"
-debug-toolbar-user-panel = {editable = true,git = "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git", ref="1481b04e0cbbf7db35bf43061883535ef25892f5"}
+debug-toolbar-user-panel = {editable = true,git = "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git",ref = "1481b04e0cbbf7db35bf43061883535ef25892f5"}
 ipython = "*"
 django-debug-toolbar-request-history = "*"
 
 [packages]
 django-bootstrap-static = ">=3.3.7,<3.4"
-django-crispy-forms = "==1.7.2"
+django-crispy-forms = "==1.9.1"
 django-select2 = "==7.0.3"
 django-extensions = "==2.1.6"
 django-tables2 = "==2.0.6"
@@ -26,3 +26,6 @@ django-bleach = "==0.3.0"
 Django = "==2.2.12"
 django-split-settings = "==0.3.0"
 requests = '*'
+django-filter = "*"
+plotly = "*"
+numpy = "*"

@@ -3,9 +3,33 @@
 {% load i18n %}
 {% load static %}
 
+{% block more_css %}
+    <script type="application/javascript">
+      $(function () {
+        $('#id_contract_start_date').datetimepicker({
+            locale: 'fr',
+            format: "DD/MM/YYYY",
+            tooltips: {
+                selectMonth: 'Sélection du mois',
+                prevMonth: 'Mois précédent',
+                nextMonth: 'Mois suivant',
+                selectYear: "Sélection de l'année",
+                prevYear: 'Année précédente',
+                nextYear: 'Année suivante',
+                selectDecade: 'Sélection de la décennie',
+                prevDecade: 'Décennie précédente',
+                nextDecade: 'Décennie suivante',
+                prevCentury: 'Siècle précédent',
+                nextCentury: 'Siècle suivant'
+            }
+        });
+    });
+    </script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" class="relative" enctype="multipart/form-data">
         {% crispy candidate_form %}
         {% crispy process_form %}
         <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">
