@@ -279,12 +279,10 @@ msgid "All"
 msgstr "Toutes"
 
 #: interview/templates/interview/active-sources.html:33
-#, fuzzy
 msgid "Active sources: "
 msgstr "Sources actives"
 
 #: interview/templates/interview/active-sources.html:35
-#, fuzzy
 msgid "Active sources"
 msgstr "Sources actives"
 
@@ -314,10 +312,8 @@ msgid "Arrival planning"
 msgstr "Suivi des arrivées"
 
 #: interview/templates/interview/base.html:54
-#, fuzzy
-#| msgid "Source"
 msgid "Sources"
-msgstr "source"
+msgstr "sources"
 
 #: interview/templates/interview/base.html:57
 msgid "Admin"
@@ -496,10 +492,8 @@ msgstr "Détails"
 
 #: interview/templates/interview/tables/source_name.html:3
 #: interview/views.py:922
-#, fuzzy
-#| msgid "Closed processes"
 msgid "Processes"
-msgstr "Processus terminés"
+msgstr "Processus"
 
 #: interview/views.py:55
 msgid "No itw"
@@ -543,28 +537,24 @@ msgid "Type"
 msgstr ""
 
 #: interview/views.py:921
-#, fuzzy
-#| msgid "Related processes"
 msgid "Active processes"
-msgstr "Mes processus"
+msgstr "processus actif"
 
 #: interview/views.py:923
 msgid "Hired"
-msgstr ""
+msgstr "Embauché"
 
 #: interview/views.py:924
 msgid "Ratio"
 msgstr ""
 
 #: interview/views.py:925
-#, fuzzy
-#| msgid "Offer"
 msgid "Offers"
-msgstr "Offre"
+msgstr "Offres"
 
 #: interview/views.py:926
 msgid "Last change"
-msgstr ""
+msgstr "Dernier changement"
 
 #: ref/admin.py:11
 msgid "Personal info"
