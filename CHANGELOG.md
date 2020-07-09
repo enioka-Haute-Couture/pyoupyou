@@ -1,6 +1,7 @@
-# 1.6.0 (2020-06-15)
+# 1.6.0 (2020-07-09)
 - Add gantt diagram to show contract start date
 - Add list of active sources
+- Update django to last patch version (2.2.13)
 
 # 1.5.0 (2020-05-28)
 - Speed up interviews export
