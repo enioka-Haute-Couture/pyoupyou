@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 import re
+from collections import defaultdict
+
 
 from plotly.offline import plot
 import plotly.figure_factory as ff
@@ -13,7 +15,7 @@ from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.core.management import call_command
 from django.db import transaction
-from django.db.models import Q, Prefetch, F
+from django.db.models import Q, Prefetch, F, Max
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -37,7 +39,7 @@ from interview.forms import (
     UploadSeekubeFileForm,
     OfferForm,
 )
-from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate
+from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
 from ref.models import Consultant, Subsidiary
 
 
@@ -906,3 +908,71 @@ def gantt(request):
     context = {"gantt": grant_chart, "filter": filter}
 
     return render(request, "interview/gantt.html", context)
+
+
+class PercentColumn(tables.Column):
+    def render(self, value):
+        return "{:.0f}%".format(value)
+
+
+class ActiveSourcesTable(tables.Table):
+    name = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, verbose_name=_("Name"))
+    source_category = tables.Column(verbose_name=_("Type"))
+    active_processes_count = tables.Column(verbose_name=_("Active processes"))
+    total_processes_count = tables.Column(verbose_name=_("Processes"))
+    total_hired = tables.Column(verbose_name=_("Hired"))
+    ratio = PercentColumn(verbose_name=_("Ratio"))
+    offers = tables.Column(verbose_name=_("Offers"))
+    last_state_change = tables.Column(verbose_name=_("Last change"))
+    details = tables.TemplateColumn(verbose_name="", orderable=False, template_name="interview/tables/source_name.html")
+
+    class Meta:
+        order_by = "name"
+        template_name = "interview/_tables.html"
+        attrs = {"class": "table table-striped table-condensed"}
+
+
+@login_required
+@require_http_methods(["GET"])
+def active_sources(request, subsidiary_id=None):
+    subsidiary = None
+    sources_qs = Sources.objects.filter(archived=False)
+    if subsidiary_id:
+        try:
+            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
+            sources_qs = sources_qs.filter(process__subsidiary=subsidiary).distinct()
+        except Subsidiary.DoesNotExist:
+            pass
+
+    data = []
+
+    for s in sources_qs:
+        total_processes = Process.objects.filter(sources=s)
+        total_processes_count = total_processes.count()
+        active_processes_count = Process.objects.filter(sources=s, state__in=Process.OPEN_STATE_VALUES).count()
+        total_hired = Process.objects.filter(sources=s, state=Process.HIRED).count()
+        last_state_change = Process.objects.filter(sources=s).aggregate(Max("last_state_change"))
+        distinct_offers = Offer.objects.filter(process__in=Process.objects.filter(sources=s)).distinct().count()
+
+        data.append(
+            {
+                "name": s.name,
+                "source_category": s.category.name,
+                "last_active_process_days": last_state_change,
+                "total_processes_count": total_processes_count,
+                "active_processes_count": active_processes_count,
+                "total_hired": total_hired,
+                "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
+                "last_state_change": last_state_change["last_state_change__max"],
+                "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
+                "offers": distinct_offers,
+            }
+        )
+
+    sources_table = ActiveSourcesTable(data, order_by="-last_active_process_days")
+    RequestConfig(request, paginate={"per_page": 100}).configure(sources_table)
+    return render(
+        request,
+        "interview/active-sources.html",
+        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+    )

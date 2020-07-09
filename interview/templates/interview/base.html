@@ -51,6 +51,7 @@
                             <li><a href="{% url 'interviewers-load' %}">{% trans "Load" %}</a></li>
                             <li><a href="{% url 'gantt' %}">{% trans "Arrival planning" %}</a></li>
                             <li><a href="{% url 'import-seekube' %}">{% trans "Import" %}</a></li>
+                            <li><a href="{% url 'active-sources' %}">{% trans "Sources" %}</a></li>
                             {% if user.is_staff %}
                                 <li role="separator" class="divider"></li>
                                 <li><a href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>
