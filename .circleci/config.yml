@@ -6,6 +6,7 @@ jobs:
       - image: circleci/python:3.6
         environment:
           PIPENV_VENV_IN_PROJECT: true
+          PYOUPYOU_ENV: dev
     steps:
       - checkout
       - restore_cache:
@@ -47,6 +48,7 @@ jobs:
       - image: circleci/python:3.6
         environment:
           PIPENV_VENV_IN_PROJECT: true
+          PYOUPYOU_ENV: dev
     steps:
       - checkout
       - restore_cache:
@@ -80,6 +82,7 @@ jobs:
       - image: circleci/python:3.5
         environment:
           PIPENV_VENV_IN_PROJECT: true
+          PYOUPYOU_ENV: dev
     steps:
       - checkout
       - restore_cache:
@@ -114,6 +117,7 @@ jobs:
       - image: circleci/python:3.7
         environment:
           PIPENV_VENV_IN_PROJECT: true
+          PYOUPYOU_ENV: dev
 
 
 workflows:
