@@ -134,6 +134,7 @@ class CandidateForm(forms.ModelForm):
     helper.form_method = "POST"
     helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
 
+
 class CloseForm(forms.ModelForm):
     class Meta:
         model = Process
