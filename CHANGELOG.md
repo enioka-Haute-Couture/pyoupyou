@@ -1,4 +1,4 @@
-# 1.7.0 (2020-10-08)
+# 1.7.0 (XXXX-XX-XX)
 - Add Api for account creation and delete
 - Update django-filter to 2.4.0
 
