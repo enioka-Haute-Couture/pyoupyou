@@ -62,6 +62,7 @@ urlpatterns = [
     url(r"^reports/active-sources/(?P<subsidiary_id>\d+)$", views.active_sources, name="active-sources-subsidiary"),
     url(r"^reports/activity-summary/$", views.activity_summary, name="activity_summary"),
     url(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
+    url(r"^candidate-reuse/(?P<candidate_id>\d+)/$", views.reuse_candidate, name="reuse_candidate"),
     url(r"^create_source/$", views.create_source_ajax, name="create_source"),
     url(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),
     url(r"^create_account/$", views.create_account, name="create_acount"),
