@@ -6,3 +6,4 @@
 # MAIL_HR = 'hr@company.com'
 # MAIL_FROM = 'noreply@company.com'
 # SEEKUBE_SOURCE_ID = 5
+# SECRET_ANON_SALT = 'my-salt'

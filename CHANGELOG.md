@@ -1,9 +1,11 @@
+# 1.X (2021-X)
+- Add anonymization feature and candidate duplication prevention
+
 # x.xx.x (xxxx-xx-xx)
 
 - Update to django 3.1.13
 
 # 1.10.1 (2021-04-12)
-
 - All interviews export: fix a crash when an interview didn't have a date
 
 # 1.10.0 (2021-03-24)

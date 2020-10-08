@@ -53,6 +53,16 @@ from interview.forms import (
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
 from ref.models import Consultant, PyouPyouUser, Subsidiary
 
+import datetime
+from django import template
+
+register = template.Library()
+
+
+@register.simple_tag
+def compare(candidate: Candidate, other: Candidate):
+    return candidate.compare(other)
+
 
 class ProcessTable(tables.Table):
     needs_attention = tables.TemplateColumn(
@@ -264,29 +274,59 @@ def processes(request):
 
 
 @login_required
-def new_candidate(request):
+@require_http_methods(["POST"])
+def reuse_candidate(request, candidate_id):
+    return new_candidate(request, candidate_id)
+
+
+@login_required
+def new_candidate(request, past_candidate_id=None):
+    duplicates_map = None
+    candidate = None
     if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
         process_form = ProcessForm(data=request.POST)
         interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
         if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
-            candidate = candidate_form.save()
-            content = request.FILES.get("cv", None)
-            if content:
-                Document.objects.create(document_type="CV", content=content, candidate=candidate)
-            process = process_form.save(commit=False)
-            process.candidate = candidate
-            process.save()
-            if interviewers_form.cleaned_data["interviewers"]:
-                interview = interviewers_form.save(commit=False)
-                interview.process = process
-                interview.save()
-                interviewers_form.save_m2m()
-            return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
+            candidate = candidate_form.save(commit=False)
+            duplicates = None
+            if past_candidate_id is not None:
+                candidate.id = past_candidate_id
+                if not "summit" in request.POST:
+                    candidate = Candidate.objects.for_user(request.user).get(id=past_candidate_id)
+                    candidate_form = ProcessCandidateForm(instance=candidate)
+            elif not "new-candidate" in request.POST:
+                duplicates = candidate.find_duplicates()
+                if duplicates.count() > 0:
+                    duplicates_map = map(
+                        lambda dup: {
+                            "duplicate": dup,
+                            "diff": candidate.compare(dup),
+                            "process": Process.objects.distinct().filter(candidate__id=dup.id),
+                        },
+                        duplicates,
+                    )
+
+            if (
+                duplicates is None
+                or duplicates.count() == 0
+                or candidate.id is not None
+                or "new-candidate" in request.POST
+            ) and "summit" in request.POST:
+                candidate.save()
+                content = request.FILES.get("cv", None)
+                if content:
+                    Document.objects.create(document_type="CV", content=content, candidate=candidate)
+                process = process_form.save(commit=False)
+                process.candidate = candidate
+                process.save()
+                return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
         interviewers_form = InterviewersForm(prefix="interviewers")
+        process_form.fields["subsidiary"].initial = request.user.consultant.company.id
+
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
     return render(
@@ -298,6 +338,8 @@ def new_candidate(request):
             "source_form": source_form,
             "offer_form": offer_form,
             "interviewers_form": interviewers_form,
+            "duplicates": duplicates_map,
+            "candidate": candidate,
         },
     )
 
@@ -515,7 +557,6 @@ def edit_candidate(request, process_id):
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
         process_form = ProcessForm(instance=process)
-        process_form.fields["subsidiary"].initial = request.user.consultant.company.id
 
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
@@ -1137,10 +1178,10 @@ def activity_summary(request):
         color="subsidiary_state",
         title="",
         labels={
-            "planned_date_month": _t("Interview date"),
+            "planned_date_month": _("Interview date"),
             "process__subsidiary__name": _t("Subsidiary"),
-            "count": _t("Count"),
-            "subsidiary_state": _t("Subsidiary and state"),
+            "count": _("Count"),
+            "subsidiary_state": _("Subsidiary and state"),
         },
     )
 
