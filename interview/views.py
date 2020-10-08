@@ -2,7 +2,7 @@
 import datetime
 import re
 from collections import defaultdict
-
+import json
 
 from plotly.offline import plot
 import plotly.figure_factory as ff
@@ -26,6 +26,7 @@ from django.utils.translation import ugettext as _t
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
+from django.views.decorators.csrf import csrf_exempt
 
 from interview.filters import ProcessFilter
 from interview.forms import (
@@ -318,7 +319,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
     return render(request, "interview/interview.html", {"form": form, "process": process})
 
-
 @login_required
 @require_http_methods(["GET", "POST"])
 def minute_edit(request, interview_id):
@@ -431,6 +431,20 @@ def create_offer_ajax(request):
         data = {"error": form.errors}
         return JsonResponse(data)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def create_account(request):
+    print(request.META['HTTP_AUTHORIZATION'])
+    print(request.META)
+    data = json.loads(request.body)
+    subsidiary = Subsidiary.objects.get(name=data["company"])
+    try : 
+        consultant = Consultant.objects.create_consultant(
+                                trigramme=data["trigramme"], email=data["email"], company=subsidiary, full_name=data["name"]
+                            )
+        return JsonResponse({"consultant":consultant.__str__()})
+    except:
+        return JsonResponse({"error": "User allready register"}, status=400)
 
 @login_required
 @require_http_methods(["GET", "POST"])
