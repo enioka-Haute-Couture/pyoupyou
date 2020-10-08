@@ -437,10 +437,10 @@ def create_offer_ajax(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@staff_member_required
+@user_passes_test(lambda u: u.is_superuser)
 def create_account(request):
     data = json.loads(request.body)
-    subsidiary = Subsidiary.objects.get(name=data["company"])
+    subsidiary = Subsidiary.objects.filter(name=data["company"]).first()
     if not subsidiary:
         return JsonResponse({"error": "Company not found"}, status=404)
     try:
@@ -450,18 +450,22 @@ def create_account(request):
                 return JsonResponse({"error": "ISO 8601 for date format"}, status=400)
             extra_fields["date_joined"] = data["date_joined"]
         consultant = Consultant.objects.create_consultant(
-            trigramme=data["trigramme"], email=data["email"], company=subsidiary, full_name=data["name"], **extra_fields
+            trigramme=data["trigramme"].lower(),
+            email=data["email"],
+            company=subsidiary,
+            full_name=data["name"],
+            **extra_fields
         )
         return JsonResponse({"consultant": consultant.__str__()})
     except:
-        return JsonResponse({"error": "user allready register"}, status=400)
+        return JsonResponse({"error": "user already register"}, status=400)
 
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-@staff_member_required
+@user_passes_test(lambda u: u.is_superuser)
 def delete_account(request, trigramme):
-    user = PyouPyouUser.objects.get(trigramme=trigramme)
+    user = PyouPyouUser.objects.filter(trigramme=trigramme.lower()).first()
     if not user:
         return JsonResponse({"error": "user not found"}, status=404)
     user.is_active = False
