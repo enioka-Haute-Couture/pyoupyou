@@ -8,7 +8,7 @@ django-bleach==0.3.0
 django-bootstrap-static==3.3.7.2
 django-crispy-forms==1.9.1
 django-extensions==2.1.6
-django-filter==2.3.0
+django-filter==2.4.0
 django-ical==1.4
 django-markwhat==1.6.1
 django-select2==7.0.3
