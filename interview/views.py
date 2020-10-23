@@ -966,6 +966,9 @@ class ActiveSourcesTable(tables.Table):
     offers = tables.Column(verbose_name=_("Offers"))
     last_state_change = tables.Column(verbose_name=_("Last change"))
     details = tables.TemplateColumn(verbose_name="", orderable=False, template_name="interview/tables/source_name.html")
+    source_admin = tables.TemplateColumn(
+        verbose_name="", orderable=False, template_name="interview/tables/edit_source.html"
+    )
 
     class Meta:
         order_by = "name"
@@ -1006,6 +1009,7 @@ def active_sources(request, subsidiary_id=None):
                 "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
                 "last_state_change": last_state_change["last_state_change__max"],
                 "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
+                "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
                 "offers": distinct_offers,
             }
         )

@@ -1,0 +1,6 @@
+{% load i18n %}
+{% if request.user.is_staff %}
+  <a class="btn btn-info btn-xs" href="{{ record.admin_url }}">
+    <i class="fa fa-pencil" aria-hidden="true"></i>
+  </a>
+{% endif %}
