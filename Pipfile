@@ -26,6 +26,6 @@ django-bleach = "==0.3.0"
 Django = "==2.2.13"
 django-split-settings = "==0.3.0"
 requests = '==2.24.0 '
-django-filter = "==2.3.0"
+django-filter = "==2.4.0"
 plotly = "==4.8.2"
 numpy = "==1.18.5"

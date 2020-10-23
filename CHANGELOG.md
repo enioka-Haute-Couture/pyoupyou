@@ -1,3 +1,7 @@
+# 1.7.0 (XXXX-XX-XX)
+- Add Api for account creation and delete
+- Update django-filter to 2.4.0
+
 # 1.6.0 (2020-07-09)
 - Add gantt diagram to show contract start date
 - Add list of active sources
