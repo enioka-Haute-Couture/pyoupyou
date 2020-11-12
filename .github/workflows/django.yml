@@ -1,0 +1,27 @@
+name: Django CI
+
+on: push
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      working_directory: ~/pyoupyou
+      
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+    - uses: actions/cache@v2
+      with:
+        path: ~/.venv
+        key: dependencies-${{ checksum "Pipfile.lock" }}
+        restore-keys: |
+          dependencies-${{ checksum "Pipfile.lock" }}
+          dependencies-
+    - name : Install dependencies
+      run: |
+        sudo pip install pipenv
+        pipenv install --dev
