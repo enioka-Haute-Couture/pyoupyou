@@ -5,23 +5,58 @@ on: push
 jobs:
   check:
     runs-on: ubuntu-latest
-    env:
-      working_directory: ~/pyoupyou
       
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.6
-    - uses: actions/cache@v2
+        python-version: 3.7
+    - name: Install pipenv
+      run: pip install pipenv
+    - name: Cache pipenv virtualenv
+      id: cache-pipenv
+      uses: actions/cache@v1
       with:
-        path: ~/.venv
-        key: dependencies-${{ checksum "Pipfile.lock" }}
-        restore-keys: |
-          dependencies-${{ checksum "Pipfile.lock" }}
-          dependencies-
-    - name : Install dependencies
+        path: ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+    - name: Install dependencies
+      if: steps.cache-pipenv.outputs.cache-hit != 'true' 
+      run: pipenv install --dev
+    - name: Check migrations
+      run: pipenv run ./manage.py makemigrations --check
+    - name: Check coding style (black)
+      run: pipenv run black --check
+    - name: Check safety
+      run: PIPENV_PYUP_API_KEY="" pipenv check
+    - name: Check requirements.txt is up to date
       run: |
-        sudo pip install pipenv
-        pipenv install --dev
+        pipenv lock -r --no-header > requirements2.txt
+        diff requirements.txt requirements2.txt
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pipenv
+      run: pip install pipenv
+    - name: Cache pipenv virtualenv
+      id: cache-pipenv
+      uses: actions/cache@v1
+      with:
+        path: ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+    - name: Install dependencies
+      if: steps.cache-pipenv.outputs.cache-hit != 'true' 
+      run: pipenv install --dev
+    - name: test
+      run: |
+        export PYOUPYOU_ENV=dev
+        pipenv run coverage run ./manage.py test
+        
