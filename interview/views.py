@@ -2,7 +2,7 @@
 import datetime
 import re
 from collections import defaultdict
-
+import json
 
 from plotly.offline import plot
 import plotly.figure_factory as ff
@@ -26,6 +26,9 @@ from django.utils.translation import ugettext as _t
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.dateparse import parse_date
 
 from interview.filters import ProcessFilter
 from interview.forms import (
@@ -40,7 +43,7 @@ from interview.forms import (
     OfferForm,
 )
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
-from ref.models import Consultant, Subsidiary
+from ref.models import Consultant, PyouPyouUser, Subsidiary
 
 
 class ProcessTable(tables.Table):
@@ -430,6 +433,44 @@ def create_offer_ajax(request):
     else:
         data = {"error": form.errors}
         return JsonResponse(data)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@user_passes_test(lambda u: u.is_superuser)
+def create_account(request):
+    data = json.loads(request.body)
+    subsidiary = Subsidiary.objects.filter(name=data["company"]).first()
+    if not subsidiary:
+        return JsonResponse({"error": "Company not found"}, status=404)
+    try:
+        extra_fields = {"date_joined": timezone.now()}
+        if "date_joined" in data:
+            if parse_date(data["date_joined"]) is None:
+                return JsonResponse({"error": "ISO 8601 for date format"}, status=400)
+            extra_fields["date_joined"] = data["date_joined"]
+        consultant = Consultant.objects.create_consultant(
+            trigramme=data["trigramme"].lower(),
+            email=data["email"],
+            company=subsidiary,
+            full_name=data["name"],
+            **extra_fields
+        )
+        return JsonResponse({"consultant": consultant.__str__()})
+    except:
+        return JsonResponse({"error": "user already register"}, status=400)
+
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+@user_passes_test(lambda u: u.is_superuser)
+def delete_account(request, trigramme):
+    user = PyouPyouUser.objects.filter(trigramme=trigramme.lower()).first()
+    if not user:
+        return JsonResponse({"error": "user not found"}, status=404)
+    user.is_active = False
+    user.save()
+    return JsonResponse({"user": user.__str__()})
 
 
 @login_required
@@ -925,6 +966,9 @@ class ActiveSourcesTable(tables.Table):
     offers = tables.Column(verbose_name=_("Offers"))
     last_state_change = tables.Column(verbose_name=_("Last change"))
     details = tables.TemplateColumn(verbose_name="", orderable=False, template_name="interview/tables/source_name.html")
+    source_admin = tables.TemplateColumn(
+        verbose_name="", orderable=False, template_name="interview/tables/edit_source.html"
+    )
 
     class Meta:
         order_by = "name"
@@ -965,6 +1009,7 @@ def active_sources(request, subsidiary_id=None):
                 "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
                 "last_state_change": last_state_change["last_state_change__max"],
                 "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
+                "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
                 "offers": distinct_offers,
             }
         )
