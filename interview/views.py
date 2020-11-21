@@ -268,7 +268,7 @@ def new_candidate(request):
             process = process_form.save(commit=False)
             process.candidate = candidate
             process.save()
-            return HttpResponseRedirect(reverse(processes))
+            return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
