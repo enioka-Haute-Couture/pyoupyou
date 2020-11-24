@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+import calendar
 import re
 from collections import defaultdict
 import json
@@ -1020,4 +1021,107 @@ def active_sources(request, subsidiary_id=None):
         request,
         "interview/active-sources.html",
         {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def monthly_summary(request, year=None, month=None, subsidiary_id=None):
+    subsidiary = None
+
+    # Used for filter dropdown
+    all_subsidiaries = Subsidiary.objects.all()
+    subsidiaries = all_subsidiaries
+
+    if subsidiary_id:
+        try:
+            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
+            subsidiaries = [subsidiary]
+        except Subsidiary.DoesNotExist:
+            pass
+
+    if not year:
+        year = datetime.datetime.now().year
+
+    if not month:
+        month = datetime.datetime.now().month
+
+    # First day of month
+    start_date = datetime.date(int(year), int(month), 1)
+
+    # Last day of month
+    end_date = datetime.date(start_date.year, start_date.month,
+                             calendar.monthrange(start_date.year, start_date.month)[-1])
+
+    # Processes started in the timespan
+    new_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                     .filter(start_date__gte=start_date)
+                     .filter(start_date__lte=end_date)
+                     .count())
+
+    # Processes closed and last modified in the timespan
+    closed_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                        .filter(last_state_change__gte=start_date)
+                        .filter(last_state_change__lte=end_date)
+                        .filter(state__in=Process.CLOSED_STATE_VALUES)
+                        .count())
+
+    # Processes closed and last modified in the timespan and GO
+    go_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                    .filter(last_state_change__gte=start_date)
+                    .filter(last_state_change__lte=end_date)
+                    .filter(state=Process.HIRED))
+
+    # Processes with a pending offer
+    offer_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                       .filter(last_state_change__gte=start_date)
+                       .filter(last_state_change__lte=end_date)
+                       .filter(state=Process.JOB_OFFER)
+                       )
+
+    # Processes declined by candidate
+    declined_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                          .filter(last_state_change__gte=start_date)
+                          .filter(last_state_change__lte=end_date)
+                          .filter(state=Process.CANDIDATE_DECLINED))
+
+    # New interviews
+    new_interviews = (Interview.objects.filter(process__subsidiary__in=subsidiaries)
+                      .filter(planned_date__gte=start_date)
+                      .filter(planned_date__lte=end_date)
+                      .count())
+
+    # New GO interviews
+    new_interviews_go = (Interview.objects.filter(process__subsidiary__in=subsidiaries)
+                         .filter(planned_date__gte=start_date)
+                         .filter(planned_date__lte=end_date)
+                         .filter(state=Interview.GO)
+                         .order_by("process__subsidiary")
+                         .count()
+                         )
+
+    active_processes = (Process.objects.filter(subsidiary__in=subsidiaries)
+                        .filter(start_date__gte=start_date)
+                        .filter(start_date__lte=end_date))
+
+    active_sources = Sources.objects.filter(process__in=active_processes)
+
+    return render(
+        request,
+        "interview/summary.html",
+        {"month": month,
+         "year": year,
+         "subsidiary": subsidiary,
+         "subsidiaries": all_subsidiaries,
+         "selected_subsidiaries" : subsidiaries,
+         "interviews": new_interviews,
+         "interviews_go": new_interviews_go,
+         "new_processes": new_processes,
+         "closed_processes": closed_processes,
+         "active_sources" : active_sources,
+         "go_processes" : go_processes,
+         "offer_processes": offer_processes,
+         "declined_processes": declined_processes,
+         "start": start_date,
+         "end": end_date},
     )
