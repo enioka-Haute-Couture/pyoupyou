@@ -60,7 +60,11 @@ urlpatterns = [
     ),
     url(r"^reports/active-sources/$", views.active_sources, name="active-sources"),
     url(r"^reports/active-sources/(?P<subsidiary_id>\d+)$", views.active_sources, name="active-sources-subsidiary"),
-    url(r"^reports/monthly-summary/(?P<year>\d+)/(?P<month>\d+)/(?P<subsidiary_id>\d+)$", views.monthly_summary, name="monthly-summary-subsidiary"),
+    url(
+        r"^reports/monthly-summary/(?P<year>\d+)/(?P<month>\d+)/(?P<subsidiary_id>\d+)$",
+        views.monthly_summary,
+        name="monthly-summary-subsidiary",
+    ),
     url(r"^reports/monthly-summary/(?P<year>\d+)/(?P<month>\d+)$", views.monthly_summary, name="monthly-summary"),
     url(r"^reports/monthly-summary/$", views.monthly_summary, name="monthly-summary-now"),
     url(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
