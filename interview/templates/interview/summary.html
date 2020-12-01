@@ -1,0 +1,82 @@
+{% extends 'interview/base.html' %}
+{% load render_table from django_tables2 %}
+{% load i18n %}
+
+{% block content %}
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="btn-group">
+      <div class="btn-group">
+        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {% trans "Filter" %} <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li><a href="{% url 'monthly-summary' year month %}"> {% trans "All" %} </a></li>
+          {% for s in subsidiaries %}
+          <li><a href="{% url 'monthly-summary-subsidiary' year month s.id  %}"> {{ s }} </a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="panel-heading">
+      {% trans "Summary" %}
+    </div>
+
+
+    <h2> {% trans "Time range" %} </h2>
+    [{{ start }} – {{ end }}]
+    <h2> {% trans "Subsidiaries" %} </h2>
+    <ul>
+      {% for s in selected_subsidiaries %}
+      <li> {{ s }} </li>
+      {% endfor %}
+    </ul>
+
+    <ul>
+      <li> <h3> {% trans "Processes" %} </h3> </li>
+      <ul>
+        <li> {{ new_processes }} {% trans "New processes" %} </li>
+        <li> {{ closed_processes }}  {% trans "Closed processes" %} </li>
+      </ul>
+      {% if active_sources %}
+      <li> <h3> {% trans "Active sources" %} </h3> </li>
+      <ul>
+        {% for s in active_sources %}
+        <li> {{ s }} </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <li> <h3>  {% trans "Hires" %} </h3> </li>
+      <ul>
+        {% for p in go_processes %}
+        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }}  @ {{ p.subsidiary }} </li>
+        {% endfor %}
+      </ul>
+      {% if offer_processes %}
+      <li> <h3> {% trans "Offers" %} </h3> </li>
+      <ul>
+        {% for p in offer_processes %}
+        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }}  @ {{ p.subsidiary }} </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if declined_processes %}
+      <li> <h3> {% trans "Declined offers" %} </h3> </li>
+      <ul>
+        {% for p in declined_processes %}
+        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"" }}  @ {{ p.subsidiary }} </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      {% if interviews %}
+      <li> <h3> {% trans "Interviews" %} </h3> </li>
+      <ul>
+        <li> {{ interviews }} ({{ interviews_go }} {% trans "go" %})</li>
+      </ul>
+      {% endif %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
