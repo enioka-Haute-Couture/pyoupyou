@@ -5,7 +5,8 @@ on: push
 jobs:
   check:
     runs-on: ubuntu-latest
-      
+    env:
+      PYOUPYOU_ENV: dev
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -26,7 +27,7 @@ jobs:
     - name: Check migrations
       run: pipenv run ./manage.py makemigrations --check
     - name: Check coding style (black)
-      run: pipenv run black --check
+      run: pipenv run black --check .
     - name: Check safety
       run: PIPENV_PYUP_API_KEY="" pipenv check
     - name: Check requirements.txt is up to date
