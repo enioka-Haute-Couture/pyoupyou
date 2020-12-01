@@ -42,7 +42,7 @@
       <li> <h3> {% trans "Active sources" %} </h3> </li>
       <ul>
         {% for s in active_sources %}
-        <li> {{ s }} </li>
+        <li> {{ s }} ({{s.process_count}} {% trans "processes" %}) </li>
         {% endfor %}
       </ul>
       {% endif %}

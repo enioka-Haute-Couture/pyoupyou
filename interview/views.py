@@ -30,6 +30,7 @@ from django_tables2 import RequestConfig
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
+from django.db.models import Count
 
 from interview.filters import ProcessFilter
 from interview.forms import (
@@ -1083,7 +1084,7 @@ def monthly_summary(request, year=None, month=None, subsidiary_id=None):
     # New GO interviews
     new_interviews_go = interviews_in_range.filter(state=Interview.GO).order_by("process__subsidiary").count()
 
-    active_sources = Sources.objects.filter(process__in=processes_in_range)
+    active_sources = Sources.objects.filter(process__in=processes_in_range).annotate(process_count=Count("process"))
 
     return render(
         request,
