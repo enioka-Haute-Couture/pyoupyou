@@ -21,6 +21,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from django.utils.html import format_html
 from django.utils.six import StringIO
 from django.utils.translation import ugettext as _t
@@ -1042,12 +1043,15 @@ def monthly_summary(request, year=None, month=None, subsidiary_id=None):
         month = datetime.datetime.now().month
 
     # First day of month
-    start_date = datetime.date(int(year), int(month), 1)
+    start_date = datetime.datetime(int(year), int(month), 1)
 
     # Last day of month
-    end_date = datetime.date(
-        start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[-1]
+    end_date = datetime.datetime(
+        start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[-1], 23, 59, 59
     )
+
+    make_aware(start_date)
+    make_aware(end_date)
 
     # Processes in time range
     processes_in_range = (
