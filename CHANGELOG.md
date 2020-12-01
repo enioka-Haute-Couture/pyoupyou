@@ -1,6 +1,8 @@
-# 1.7.0 (XXXX-XX-XX)
+# 1.7.0 (2020-12-01)
 - Add Api for account creation and delete
 - Update django-filter to 2.4.0
+- Redirect to candidate's page upon creation
+- Add monthly summary page
 
 # 1.6.0 (2020-07-09)
 - Add gantt diagram to show contract start date
