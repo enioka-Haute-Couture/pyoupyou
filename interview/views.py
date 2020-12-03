@@ -572,11 +572,15 @@ def export_processes_tsv(request):
                 "contract_start_date",
                 "contract_duration",
                 "process state",
+                "process state label",
                 "process itw count",
                 "mean days between itws",
             ]
         )
     )
+
+    process_state_labels = dict(Process.PROCESS_STATE)
+
     for process in processes:
         process_length, process_interview_count = process_stats(process)
         columns = [
@@ -592,6 +596,7 @@ def export_processes_tsv(request):
             process.contract_start_date,
             process.contract_duration,
             process.state,
+            process_state_labels[process.state],
             process_interview_count,
             0 if process_interview_count == 0 else int(process_length / process_interview_count),
         ]
@@ -629,11 +634,13 @@ def export_interviews_tsv(request):
                 "start_date",
                 "end_date",
                 "process length",
-                "sources",
+                "source",
+                "source category",
                 "contract_type",
                 "contract_start_date",
                 "contract_duration",
                 "process state",
+                "process state label",
                 "process itw count",
                 "mean days between itws",
                 "interview.id",
@@ -647,6 +654,8 @@ def export_interviews_tsv(request):
     )
     processes_length = {}
     processes_itw_count = {}
+    process_state_labels = dict(Process.PROCESS_STATE)
+
     for interview in interviews:
         interviewers = ""
         for i in interview.interviewers.all():
@@ -695,10 +704,12 @@ def export_interviews_tsv(request):
             interview.process.end_date,
             process_length,
             interview.process.sources,
+            "" if interview.process.sources is None else interview.process.sources.category.name,
             interview.process.contract_type,
             interview.process.contract_start_date,
             interview.process.contract_duration,
             interview.process.state,
+            process_state_labels[interview.process.state],
             process_interview_count,
             0 if process_interview_count == 0 else int(process_length / process_interview_count),
             interview.id,
