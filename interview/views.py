@@ -1067,8 +1067,8 @@ def monthly_summary(request, year=None, month=None, subsidiary_id=None):
     # Processes in time range
     processes_in_range = (
         Process.objects.filter(subsidiary__in=subsidiaries)
-        .filter(start_date__gte=start_date)
-        .filter(start_date__lte=end_date)
+        .filter(last_state_change__gte=start_date)
+        .filter(last_state_change__lte=end_date)
     )
 
     # Processes started in the timespan
