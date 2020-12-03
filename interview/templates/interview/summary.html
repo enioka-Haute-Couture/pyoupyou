@@ -46,12 +46,14 @@
         {% endfor %}
       </ul>
       {% endif %}
+      {% if go_processes %}
       <li> <h3>  {% trans "Hires" %} </h3> </li>
       <ul>
         {% for p in go_processes %}
         <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }}  @ {{ p.subsidiary }} </li>
         {% endfor %}
       </ul>
+      {% endif %}
       {% if offer_processes %}
       <li> <h3> {% trans "Offers" %} </h3> </li>
       <ul>
