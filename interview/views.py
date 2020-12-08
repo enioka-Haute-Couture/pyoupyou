@@ -572,11 +572,13 @@ def export_processes_tsv(request):
                 "contract_start_date",
                 "contract_duration",
                 "process state",
+                "process state label",
                 "process itw count",
                 "mean days between itws",
             ]
         )
     )
+
     for process in processes:
         process_length, process_interview_count = process_stats(process)
         columns = [
@@ -592,6 +594,7 @@ def export_processes_tsv(request):
             process.contract_start_date,
             process.contract_duration,
             process.state,
+            process.get_state_display(),
             process_interview_count,
             0 if process_interview_count == 0 else int(process_length / process_interview_count),
         ]
@@ -629,11 +632,13 @@ def export_interviews_tsv(request):
                 "start_date",
                 "end_date",
                 "process length",
-                "sources",
+                "source",
+                "source category",
                 "contract_type",
                 "contract_start_date",
                 "contract_duration",
                 "process state",
+                "process state label",
                 "process itw count",
                 "mean days between itws",
                 "interview.id",
@@ -647,6 +652,7 @@ def export_interviews_tsv(request):
     )
     processes_length = {}
     processes_itw_count = {}
+
     for interview in interviews:
         interviewers = ""
         for i in interview.interviewers.all():
@@ -695,10 +701,12 @@ def export_interviews_tsv(request):
             interview.process.end_date,
             process_length,
             interview.process.sources,
+            "" if interview.process.sources is None else interview.process.sources.category.name,
             interview.process.contract_type,
             interview.process.contract_start_date,
             interview.process.contract_duration,
             interview.process.state,
+            interview.process.get_state_display(),
             process_interview_count,
             0 if process_interview_count == 0 else int(process_length / process_interview_count),
             interview.id,
@@ -1056,8 +1064,8 @@ def monthly_summary(request, year=None, month=None, subsidiary_id=None):
     # Processes in time range
     processes_in_range = (
         Process.objects.filter(subsidiary__in=subsidiaries)
-        .filter(start_date__gte=start_date)
-        .filter(start_date__lte=end_date)
+        .filter(last_state_change__gte=start_date)
+        .filter(last_state_change__lte=end_date)
     )
 
     # Processes started in the timespan
