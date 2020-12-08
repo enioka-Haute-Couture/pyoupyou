@@ -1,3 +1,8 @@
+# 1.7.1 (2020-12-01)
+- Monthly summary:
+  - Distinct and count active sources
+  - Make dates timezones aware
+
 # 1.7.0 (2020-12-01)
 - Add Api for account creation and delete
 - Update django-filter to 2.4.0
