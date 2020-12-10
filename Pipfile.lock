@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "cb38ba99beeb6bb520e9b1362b6692067e8cf2e28bdefa0102e9824638451a0f"
+            "sha256": "68e62adfac6598f2d4aff6d6a791f7c65b25076e0079e37c96a2995639c2a2cf"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -352,11 +352,6 @@
             "index": "pypi",
             "version": "==5.3"
         },
-        "debug-toolbar-user-panel": {
-            "editable": true,
-            "git": "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git",
-            "ref": "1481b04e0cbbf7db35bf43061883535ef25892f5"
-        },
         "django": {
             "hashes": [
                 "sha256:84f370f6acedbe1f3c41e1a02de44ac206efda3355e427139ecb785b5f596d80",
@@ -380,6 +375,11 @@
             ],
             "index": "pypi",
             "version": "==0.1.3"
+        },
+        "django-debug-toolbar-user-panel": {
+            "editable": true,
+            "git": "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git",
+            "ref": "1481b04e0cbbf7db35bf43061883535ef25892f5"
         },
         "factory-boy": {
             "hashes": [
