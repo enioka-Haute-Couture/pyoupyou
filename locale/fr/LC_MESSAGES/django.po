@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-11-24 21:48+0100\n"
+"POT-Creation-Date: 2021-02-11 09:18+0100\n"
 "PO-Revision-Date: 2020-11-24 21:48+0100\n"
 "Last-Translator: Sebastien Renard <renard@kde.org>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -33,7 +33,7 @@ msgstr "Proposition en cours, attente du retour du candidat"
 msgid "Import"
 msgstr "Importer"
 
-#: interview/models.py:21 interview/models.py:56 interview/views.py:961
+#: interview/models.py:21 interview/models.py:56 interview/views.py:973
 #: ref/models.py:13
 msgid "Name"
 msgstr "Nom"
@@ -67,7 +67,7 @@ msgstr "Contenu du fichier"
 msgid "Still valid"
 msgstr "Est toujours valide"
 
-#: interview/models.py:100 interview/models.py:172 interview/views.py:718
+#: interview/models.py:100 interview/models.py:172 interview/views.py:730
 #: ref/models.py:21 ref/models.py:112
 msgid "Subsidiary"
 msgstr "Entité"
@@ -223,13 +223,13 @@ msgstr "état"
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:337 interview/views.py:118
+#: interview/models.py:337 interview/views.py:120
 msgid "Planned date"
 msgstr "Date prévue"
 
 #: interview/models.py:340
 #: interview/templates/interview/interview_minute.html:18
-#: interview/views.py:121
+#: interview/views.py:123
 msgid "Minute"
 msgstr "Compte-rendu"
 
@@ -268,15 +268,11 @@ msgstr "suivant"
 
 #: interview/templates/interview/active-sources.html:19
 #: interview/templates/interview/interviewers-load.html:18
-#: interview/templates/interview/interviewers-meanness.html:18
-#: interview/templates/interview/summary.html:11
 msgid "Filter"
 msgstr "Filtrer"
 
 #: interview/templates/interview/active-sources.html:22
 #: interview/templates/interview/interviewers-load.html:21
-#: interview/templates/interview/interviewers-meanness.html:21
-#: interview/templates/interview/summary.html:14
 msgid "All"
 msgstr "Toutes"
 
@@ -285,7 +281,7 @@ msgid "Active sources: "
 msgstr "Sources actives"
 
 #: interview/templates/interview/active-sources.html:35
-#: interview/templates/interview/summary.html:70
+#: interview/templates/interview/summary.html:143
 msgid "Active sources"
 msgstr "Sources actives"
 
@@ -295,7 +291,7 @@ msgid "Ongoing processes"
 msgstr "Processus en cours"
 
 #: interview/templates/interview/base.html:46
-#: interview/templates/interview/summary.html:39 interview/views.py:211
+#: interview/templates/interview/summary.html:74 interview/views.py:213
 msgid "Closed processes"
 msgstr "Processus terminés"
 
@@ -307,7 +303,7 @@ msgstr "Nouveau candidat"
 msgid "More"
 msgstr "Plus"
 
-#: interview/templates/interview/base.html:51 interview/views.py:720
+#: interview/templates/interview/base.html:51 interview/views.py:732
 msgid "Load"
 msgstr "Charge"
 
@@ -320,8 +316,8 @@ msgid "Sources"
 msgstr "sources"
 
 #: interview/templates/interview/base.html:55
-msgid "Monthly summary"
-msgstr "Bilan mensuel"
+msgid "Activity summary"
+msgstr "Bilan"
 
 #: interview/templates/interview/base.html:58
 msgid "Admin"
@@ -348,6 +344,44 @@ msgstr "Mes processus"
 msgid " %(subsidiary)s processes"
 msgstr "Processus de %(subsidiary)s"
 
+#: interview/templates/interview/email/candidate_declined.txt:2
+#, python-format
+msgid "Candidate %(candidate)s declined our offer"
+msgstr "Le candidat %(candidate)s a décliné notre offre"
+
+#: interview/templates/interview/email/candidate_hired.txt:2
+#, python-format
+msgid "Candidate %(candidate)s accepted our offer"
+msgstr "Le candidat %(candidate)s a accepté notre offre"
+
+#: interview/templates/interview/email/interview_planned.txt:2
+#, python-format
+msgid ""
+"Interview for %(candidate)s was planned with %(itws)s (%(planned_date)s)"
+msgstr ""
+"Un entretien pour %(candidate)s a été planifié avec %(itws)s "
+"(%(planned_date)s)"
+
+#: interview/templates/interview/email/job_offer.txt:2
+#, python-format
+msgid "A job offer is ongoing for %(candidate)s"
+msgstr "Une proposition a été faite à %(candidate)s"
+
+#: interview/templates/interview/email/minute_done.txt:2
+#, python-format
+msgid "Interview by %(itws)s for %(candidate)s: %(state)s"
+msgstr "Résultat de l'entretien pour %(candidate)s par %(itws)s : %(state)s"
+
+#: interview/templates/interview/email/new_interview.txt:2
+#, python-format
+msgid "%(itws)s was assigned as %(candidate)s interviewer(s)."
+msgstr "%(candidate)s a été assigné à %(itws)s"
+
+#: interview/templates/interview/email/new_process.txt:2
+#, python-format
+msgid "New process for candidate %(candidate)s"
+msgstr "Nouveau processus pour le candidat %(candidate)s"
+
 #: interview/templates/interview/interview_minute.html:10
 #: interview/templates/interview/interview_minute_form.html:9
 msgid "Interview minute"
@@ -364,7 +398,7 @@ msgid "concerning"
 msgstr "pour"
 
 #: interview/templates/interview/interview_minute.html:12
-#: interview/views.py:719
+#: interview/views.py:731
 msgid "Interviewer"
 msgstr "Interviewer"
 
@@ -478,47 +512,48 @@ msgstr "Importer un fichier ics seekube"
 msgid "Add sources"
 msgstr "Ajouter des sources"
 
-#: interview/templates/interview/summary.html:22
+#: interview/templates/interview/summary.html:56
 msgid "Summary"
 msgstr "Bilan"
 
-#: interview/templates/interview/summary.html:26
+#: interview/templates/interview/summary.html:60
 msgid "Time range"
 msgstr "Période"
 
-#: interview/templates/interview/summary.html:28 ref/models.py:22
-msgid "Subsidiaries"
-msgstr "Entités"
-
-#: interview/templates/interview/summary.html:36
+#: interview/templates/interview/summary.html:64
 #: interview/templates/interview/tables/source_name.html:3
-#: interview/views.py:964
+#: interview/views.py:976
 msgid "Processes"
 msgstr "Processus"
 
-#: interview/templates/interview/summary.html:38
+#: interview/templates/interview/summary.html:66
 msgid "New processes"
 msgstr "Nouveaux processus"
 
-#: interview/templates/interview/summary.html:41
-msgid "Hires"
-msgstr "Embauches"
-
-#: interview/templates/interview/summary.html:48 interview/views.py:967
-msgid "Offers"
-msgstr "Offres"
-
-#: interview/templates/interview/summary.html:57
-msgid "Declined offers"
-msgstr "Refus par le candidat"
-
-#: interview/templates/interview/summary.html:66
+#: interview/templates/interview/summary.html:84
 msgid "Interviews"
 msgstr "Entretiens"
 
-#: interview/templates/interview/summary.html:68
+#: interview/templates/interview/summary.html:86
+#: interview/templates/interview/summary.html:90
 msgid "go"
 msgstr "positif"
+
+#: interview/templates/interview/summary.html:97
+msgid "Hires"
+msgstr "Embauches"
+
+#: interview/templates/interview/summary.html:112 interview/views.py:979
+msgid "Offers"
+msgstr "Offres"
+
+#: interview/templates/interview/summary.html:128
+msgid "Declined offers"
+msgstr "Refus par le candidat"
+
+#: interview/templates/interview/summary.html:146
+msgid "processes"
+msgstr "Processus"
 
 #: interview/templates/interview/tables/interview_actions.html:7
 msgid "MinuteShort"
@@ -540,60 +575,60 @@ msgstr "J'ai envoyé une demande d'entretien"
 msgid "Show"
 msgstr "Détails"
 
-#: interview/views.py:59
+#: interview/views.py:61
 msgid "No itw"
 msgstr "No itw"
 
-#: interview/views.py:90 interview/views.py:135
+#: interview/views.py:92 interview/views.py:137
 msgid "No data"
 msgstr "Pas de donnée"
 
-#: interview/views.py:115
+#: interview/views.py:117
 msgid "interviewers"
 msgstr "responsables d'entretiens"
 
-#: interview/views.py:721
+#: interview/views.py:733
 msgid "Past month"
 msgstr "Dans le mois passé"
 
-#: interview/views.py:722
+#: interview/views.py:734
 msgid "Past week"
 msgstr "Dans la semaine passée"
 
-#: interview/views.py:723
+#: interview/views.py:735
 msgid "Planned"
 msgstr "À venir"
 
-#: interview/views.py:724
+#: interview/views.py:736
 msgid "To plan"
 msgstr "À planifier"
 
-#: interview/views.py:821
+#: interview/views.py:833
 #, python-brace-format
 msgid "Search result for \"{q}\""
 msgstr "Résultats de recherche pour \"{q}\""
 
-#: interview/views.py:881
+#: interview/views.py:893
 msgid "Processing seekube ics failed"
 msgstr "Erreur lors du traitement du fichier ics seekube"
 
-#: interview/views.py:962
+#: interview/views.py:974
 msgid "Type"
 msgstr ""
 
-#: interview/views.py:963
+#: interview/views.py:975
 msgid "Active processes"
 msgstr "processus actif"
 
-#: interview/views.py:965
+#: interview/views.py:977
 msgid "Hired"
 msgstr "Embauché"
 
-#: interview/views.py:966
+#: interview/views.py:978
 msgid "Ratio"
 msgstr ""
 
-#: interview/views.py:968
+#: interview/views.py:980
 msgid "Last change"
 msgstr "Dernier changement"
 
@@ -612,6 +647,10 @@ msgstr "Dates importantes"
 #: ref/models.py:14
 msgid "Code"
 msgstr "Code"
+
+#: ref/models.py:22
+msgid "Subsidiaries"
+msgstr "Entités"
 
 #: ref/models.py:62
 msgid "full name"
@@ -656,125 +695,3 @@ msgstr "Utilisateurs"
 #: ref/models.py:113
 msgid "Productive"
 msgstr "Productif"
-
-#, python-format
-#~ msgid "Candidate %(candidate)s declined our offer"
-#~ msgstr "Le candidat %(candidate)s a décliné notre offre"
-
-#, python-format
-#~ msgid "Candidate %(candidate)s accepted our offer"
-#~ msgstr "Le candidat %(candidate)s a accepté notre offre"
-
-#, python-format
-#~ msgid ""
-#~ "Interview for %(candidate)s was planned with %(itws)s (%(planned_date)s)"
-#~ msgstr ""
-#~ "Un entretien pour %(candidate)s a été planifié avec %(itws)s "
-#~ "(%(planned_date)s)"
-
-#, python-format
-#~ msgid "A job offer is ongoing for %(candidate)s"
-#~ msgstr "Une proposition a été faite à %(candidate)s"
-
-#, python-format
-#~ msgid "Interview by %(itws)s for %(candidate)s: %(state)s"
-#~ msgstr "Résultat de l'entretien pour %(candidate)s par %(itws)s : %(state)s"
-
-#, python-format
-#~ msgid "%(itws)s was assigned as %(candidate)s interviewer(s)."
-#~ msgstr "%(candidate)s a été assigné à %(itws)s"
-
-#, python-format
-#~ msgid "New process for candidate %(candidate)s"
-#~ msgstr "Nouveau processus pour le candidat %(candidate)s"
-
-#, fuzzy
-#~| msgid "email address"
-#~ msgid "Enter a valid email address."
-#~ msgstr "Adresse e-mail"
-
-#, fuzzy
-#~| msgid "Planned"
-#~ msgid "and"
-#~ msgstr "À venir"
-
-#, fuzzy
-#~| msgid "Interviewer"
-#~ msgid "Integer"
-#~ msgstr "Interviewer"
-
-#, fuzzy
-#~| msgid "email address"
-#~ msgid "Email address"
-#~ msgstr "Adresse e-mail"
-
-#, fuzzy
-#~| msgid "email address"
-#~ msgid "IPv4 address"
-#~ msgstr "Adresse e-mail"
-
-#, fuzzy
-#~| msgid "email address"
-#~ msgid "IP address"
-#~ msgstr "Adresse e-mail"
-
-#, fuzzy
-#~| msgid "Contract duration"
-#~ msgid "Enter a valid duration."
-#~ msgstr "Durée du contrat"
-
-#, fuzzy
-#~| msgid "Change minute"
-#~ msgid "Change"
-#~ msgstr "Mise à jour compte-rendu"
-
-#, fuzzy
-#~| msgid "Search"
-#~ msgid "March"
-#~ msgstr "Rechercher"
-
-#, fuzzy
-#~| msgid "Contact"
-#~ msgid "oct"
-#~ msgstr "Informations de contact"
-
-#, fuzzy
-#~| msgid "Search"
-#~ msgctxt "abbrev. month"
-#~ msgid "March"
-#~ msgstr "Rechercher"
-
-#, fuzzy
-#~| msgid "Search"
-#~ msgctxt "alt. month"
-#~ msgid "March"
-#~ msgstr "Rechercher"
-
-#, fuzzy, python-format
-#~| msgid "Past month"
-#~ msgid "%d month"
-#~ msgid_plural "%d months"
-#~ msgstr[0] "Dans le mois passé"
-#~ msgstr[1] "Dans le mois passé"
-
-#, fuzzy, python-format
-#~| msgid "Past week"
-#~ msgid "%d week"
-#~ msgid_plural "%d weeks"
-#~ msgstr[0] "Dans la semaine passée"
-#~ msgstr[1] "Dans la semaine passée"
-
-#, fuzzy, python-format
-#~| msgid "Minute"
-#~ msgid "%d minute"
-#~ msgid_plural "%d minutes"
-#~ msgstr[0] "Compte-rendu"
-#~ msgstr[1] "Compte-rendu"
-
-#, fuzzy
-#~| msgid "Minute"
-#~ msgid "0 minutes"
-#~ msgstr "Compte-rendu"
-
-#~ msgid "Edit"
-#~ msgstr "Éditer"

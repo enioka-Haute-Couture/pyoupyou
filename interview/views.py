@@ -33,7 +33,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
 
-from interview.filters import ProcessFilter
+from interview.filters import ProcessFilter, ProcessSummaryFilter, InterviewSummaryFilter
 from interview.forms import (
     ProcessCandidateForm,
     InterviewMinuteForm,
@@ -502,7 +502,7 @@ def edit_candidate(request, process_id):
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
         process_form = ProcessForm(instance=process)
-        process_form.fields['subsidiary'].initial = request.user.consultant.company.id
+        process_form.fields["subsidiary"].initial = request.user.consultant.company.id
 
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
@@ -1038,80 +1038,71 @@ def active_sources(request, subsidiary_id=None):
 
 @login_required
 @require_http_methods(["GET"])
-def monthly_summary(request, year=None, month=None, subsidiary_id=None):
-    subsidiary = None
-
-    # Used for filter dropdown
-    all_subsidiaries = Subsidiary.objects.all()
-
-    subsidiaries = all_subsidiaries.filter(id=subsidiary_id) or all_subsidiaries
-
-    if not year:
-        year = datetime.datetime.now().year
-
-    if not month:
-        month = datetime.datetime.now().month
-
-    # First day of month
-    start_date = datetime.datetime(int(year), int(month), 1)
-
-    # Last day of month
-    end_date = datetime.datetime(
-        start_date.year, start_date.month, calendar.monthrange(start_date.year, start_date.month)[-1], 23, 59, 59
-    )
-
-    make_aware(start_date)
-    make_aware(end_date)
-
-    # Processes in time range
-    processes_in_range = (
-        Process.objects.filter(subsidiary__in=subsidiaries)
-        .filter(last_state_change__gte=start_date)
-        .filter(last_state_change__lte=end_date)
-    )
+def activity_summary(request):
+    process_filter = ProcessSummaryFilter(request.GET, queryset=Process.objects.all())
+    interview_filter = InterviewSummaryFilter(request.GET, queryset=Interview.objects.all())
 
     # Processes started in the timespan
-    new_processes = processes_in_range.count()
+    new_processes_total = process_filter.qs.count()
+    new_processes = process_filter.qs.values("subsidiary__name").annotate(count=Count("candidate"))
 
     # Processes closed and last modified in the timespan
-    closed_processes = processes_in_range.filter(state__in=Process.CLOSED_STATE_VALUES).count()
-
-    # Processes closed and last modified in the timespan and GO
-    go_processes = processes_in_range.filter(state=Process.HIRED)
-
-    # Processes with a pending offer
-    offer_processes = processes_in_range.filter(state=Process.JOB_OFFER)
-
-    # Processes declined by candidate
-    declined_processes = processes_in_range.filter(state=Process.CANDIDATE_DECLINED)
-
-    # Interviews in time range
-    interviews_in_range = (
-        Interview.objects.filter(process__subsidiary__in=subsidiaries)
-        .filter(planned_date__gte=start_date)
-        .filter(planned_date__lte=end_date)
+    closed_processes_total = process_filter.qs.filter(state__in=Process.CLOSED_STATE_VALUES).count()
+    closed_processes = (
+        process_filter.qs.filter(state__in=Process.CLOSED_STATE_VALUES)
+        .values("subsidiary__name")
+        .annotate(count=Count("candidate"))
     )
 
+    # Processes closed and last modified in the timespan and GO
+    go_processes = process_filter.qs.filter(state=Process.HIRED).order_by("subsidiary")
+
+    # Processes with a pending offer
+    offer_processes = process_filter.qs.filter(state=Process.JOB_OFFER).order_by("subsidiary")
+
+    # Processes declined by candidate
+    declined_processes = process_filter.qs.filter(state=Process.CANDIDATE_DECLINED).order_by("subsidiary")
+
     # New interviews
-    new_interviews = interviews_in_range.count()
-
+    new_interviews_total = interview_filter.qs.count()
+    new_interviews = (
+        interview_filter.qs.order_by("process__subsidiary__name")
+        .values("process__subsidiary__name")
+        .annotate(count=Count("id"))
+    )
+    print(new_interviews)
     # New GO interviews
-    new_interviews_go = interviews_in_range.filter(state=Interview.GO).order_by("process__subsidiary").count()
+    new_interviews_go_total = interview_filter.qs.filter(state=Interview.GO).count()
+    new_interviews_go = (
+        interview_filter.qs.filter(state=Interview.GO)
+        .order_by("process__subsidiary__name")
+        .values("process__subsidiary__name")
+        .annotate(count=Count("id"))
+    )
 
-    active_sources = Sources.objects.filter(process__in=processes_in_range).annotate(process_count=Count("process"))
+    active_sources = process_filter.qs.values("sources__name").annotate(count=Count("sources")).filter(count__gt=0)
+
+    start_date = Process.objects.order_by("start_date").first().start_date
+    end_date = datetime.date.today()
+    if process_filter.form.cleaned_data["last_state_change"]:
+        if process_filter.form.cleaned_data["last_state_change"].start:
+            start_date = process_filter.form.cleaned_data["last_state_change"].start
+        if process_filter.form.cleaned_data["last_state_change"].stop:
+            end_date = process_filter.form.cleaned_data["last_state_change"].stop
+    subsidiary = process_filter.form.cleaned_data["subsidiary"]
 
     return render(
         request,
         "interview/summary.html",
         {
-            "month": month,
-            "year": year,
-            "subsidiaries": all_subsidiaries,
-            "selected_subsidiaries": subsidiaries,
-            "interviews": new_interviews,
-            "interviews_go": new_interviews_go,
-            "new_processes": new_processes,
-            "closed_processes": closed_processes,
+            "filter": process_filter,
+            "interviews_total": new_interviews_total,
+            "interviews_go_total": new_interviews_go_total,
+            "interviews_details": zip(new_interviews, new_interviews_go) if not subsidiary else None,
+            "new_processes_total": new_processes_total,
+            "new_processes": new_processes if not subsidiary else None,
+            "closed_processes_total": closed_processes_total,
+            "closed_processes": closed_processes if not subsidiary else None,
             "active_sources": active_sources,
             "go_processes": go_processes,
             "offer_processes": offer_processes,
