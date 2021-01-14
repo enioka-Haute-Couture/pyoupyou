@@ -1,5 +1,6 @@
-# 1.8.0 (2021-XX-XX)
+# 1.8.0 (2021-02-11)
 - Preselect the current consultant company in the new process form
+- Replace Monthly summary with a date range summary
 
 # 1.7.1 (2020-12-01)
 - Monthly summary:

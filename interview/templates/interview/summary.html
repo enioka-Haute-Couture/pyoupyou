@@ -1,22 +1,56 @@
 {% extends 'interview/base.html' %}
-{% load render_table from django_tables2 %}
 {% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block more_css %}
+    <script type="application/javascript">
+        $(function () {
+            $('#id_last_state_change_0').datetimepicker({
+                locale: 'fr',
+                format: "DD/MM/YYYY",
+                tooltips: {
+                    selectMonth: 'Sélection du mois',
+                    prevMonth: 'Mois précédent',
+                    nextMonth: 'Mois suivant',
+                    selectYear: "Sélection de l'année",
+                    prevYear: 'Année précédente',
+                    nextYear: 'Année suivante',
+                    selectDecade: 'Sélection de la décennie',
+                    prevDecade: 'Décennie précédente',
+                    nextDecade: 'Décennie suivante',
+                    prevCentury: 'Siècle précédent',
+                    nextCentury: 'Siècle suivant'
+                }
+            });
+            $('#id_last_state_change_1').datetimepicker({
+                locale: 'fr',
+                format: "DD/MM/YYYY",
+                tooltips: {
+                    selectMonth: 'Sélection du mois',
+                    prevMonth: 'Mois précédent',
+                    nextMonth: 'Mois suivant',
+                    selectYear: "Sélection de l'année",
+                    prevYear: 'Année précédente',
+                    nextYear: 'Année suivante',
+                    selectDecade: 'Sélection de la décennie',
+                    prevDecade: 'Décennie précédente',
+                    nextDecade: 'Décennie suivante',
+                    prevCentury: 'Siècle précédent',
+                    nextCentury: 'Siècle suivant'
+                }
+            });
+        });
+    </script>
+{% endblock %}
 
 {% block content %}
 <div class="container">
   <div class="panel panel-primary">
-    <div class="btn-group">
-      <div class="btn-group">
-        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          {% trans "Filter" %} <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="{% url 'monthly-summary' year month %}"> {% trans "All" %} </a></li>
-          {% for s in subsidiaries %}
-          <li><a href="{% url 'monthly-summary-subsidiary' year month s.id  %}"> {{ s }} </a></li>
-          {% endfor %}
-        </ul>
-      </div>
+    <div class="filters">
+      <form class="form-inline" style="position: relative" method="get">
+          {{ filter.form|crispy }}
+          <input class="btn btn-default" type="submit" value="Filter" />
+      </form>
     </div>
     <div class="panel-heading">
       {% trans "Summary" %}
@@ -25,59 +59,94 @@
 
     <h2> {% trans "Time range" %} </h2>
     [{{ start }} – {{ end }}]
-    <h2> {% trans "Subsidiaries" %} </h2>
-    <ul>
-      {% for s in selected_subsidiaries %}
-      <li> {{ s }} </li>
-      {% endfor %}
-    </ul>
 
     <ul>
       <li> <h3> {% trans "Processes" %} </h3> </li>
       <ul>
-        <li> {{ new_processes }} {% trans "New processes" %} </li>
-        <li> {{ closed_processes }}  {% trans "Closed processes" %} </li>
+        <li> {{ new_processes_total }} {% trans "New processes" %} </li>
+          <ul>
+              {% for s in new_processes %}
+              <li>
+                  {{ s.subsidiary__name }} : {{ s.count }}
+              </li>
+              {% endfor %}
+          </ul>
+        <li> {{ closed_processes_total }}  {% trans "Closed processes" %} </li>
+          <ul>
+              {% for s in closed_processes %}
+              <li>
+                  {{ s.subsidiary__name }} : {{ s.count }}
+              </li>
+              {% endfor %}
+          </ul>
       </ul>
-      {% if active_sources %}
-      <li> <h3> {% trans "Active sources" %} </h3> </li>
+      {% if interviews_total %}
+      <li> <h3> {% trans "Interviews" %} </h3> </li>
       <ul>
-        {% for s in active_sources %}
-        <li> {{ s }} ({{s.process_count}} {% trans "processes" %}) </li>
-        {% endfor %}
+        <li> {{ interviews_total }} ({{ interviews_go_total }} {% trans "go" %})</li>
+          <ul>
+              {% for i, j in interviews_details %}
+              <li>
+                  {{ i.process__subsidiary__name }} : {{ i.count }} ({{ j.count }} {% trans "go" %})
+              </li>
+              {% endfor %}
+          </ul>
       </ul>
       {% endif %}
       {% if go_processes %}
       <li> <h3>  {% trans "Hires" %} </h3> </li>
+      {% regroup go_processes by subsidiary as process_list %}
       <ul>
-        {% for p in go_processes %}
-        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }}  @ {{ p.subsidiary }} </li>
-        {% endfor %}
+      {% for process in process_list %}
+          <li>{{ process.grouper }}
+          <ul>
+              {% for p in process.list %}
+                  <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
+              {% endfor %}
+          </ul>
+          </li>
+      {% endfor %}
       </ul>
       {% endif %}
       {% if offer_processes %}
       <li> <h3> {% trans "Offers" %} </h3> </li>
-      <ul>
-        {% for p in offer_processes %}
-        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }}  @ {{ p.subsidiary }} </li>
+      {% regroup offer_processes by subsidiary as process_list %}
+        <ul>
+        {% for process in process_list %}
+            <li>{{ process.grouper }}
+            <ul>
+                {% for p in process.list %}
+                    <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
+                {% endfor %}
+            </ul>
+            </li>
         {% endfor %}
-      </ul>
+        </ul>
       {% endif %}
 
       {% if declined_processes %}
       <li> <h3> {% trans "Declined offers" %} </h3> </li>
+          {% regroup declined_processes by subsidiary as process_list %}
+            <ul>
+            {% for process in process_list %}
+                <li>{{ process.grouper }}
+                <ul>
+                    {% for p in process.list %}
+                        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"" }} </li>
+                    {% endfor %}
+                </ul>
+                </li>
+            {% endfor %}
+            </ul>
+      {% endif %}
+      {% if active_sources %}
+      <li> <h3> {% trans "Active sources" %} </h3> </li>
       <ul>
-        {% for p in declined_processes %}
-        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"" }}  @ {{ p.subsidiary }} </li>
+        {% for s in active_sources %}
+        <li> {{ s.sources__name }} ({{s.count}} {% trans "processes" %}) </li>
         {% endfor %}
       </ul>
-      {% endif %}
-
-      {% if interviews %}
-      <li> <h3> {% trans "Interviews" %} </h3> </li>
-      <ul>
-        <li> {{ interviews }} ({{ interviews_go }} {% trans "go" %})</li>
-      </ul>
-      {% endif %}
+    {% endif %}
     </ul>
   </div>
 </div>
