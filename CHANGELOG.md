@@ -1,3 +1,6 @@
+# 1.8.0 (2021-XX-XX)
+- Preselect the current consultant company in the new process form
+
 # 1.7.1 (2020-12-01)
 - Monthly summary:
   - Distinct and count active sources

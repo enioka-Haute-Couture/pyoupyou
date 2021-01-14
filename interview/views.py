@@ -502,6 +502,8 @@ def edit_candidate(request, process_id):
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
         process_form = ProcessForm(instance=process)
+        process_form.fields['subsidiary'].initial = request.user.consultant.company.id
+
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
 
