@@ -1,11 +1,18 @@
 name: Django CI
 
-on: push
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
 jobs:
   check:
     runs-on: ubuntu-latest
-      
+    env:
+      PYOUPYOU_ENV: dev
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -35,7 +42,10 @@ jobs:
         diff requirements.txt requirements2.txt
   test:
     runs-on: ubuntu-latest
+    env:
+      PYOUPYOU_ENV: dev
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7, 3.8]
     steps:
@@ -57,6 +67,5 @@ jobs:
       run: pipenv install --dev
     - name: test
       run: |
-        export PYOUPYOU_ENV=dev
         pipenv run coverage run ./manage.py test
         
