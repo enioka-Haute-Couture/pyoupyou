@@ -1,3 +1,6 @@
+# xxx
+- Add a bar chart of interviews state over time to the summary page
+
 # 1.8.0 (2021-02-11)
 - Preselect the current consultant company in the new process form
 - Replace Monthly summary with a date range summary
