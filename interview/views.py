@@ -7,6 +7,9 @@ import json
 
 from plotly.offline import plot
 import plotly.figure_factory as ff
+import plotly.express as px
+
+import pandas as pd
 
 import django_tables2 as tables
 import requests
@@ -17,6 +20,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.core.management import call_command
 from django.db import transaction
 from django.db.models import Q, Prefetch, F, Max
+from django.db.models.functions import Trunc
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
@@ -1070,7 +1074,7 @@ def activity_summary(request):
         .values("process__subsidiary__name")
         .annotate(count=Count("id"))
     )
-    print(new_interviews)
+
     # New GO interviews
     new_interviews_go_total = interview_filter.qs.filter(state=Interview.GO).count()
     new_interviews_go = (
@@ -1091,6 +1095,51 @@ def activity_summary(request):
             end_date = process_filter.form.cleaned_data["last_state_change"].stop
     subsidiary = process_filter.form.cleaned_data["subsidiary"]
 
+    source_data = (
+        interview_filter.qs.filter(planned_date__isnull=False)
+        .order_by("process__subsidiary__name")
+        .annotate(planned_date_month=Trunc("planned_date", "month"))
+        .values("planned_date_month")
+        .order_by("planned_date_month")
+        .values("planned_date_month", "process__subsidiary__name", "state")
+        .annotate(count=Count("id"))
+    )
+
+    df = pd.DataFrame(source_data)
+
+    translated_values = [
+        _t("NEED PLANIFICATION"),
+        _t("WAIT PLANIFICATION RESPONSE"),
+        _t("PLANNED"),
+        _t("GO"),
+        _t("NO"),
+        _t("DRAFT"),
+        _t("WAIT INFORMATION"),
+    ]
+
+    df = df.replace(Interview.ALL_STATE_VALUES, translated_values)
+    df["subsidiary_state"] = df["process__subsidiary__name"] + " " + df["state"]
+    df = df.sort_values("subsidiary_state")
+
+    fig = px.bar(
+        df,
+        x="planned_date_month",
+        y="count",
+        color="subsidiary_state",
+        title="",
+        labels={
+            "planned_date_month": _t("Interview date"),
+            "process__subsidiary__name": _t("Subsidiary"),
+            "count": _t("Count"),
+            "subsidiary_state": _t("Subsidiary and state"),
+        },
+    )
+
+    config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
+    chart = plot(fig, output_type="div", config=config)
+
+    plot_div = chart
+
     return render(
         request,
         "interview/summary.html",
@@ -1109,5 +1158,6 @@ def activity_summary(request):
             "declined_processes": declined_processes,
             "start": start_date,
             "end": end_date,
+            "plot_div": plot_div,
         },
     )
