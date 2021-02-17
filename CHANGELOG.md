@@ -1,3 +1,6 @@
+# 1.9.0 (2020-02-17)
+- Update to django 3
+
 # 1.8.0 (2021-02-17)
 - Preselect the current consultant company in the new process form
 - Replace Monthly summary with a date range summary
