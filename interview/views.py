@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import calendar
+import io
 import re
 from collections import defaultdict
 import json
@@ -27,7 +28,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from django.utils.html import format_html
-from django.utils.six import StringIO
 from django.utils.translation import ugettext as _t
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.http import require_http_methods
@@ -523,7 +523,7 @@ def edit_candidate(request, process_id):
 
 @user_passes_test(lambda u: u.is_active and u.is_superuser)
 def dump_data(request):
-    out = StringIO()
+    out = io.StringIO()
     call_command(
         "dumpdata",
         use_natural_foreign_keys=True,
