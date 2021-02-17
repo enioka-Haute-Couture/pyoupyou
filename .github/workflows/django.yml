@@ -38,7 +38,7 @@ jobs:
       run: PIPENV_PYUP_API_KEY="" pipenv check
     - name: Check requirements.txt is up to date
       run: |
-        pipenv lock -r --no-header > requirements2.txt
+        pipenv lock -r > requirements2.txt
         diff requirements.txt requirements2.txt
   test:
     runs-on: ubuntu-latest
