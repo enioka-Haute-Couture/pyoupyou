@@ -329,6 +329,16 @@ class Interview(models.Model):
         (WAIT_INFORMATION, _("WAIT INFORMATION")),
     )
 
+    ALL_STATE_VALUES = [
+        WAITING_PLANIFICATION,
+        WAITING_PLANIFICATION_RESPONSE,
+        PLANNED,
+        GO,
+        NO_GO,
+        DRAFT,
+        WAIT_INFORMATION,
+    ]
+
     objects = InterviewManager()
 
     process = models.ForeignKey(Process, on_delete=models.CASCADE)
