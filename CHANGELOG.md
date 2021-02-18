@@ -1,5 +1,8 @@
-# xxx
-- Interview admin page: filter by state and by subsidiary
+# 1.10.0 (xxx)
+- Admin:
+  - Interview: filter by state and by subsidiary. Search by candidate name
+  - Process: search by candidate name
+  - Document: search by candidate name, filter by document type
 
 # 1.9.0 (2020-02-17)
 - Update to django 3
