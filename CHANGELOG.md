@@ -1,3 +1,6 @@
+# xxx
+- Interview admin page: filter by state and by subsidiary
+
 # 1.9.0 (2020-02-17)
 - Update to django 3
 
