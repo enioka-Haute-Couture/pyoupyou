@@ -44,7 +44,7 @@ class ProcessAdmin(admin.ModelAdmin):
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
     list_display = ("id", "process", "state", "rank", "planned_date")
-    list_filter = ("process", "planned_date")
+    list_filter = ("state", "process__subsidiary", "planned_date")
 
 
 @admin.register(SourcesCategory)
