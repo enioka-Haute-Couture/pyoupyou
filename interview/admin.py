@@ -22,7 +22,8 @@ class CandidateAdmin(admin.ModelAdmin):
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ("id", "created_date", "candidate", "document_type", "content", "still_valid")
-    list_filter = ("created_date", "candidate", "still_valid")
+    list_filter = ("created_date", "still_valid", "document_type")
+    search_fields = ("candidate__name",)
 
 
 @admin.register(Process)
@@ -38,13 +39,15 @@ class ProcessAdmin(admin.ModelAdmin):
         "salary_expectation",
         "contract_duration",
     )
-    list_filter = ("sources", "subsidiary", "start_date", "end_date", "contract_type")
+    list_filter = ("subsidiary", "sources", "start_date", "end_date", "contract_type")
+    search_fields = ("candidate__name",)
 
 
 @admin.register(Interview)
 class InterviewAdmin(admin.ModelAdmin):
     list_display = ("id", "process", "state", "rank", "planned_date")
-    list_filter = ("state", "process__subsidiary", "planned_date")
+    list_filter = ("process__subsidiary", "planned_date", "state")
+    search_fields = ("process__candidate__name",)
 
 
 @admin.register(SourcesCategory)
