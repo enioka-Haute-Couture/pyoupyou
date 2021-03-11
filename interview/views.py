@@ -290,14 +290,14 @@ def new_candidate(request, past_candidate_id=None):
         if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
             candidate = candidate_form.save(commit=False)
             duplicates = None
-            if past_candidate_id is not None:
+            if past_candidate_id:
                 candidate.id = past_candidate_id
                 if not "summit" in request.POST:
                     candidate = Candidate.objects.for_user(request.user).get(id=past_candidate_id)
                     candidate_form = ProcessCandidateForm(instance=candidate)
             elif not "new-candidate" in request.POST:
                 duplicates = candidate.find_duplicates()
-                if duplicates.count() > 0:
+                if duplicates:
                     duplicates_map = map(
                         lambda dup: {
                             "duplicate": dup,
@@ -308,8 +308,7 @@ def new_candidate(request, past_candidate_id=None):
                     )
 
             if (
-                duplicates is None
-                or duplicates.count() == 0
+                not duplicates
                 or candidate.id is not None
                 or "new-candidate" in request.POST
             ) and "summit" in request.POST:
