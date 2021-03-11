@@ -308,9 +308,7 @@ def new_candidate(request, past_candidate_id=None):
                     )
 
             if (
-                not duplicates
-                or candidate.id is not None
-                or "new-candidate" in request.POST
+                not duplicates or candidate.id is not None or "new-candidate" in request.POST
             ) and "summit" in request.POST:
                 candidate.save()
                 content = request.FILES.get("cv", None)
@@ -319,6 +317,11 @@ def new_candidate(request, past_candidate_id=None):
                 process = process_form.save(commit=False)
                 process.candidate = candidate
                 process.save()
+                if interviewers_form.cleaned_data["interviewers"]:
+                    interview = interviewers_form.save(commit=False)
+                    interview.process = process
+                    interview.save()
+                    interviewers_form.save_m2m()
                 return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
     else:
         candidate_form = ProcessCandidateForm()
