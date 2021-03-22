@@ -32,6 +32,9 @@
     <form method="post" class="relative" enctype="multipart/form-data">
         {% crispy candidate_form %}
         {% crispy process_form %}
+        {% if interviewers_form %}
+        {% crispy interviewers_form %}
+        {% endif %}
         <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">
     </form>
     <div id="create-source" class="modal fade" tabindex="-1" role="dialog">
