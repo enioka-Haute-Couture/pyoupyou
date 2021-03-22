@@ -82,6 +82,20 @@ class OfferForm(forms.ModelForm):
     helper.form_tag = False
 
 
+class InterviewersForm(forms.ModelForm):
+    class Meta:
+        model = Interview
+        fields = ["interviewers"]
+        widgets = {"interviewers": MultipleConsultantWidget}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["interviewers"].required = False
+
+    helper = FormHelper()
+    helper.form_tag = False
+
+
 class InterviewForm(forms.ModelForm):
     class Meta:
         model = Interview
