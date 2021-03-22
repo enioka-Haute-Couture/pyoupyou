@@ -268,7 +268,8 @@ def new_candidate(request):
     if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
         process_form = ProcessForm(data=request.POST)
-        if candidate_form.is_valid() and process_form.is_valid():
+        interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
+        if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
             candidate = candidate_form.save()
             content = request.FILES.get("cv", None)
             if content:
@@ -276,6 +277,11 @@ def new_candidate(request):
             process = process_form.save(commit=False)
             process.candidate = candidate
             process.save()
+            if interviewers_form.cleaned_data["interviewers"]:
+                interview = interviewers_form.save(commit=False)
+                interview.process = process
+                interview.save()
+                interviewers_form.save_m2m()
             return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
     else:
         candidate_form = ProcessCandidateForm()
