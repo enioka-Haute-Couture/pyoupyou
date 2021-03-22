@@ -48,6 +48,7 @@ from interview.forms import (
     CloseForm,
     UploadSeekubeFileForm,
     OfferForm,
+    InterviewersForm,
 )
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
 from ref.models import Consultant, PyouPyouUser, Subsidiary
@@ -279,6 +280,7 @@ def new_candidate(request):
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
+        interviewers_form = InterviewersForm(prefix="interviewers")
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
     return render(
@@ -289,6 +291,7 @@ def new_candidate(request):
             "process_form": process_form,
             "source_form": source_form,
             "offer_form": offer_form,
+            "interviewers_form": interviewers_form,
         },
     )
 
