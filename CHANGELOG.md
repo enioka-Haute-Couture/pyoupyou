@@ -3,8 +3,10 @@
   - Interview: filter by state and by subsidiary. Search by candidate name
   - Process: search by candidate name
   - Document: search by candidate name, filter by document type
+- Fast insert mode: Allow to create first interview when you create a new process
+- Update to django 3.1.7
 
-# 1.9.0 (2020-02-17)
+# 1.9.0 (2021-02-17)
 - Update to django 3
 
 # 1.8.0 (2021-02-17)
