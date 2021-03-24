@@ -1,4 +1,4 @@
-# 1.10.0 (xxx)
+# 1.10.0 (2021-03-24)
 - Admin:
   - Interview: filter by state and by subsidiary. Search by candidate name
   - Process: search by candidate name
