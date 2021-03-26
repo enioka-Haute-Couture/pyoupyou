@@ -692,7 +692,7 @@ def export_interviews_tsv(request):
                 .filter(process=interview.process, rank=interview.rank - 1)
                 .first()
             )
-            if last_itw.planned_date is not None:
+            if last_itw and last_itw.planned_date is not None:
                 last_event_date = last_itw.planned_date.date()
             else:
                 time_since_last_is_sound = False
