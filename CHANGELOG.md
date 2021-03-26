@@ -1,3 +1,7 @@
+# 1.10.1 (2021-04-12)
+
+- All interviews export: fix a crash when an interview didn't have a date
+
 # 1.10.0 (2021-03-24)
 - Admin:
   - Interview: filter by state and by subsidiary. Search by candidate name
