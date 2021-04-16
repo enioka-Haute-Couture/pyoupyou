@@ -5,7 +5,7 @@ verify_ssl = true
 
 [dev-packages]
 black = "==19.3b0"
-django-debug-toolbar = "==2.2"
+django-debug-toolbar = "==2.2.1"
 factory-boy = "==3.1.0"
 tzlocal = "*"
 coverage = "*"
