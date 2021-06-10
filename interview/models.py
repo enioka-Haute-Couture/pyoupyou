@@ -114,6 +114,8 @@ class Candidate(models.Model):
             self.phone = ""
 
             # remove the candidate's documents
+            for doc in Document.objects.filter(candidate=self):
+                doc.content.delete()
             Document.objects.filter(candidate=self).delete()
 
             self.anonymized = True
