@@ -78,7 +78,6 @@ class Candidate(models.Model):
     phone = models.CharField(_("Phone"), max_length=30, blank=True)
     anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=41, blank=True)
     anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=41, blank=True)
-    anonymized_hashed_phone = models.CharField(_("Anonymized Hashed Phone"), max_length=41, blank=True)
     anonymized = models.BooleanField(default=False)
 
     # TODO Required by the reverse admin url resolver?
@@ -93,8 +92,6 @@ class Candidate(models.Model):
                 self.anonymized_hashed_name = self.anonymized_name()
             if self.email != "":
                 self.anonymized_hashed_email = self.anonymized_email()
-            if self.phone != "":
-                self.anonymized_hashed_phone = self.anonymized_phone()
 
     def save(self, *args, **kwargs):
         self.compute_anonymized_fields()
@@ -131,14 +128,6 @@ class Candidate(models.Model):
             return m.digest()
         return ""
 
-    def anonymized_phone(self):
-        if self.phone:
-            m = hashlib.sha1()
-            m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-            m.update(self.phone.replace(" ", "").replace(".", "").encode("utf-8"))
-            return m.digest()
-        return ""
-
     def find_duplicates(self):
         name_permutations = list(itertools.permutations(self.name.lower().split(" ")))
         hash_permutations = map(lambda words: anonymize_name(" ".join(words)), name_permutations)
@@ -149,7 +138,6 @@ class Candidate(models.Model):
                 & (
                     (~Q(anonymized_hashed_name="") & Q(anonymized_hashed_name__in=hash_permutations))
                     | (~Q(anonymized_hashed_email="") & Q(anonymized_hashed_email=self.anonymized_email()))
-                    | (~Q(anonymized_hashed_phone="") & Q(anonymized_hashed_phone=self.anonymized_phone()))
                 )
             )
         )
@@ -166,9 +154,6 @@ class Candidate(models.Model):
 
         if self.email and str(self.anonymized_email()) == other.anonymized_hashed_email:
             res.append("email")
-
-        if self.phone and str(self.anonymized_phone()) == other.anonymized_hashed_phone:
-            res.append("phone")
 
         return res
 

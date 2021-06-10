@@ -301,11 +301,7 @@ class AnonymizesCanditateTestCase(TestCase):
         self.assertEqual(self.p.candidate.anonymized_hashed_email, email_hash.digest())
 
         # phone
-        phone_hash = hashlib.sha1()
-        phone_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-        phone_hash.update("12345678".encode("utf-8"))
         self.assertEqual(self.p.candidate.phone, "")
-        self.assertEqual(self.p.candidate.anonymized_hashed_phone, phone_hash.digest())
 
         self.assertEqual(0, Document.objects.filter(candidate=self.p.candidate).count())
 
@@ -327,10 +323,4 @@ class AnonymizesCanditateTestCase(TestCase):
         other_candidate2.email = "tesT@test.Com"
         self.assertEqual(other_candidate2.anonymized_email(), email_hash.digest())
         previous_candidate_anoymized = other_candidate2.find_duplicates()
-        self.assertEqual(1, previous_candidate_anoymized.count())
-
-        other_candidate3 = CandidateFactory()
-        other_candidate3.phone = "12.34 56.78"
-        self.assertEqual(other_candidate3.anonymized_phone(), phone_hash.digest())
-        previous_candidate_anoymized = other_candidate3.find_duplicates()
         self.assertEqual(1, previous_candidate_anoymized.count())
