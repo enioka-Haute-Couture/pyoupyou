@@ -9,6 +9,7 @@ def anonymize_name(name):
     h.update(remove_accents(name.lower()))
     return h.digest()
 
+
 def anonymized_email(candidate):
     if candidate.email:
         m = hashlib.sha1()
@@ -16,6 +17,7 @@ def anonymized_email(candidate):
         m.update(candidate.email.lower().encode("utf-8"))
         return m.digest()
     return ""
+
 
 def compute_anonymized_fields(candidate):
     if not candidate.anonymized:
@@ -25,6 +27,7 @@ def compute_anonymized_fields(candidate):
             candidate.anonymized_hashed_email = anonymized_email(candidate)
         if candidate.phone != "":
             candidate.phone = ""
+
 
 def migrate_state(apps, schema_editor):
     Candidate = apps.get_model("interview", "Candidate")
