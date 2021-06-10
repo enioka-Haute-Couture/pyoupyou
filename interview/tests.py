@@ -286,7 +286,7 @@ class AnonymizesCanditateTestCase(TestCase):
         self.assertEqual(self.p.candidate.anonymized, True)
 
         # name
-        name_hash = hashlib.sha1()
+        name_hash = hashlib.sha256()
         name_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
         name_hash.update("name lastname".encode("utf-8"))
 
@@ -294,7 +294,7 @@ class AnonymizesCanditateTestCase(TestCase):
         self.assertEqual(self.p.candidate.anonymized_hashed_name, name_hash.digest())
 
         # email
-        email_hash = hashlib.sha1()
+        email_hash = hashlib.sha256()
         email_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
         email_hash.update("test@test.com".encode("utf-8"))
         self.assertEqual(self.p.candidate.email, "")

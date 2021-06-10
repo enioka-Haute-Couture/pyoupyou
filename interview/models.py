@@ -66,7 +66,7 @@ def remove_accents(input_str):
 
 
 def anonymize_name(name):
-    h = hashlib.sha1()
+    h = hashlib.sha256()
     h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
     h.update(remove_accents(name.lower()))
     return h.digest()
@@ -122,7 +122,7 @@ class Candidate(models.Model):
 
     def anonymized_email(self):
         if self.email:
-            m = hashlib.sha1()
+            m = hashlib.sha256()
             m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
             m.update(self.email.lower().encode("utf-8"))
             return m.digest()

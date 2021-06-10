@@ -4,7 +4,7 @@ from django.db import migrations, models
 
 
 def anonymize_name(name):
-    h = hashlib.sha1()
+    h = hashlib.sha256()
     h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
     h.update(remove_accents(name.lower()))
     return h.digest()
@@ -12,7 +12,7 @@ def anonymize_name(name):
 
 def anonymized_email(candidate):
     if candidate.email:
-        m = hashlib.sha1()
+        m = hashlib.sha256()
         m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
         m.update(candidate.email.lower().encode("utf-8"))
         return m.digest()
