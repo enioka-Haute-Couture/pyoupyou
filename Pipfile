@@ -22,7 +22,7 @@ django-ical = "==1.4"
 django-markwhat = "==1.6.1"
 commonmark = "==0.8.1"
 django-bleach = "==0.3.0"
-Django = "==3.1.7"
+Django = "==3.1.12"
 django-split-settings = "==0.3.0"
 requests = '==2.24.0 '
 django-filter = "==2.4.0"
