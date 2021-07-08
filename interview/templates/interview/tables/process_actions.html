@@ -1,4 +1,4 @@
 {% load i18n %}
-<a class="btn btn-info btn-xs" href="{% url 'process-details' process_id=record.pk %}">
+<a class="btn btn-info btn-xs" href="{{ record.get_absolute_url }}">
     <i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}
 </a>

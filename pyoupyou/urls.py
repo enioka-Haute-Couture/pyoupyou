@@ -28,7 +28,7 @@ urlpatterns = [
     url(r"^processes/source/(?P<source_id>\d+)$", views.processes_for_source, name="process-list-source"),
     url(r"^candidate/$", views.new_candidate, name="candidate-new"),
     url(r"^import-seekube/$", views.import_seekube, name="import-seekube"),
-    url(r"^process/(?P<process_id>\d+)/$", views.process, name="process-details"),
+    url(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
     url(r"^process/(?P<process_id>\d+)/close/$", views.close_process, name="process-close"),
     url(r"^process/(?P<process_id>\d+)/reopen/$", views.reopen_process, name="process-reopen"),
     url(r"^process/(?P<process_id>\d+)/interview/$", views.interview, {"action": "edit"}, name="process-new-interview"),
@@ -50,7 +50,7 @@ urlpatterns = [
         {"action": "edit"},
         name="interview-edit",
     ),
-    url(r"^interview/(?P<interview_id>\d+)/minute/$", views.minute, name="interview-minute"),
+    url(r"^interview/(?P<interview_id>\d+)(?P<slug_info>(\w-?)*)/minute/$", views.minute, name="interview-minute"),
     url(r"^interview/(?P<interview_id>\d+)/minute/edit/$", views.minute_edit, name="interview-minute-edit"),
     url(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
     url(

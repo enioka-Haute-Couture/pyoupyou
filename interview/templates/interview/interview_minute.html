@@ -7,7 +7,7 @@
 {% block content %}
 <div class="container">
     <div class="lead">
-        {% trans "Interview minute" %} <a href="{% url 'process-details' process_id=process.id %}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
+        {% trans "Interview minute" %} <a href="{{ process.get_absolute_url }}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
     <h3>{% trans "Interviewer" %}</h3>
     <ul>

@@ -66,6 +66,10 @@ class Candidate(models.Model):
     def __str__(self):
         return ("{name}").format(name=self.name)
 
+    @property
+    def name_slug(self):
+        return slugify(self.name)
+
     class Meta:
         verbose_name = _("Candidate")
 
@@ -228,7 +232,7 @@ class Process(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
 
-        return reverse("process-details", args=[str(self.id)])
+        return reverse("process-details", kwargs={"process_id": self.id, "slug_info": f"_{self.candidate.name_slug}"})
 
     def is_open(self):
         return self.state not in Process.CLOSED_STATE_VALUES
@@ -402,7 +406,13 @@ class Interview(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
 
-        return reverse("interview-minute", args=[str(self.id)])
+        return reverse(
+            "interview-minute",
+            kwargs={
+                "interview_id": self.id,
+                "slug_info": f"_{self.process.candidate.name_slug}-{self.interviewers_trigram_slug}-{self.rank}",
+            },
+        )
 
     @property
     def planning_request_sent(self):
@@ -432,6 +442,12 @@ class Interview(models.Model):
     def interviewers_str(self):
         if self.id:
             return ", ".join(i.user.get_full_name() for i in self.interviewers.all())
+        return ""
+
+    @property
+    def interviewers_trigram_slug(self):
+        if self.id:
+            return "-".join(i.user.trigramme for i in self.interviewers.all())
         return ""
 
     def trigger_notification(self):

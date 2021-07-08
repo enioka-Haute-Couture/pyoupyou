@@ -145,7 +145,7 @@ class InterviewTable(tables.Table):
 
 @login_required
 @require_http_methods(["GET"])
-def process(request, process_id):
+def process(request, process_id, slug_info=None):
     try:
         process = Process.objects.for_user(request.user).get(id=process_id)
     except Process.DoesNotExist:
@@ -282,7 +282,11 @@ def new_candidate(request):
                 interview.process = process
                 interview.save()
                 interviewers_form.save_m2m()
-            return HttpResponseRedirect(reverse("process-details", args=[str(process.id)]))
+            return HttpResponseRedirect(
+                reverse(
+                    "process-details", kwargs={"process_id": process.id, "candidate_name": process.candidate.name_slug}
+                )
+            )
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
@@ -322,7 +326,12 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if request.method == "POST":
-        ret = HttpResponseRedirect(reverse(viewname="process-details", kwargs={"process_id": process_id}))
+        ret = HttpResponseRedirect(
+            reverse(
+                viewname="process-details",
+                kwargs={"process_id": process_id, "candidate_name": interview.process.candidate.name_slug},
+            )
+        )
         if action == "planning-request":
             interview.toggle_planning_request()
             return ret
@@ -357,7 +366,17 @@ def minute_edit(request, interview_id):
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse(viewname="interview-minute", kwargs={"interview_id": interview.id}))
+            return HttpResponseRedirect(
+                reverse(
+                    viewname="interview-minute",
+                    kwargs={
+                        "interview_id": interview.id,
+                        "candidate_name": interview.candidate.name_slug,
+                        "consultant_trigram": interview.interviewers_trigram_slug,
+                        "interview_rank": interview.rank,
+                    },
+                )
+            )
     else:
         form = InterviewMinuteForm(instance=interview)
 
@@ -370,7 +389,7 @@ def minute_edit(request, interview_id):
 
 @login_required
 @require_http_methods(["GET"])
-def minute(request, interview_id):
+def minute(request, interview_id, slug_info=None):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
     except Interview.DoesNotExist:
