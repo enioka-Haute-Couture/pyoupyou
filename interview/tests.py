@@ -68,7 +68,9 @@ class AccessRestrictionDateTestCase(TestCase):
         # self.i.save()
 
     def test_view_process(self):
-        request = self.factory.get(reverse("process-details", kwargs={"process_id": self.p.id}))
+        request = self.factory.get(
+            reverse("process-details", kwargs={"process_id": self.p.id, "slug_info": f"_{self.p.candidate.name_slug}"})
+        )
 
         request.user = self.consultantOld.user
         response = process(request, self.p.id)
@@ -122,7 +124,15 @@ class AccessRestrictionDateTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_view_interview_minute(self):
-        request = self.factory.get(reverse("interview-minute", kwargs={"interview_id": self.i.id}))
+        request = self.factory.get(
+            reverse(
+                "interview-minute",
+                kwargs={
+                    "interview_id": self.i.id,
+                    "slug_info": f"_{self.i.process.candidate.name_slug}-{self.i.interviewers_trigram_slug}-{self.i.rank}",
+                },
+            )
+        )
 
         request.user = self.consultantOld.user
         response = minute(request, self.i.id)

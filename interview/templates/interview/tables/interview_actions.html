@@ -2,7 +2,7 @@
 <a class="btn btn-info btn-xs row-action" href="{% if user.consultant in record.interviewers.all and not record.minute%}
                                                 {% url 'interview-minute-edit' interview_id=record.pk %}
                                                 {% else %}
-                                                {% url 'interview-minute' interview_id=record.pk %}
+                                                {{ record.get_absolute_url }}
                                                 {% endif %}">
 <i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "MinuteShort" %}
 </a>
