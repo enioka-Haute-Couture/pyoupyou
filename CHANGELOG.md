@@ -1,6 +1,10 @@
-# x.xx.x (xxxx-xx-xx)
+# 1.11.0 (2021-10-12)
+
 - Update to django 3.1.13
 - Add anonymization feature and candidate duplication prevention
+- Provide more meaningful urls for process and interviews 
+  - Process: /process/<id>_<candidate>/
+  - Interview: /interview/<id>_<candidate>_<interviewers>_<rank>/minute/ (no url regression)
 
 # 1.10.1 (2021-04-12)
 - All interviews export: fix a crash when an interview didn't have a date
