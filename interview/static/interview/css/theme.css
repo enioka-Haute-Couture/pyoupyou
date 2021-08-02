@@ -54,8 +54,8 @@ th.asc .sort-icon::before {
     border-color: #d0e3f0;
 }
 
-.no-go {
-    margin-right: 10px;
+.interview-draft {
+    margin: 0 10px 0 10px;
 }
 
 .d-flex {
