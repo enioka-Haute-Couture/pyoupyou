@@ -1,4 +1,4 @@
-# 1.11.0 (2021-07-13)
+# 1.11.0 (XXXX-XX-XX)
 
 - Provide more meaningful urls for process and interviews 
   - Process: /process/<id>_<candidate>/
