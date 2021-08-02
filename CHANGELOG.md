@@ -3,6 +3,7 @@
 - Provide more meaningful urls for process and interviews 
   - Process: /process/<id>_<candidate>/
   - Interview: /interview/<id>_<candidate>_<interviewers>_<rank>/minute/ (no url regression)
+- Update django to 3.1.13
 
 # 1.10.1 (2021-04-12)
 
