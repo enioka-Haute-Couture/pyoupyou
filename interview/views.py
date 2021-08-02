@@ -354,6 +354,8 @@ def minute_edit(request, interview_id):
             interview.state = Interview.GO
         elif "itw-no" in request.POST:
             interview.state = Interview.NO_GO
+        elif "itw-draft" in request.POST:
+            interview.state = Interview.DRAFT
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
