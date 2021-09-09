@@ -2,10 +2,11 @@ from django.conf import settings
 from django.core import mail
 from django.test import TestCase, RequestFactory
 import datetime
+import hashlib
 
 from django.urls import reverse
 
-from interview.factory import ProcessFactory, InterviewFactory
+from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory
 from interview.models import Process, Document, Interview, Candidate
 
 import pytz
@@ -13,6 +14,8 @@ import pytz
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
+
+from django.conf import settings
 
 
 class InterviewTestCase(TestCase):
@@ -50,15 +53,15 @@ class AccessRestrictionDateTestCase(TestCase):
         sub.responsible = self.consultantOld
         sub.responsible.save()
         userOld = self.consultantOld.user
-        userOld.date_joined = datetime.date(2016, 1, 1)
+        userOld.date_joined = datetime.datetime(2016, 1, 1, tzinfo=datetime.timezone.utc)
         userOld.save()
         self.consultantNew = Consultant.objects.create_consultant("NEW", "new@mail.com", sub, "NEW")
         userNew = self.consultantNew.user
-        userNew.date_joined = datetime.date(2017, 11, 1)
+        userNew.date_joined = datetime.datetime(2017, 11, 1, tzinfo=datetime.timezone.utc)
         userNew.save()
 
         self.p = ProcessFactory()
-        self.p.start_date = datetime.date(2016, 10, 10)
+        self.p.start_date = datetime.datetime(2016, 10, 10, tzinfo=datetime.timezone.utc)
         self.p.save()
         self.i = InterviewFactory(process=self.p)
         self.i.interviewers.set([self.consultantOld, self.consultantNew])
@@ -171,7 +174,6 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # When we create an interview
@@ -258,3 +260,67 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [])
         self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
         mail.outbox = 0
+
+
+class AnonymizesCanditateTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+        sub = SubsidiaryFactory()
+        self.consultantItw = Consultant.objects.create_consultant("ITW", "itw@mail.com", sub, "ITW")
+        self.consultantRestricted = Consultant.objects.create_consultant("RES", "res@mail.com", sub, "RES")
+
+        self.p = ProcessFactory()
+
+        self.p.candidate.name = "Nâme lAstName"
+        self.p.candidate.email = "tesT@test.Com"
+        self.p.candidate.phone = "12.34 56.78"
+        self.p.start_date = datetime.datetime.now() - datetime.timedelta(365)  # one year ago
+
+        Document.objects.create(document_type="CV", content="", candidate=self.p.candidate)
+
+        self.p.candidate.save()
+
+    def test_anonymize_candidate(self):
+        self.p.candidate.anonymize()
+        self.assertEqual(self.p.candidate.anonymized, True)
+
+        # name
+        name_hash = hashlib.sha256()
+        name_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
+        name_hash.update("name lastname".encode("utf-8"))
+
+        self.assertEqual(self.p.candidate.name, "")
+        self.assertEqual(self.p.candidate.anonymized_hashed_name, name_hash.digest())
+
+        # email
+        email_hash = hashlib.sha256()
+        email_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
+        email_hash.update("test@test.com".encode("utf-8"))
+        self.assertEqual(self.p.candidate.email, "")
+        self.assertEqual(self.p.candidate.anonymized_hashed_email, email_hash.digest())
+
+        # phone
+        self.assertEqual(self.p.candidate.phone, "")
+
+        self.assertEqual(0, Document.objects.filter(candidate=self.p.candidate).count())
+
+        self.p.candidate.save()
+
+        other_candidate1 = CandidateFactory()
+        other_candidate1.name = "Nâme lAstName"
+        self.assertEqual(other_candidate1.anonymized_name(), name_hash.digest())
+        previous_candidate_anoymized = other_candidate1.find_duplicates()
+        self.assertEqual(1, previous_candidate_anoymized.count())
+        other_candidate1.save()
+
+        other_candidate1b = CandidateFactory()
+        other_candidate1b.name = "lastname nâme"  # reverse order and lower case
+        previous_candidate_anoymized = other_candidate1b.find_duplicates()
+        self.assertEqual(2, previous_candidate_anoymized.count())
+
+        other_candidate2 = CandidateFactory()
+        other_candidate2.email = "tesT@test.Com"
+        self.assertEqual(other_candidate2.anonymized_email(), email_hash.digest())
+        previous_candidate_anoymized = other_candidate2.find_duplicates()
+        self.assertEqual(1, previous_candidate_anoymized.count())

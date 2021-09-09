@@ -29,13 +29,58 @@
 
 {% block content %}
 <div class="container">
-    <form method="post" class="relative" enctype="multipart/form-data">
+    <form method="post" class="relative" enctype="multipart/form-data" id="process-candidate-form">
         {% crispy candidate_form %}
         {% crispy process_form %}
         {% if interviewers_form %}
         {% crispy interviewers_form %}
         {% endif %}
-        <input type="submit" name="summit" value="{% trans "Save" %}" class="btn btn-primary btn-primary" id="submit-id-summit">
+
+        {% if duplicates %}
+        {% trans "This candidate ressembles to those other candidates:" %}
+        <ul>
+            {% for dup in duplicates %}
+
+                {% if "name" in dup.diff %}
+                    <li>{%  trans "Name matching" %}<br />
+                {% endif %}
+
+                {% if "email" in dup.diff %}
+                    <li>{%  trans "Email matching" %}<br />
+                {% endif %}
+                
+                {% trans "Past recruitement processes" %}:
+
+                <ul>
+                {% for process in dup.process %}
+                <li>
+                    <a href="{% url 'process-details' process_id=process.id %}">{{ process }}</a>
+                    
+                    <ul>
+                    {% if process.start_date %}
+                        <li>{% trans "Process start date" %}: {{ process.start_date }}</li>
+                    {% endif %}
+
+                    {% if process.end_date %}
+                        <li>{% trans "Process end date" %}:   {{ process.end_date }}</li>
+                    {% endif %}
+                    </ul>
+
+                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=process.candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
+                </li>
+                {% endfor %}
+                </ul>
+            </li>
+
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if duplicates %}
+            <input type="hidden" name="new-candidate"></input>
+        {% endif %}
+
+        <input type="submit" name="summit" value="{% if duplicates %}{% trans "New Candidate" %}{% else %}{% trans "Save" %}{% endif %}" class="btn btn-primary btn-primary" id="submit-id-summit">
     </form>
     <div id="create-source" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
