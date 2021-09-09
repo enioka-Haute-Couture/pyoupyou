@@ -2,11 +2,16 @@
 
 import datetime
 import os
+import hashlib
+import unicodedata
+import itertools
 
 from django.conf import settings
 from django.core import mail
 from django.db import models
+from django.db.models import Q, CharField
 from django.db.models.signals import post_save, m2m_changed
+from django.db.models.functions import Lower
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils.text import slugify
@@ -15,6 +20,8 @@ from django.utils.translation import ugettext_lazy as _
 
 from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Consultant, Subsidiary
+
+CharField.register_lookup(Lower)
 
 
 class ContractType(models.Model):
@@ -52,10 +59,26 @@ class CandidateManager(models.Manager):
         return Candidate.objects.distinct().filter(process__in=Process.objects.for_user(user))
 
 
+def remove_accents(input_str):
+    nfkd_form = unicodedata.normalize("NFKD", input_str)
+    only_ascii = nfkd_form.encode("ASCII", "ignore")
+    return only_ascii
+
+
+def anonymize_name(name):
+    h = hashlib.sha256()
+    h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
+    h.update(remove_accents(name.lower()))
+    return h.digest()
+
+
 class Candidate(models.Model):
     name = models.CharField(_("Name"), max_length=200)
     email = models.EmailField(blank=True)
     phone = models.CharField(_("Phone"), max_length=30, blank=True)
+    anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=41, blank=True)
+    anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=41, blank=True)
+    anonymized = models.BooleanField(default=False)
 
     # TODO Required by the reverse admin url resolver?
     app_label = "interview"
@@ -63,8 +86,82 @@ class Candidate(models.Model):
 
     objects = CandidateManager()
 
+    def compute_anonymized_fields(self):
+        if not self.anonymized:
+            if self.name != "":
+                self.anonymized_hashed_name = self.anonymized_name()
+            if self.email != "":
+                self.anonymized_hashed_email = self.anonymized_email()
+
+    def save(self, *args, **kwargs):
+        self.compute_anonymized_fields()
+        super(Candidate, self).save(*args, **kwargs)
+
     def __str__(self):
         return ("{name}").format(name=self.name)
+
+    def anonymize(self):
+        """
+            Anonymize the candidate data, removing its documents
+            This is irreversible
+        """
+        if not self.anonymized:
+            # remove the candidate's documents
+            for doc in Document.objects.filter(candidate=self):
+                doc.content.delete()
+            Document.objects.filter(candidate=self).delete()
+            # remove directory as well
+            try:
+                path = settings.MEDIA_ROOT + f"/CV/{self.id}_{self.name}"
+                os.rmdir(path)
+            except FileNotFoundError:
+                print(f"directory {path} doesnt exist")
+
+            self.name = ""
+            self.email = ""
+            self.phone = ""
+
+            self.anonymized = True
+
+    def anonymized_name(self):
+        return anonymize_name(self.name)
+
+    def anonymized_email(self):
+        if self.email:
+            m = hashlib.sha256()
+            m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
+            m.update(self.email.lower().encode("utf-8"))
+            return m.digest()
+        return ""
+
+    def find_duplicates(self):
+        name_permutations = list(itertools.permutations(self.name.lower().split(" ")))
+        hash_permutations = map(lambda words: anonymize_name(" ".join(words)), name_permutations)
+
+        return Candidate.objects.filter(
+            (
+                ~Q(id=self.id)
+                & (
+                    (~Q(anonymized_hashed_name="") & Q(anonymized_hashed_name__in=hash_permutations))
+                    | (~Q(anonymized_hashed_email="") & Q(anonymized_hashed_email=self.anonymized_email()))
+                )
+            )
+        )
+
+    def compare(self, other):
+        res = []
+
+        if self.name:
+            name_permutations = list(itertools.permutations(self.name.lower().split(" ")))
+            hash_permutations = map(lambda words: anonymize_name(" ".join(words)), name_permutations)
+
+            if other.anonymized_hashed_name in hash_permutations:
+                res.append("name")
+
+        if self.email and str(self.anonymized_email()) == other.anonymized_hashed_email:
+            res.append("email")
+
+        return res
 
     class Meta:
         verbose_name = _("Candidate")

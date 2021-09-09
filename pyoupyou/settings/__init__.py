@@ -12,7 +12,7 @@ include("common.py", "{env}.py".format(env=env), optional("local.py"))
 
 
 try:
-    DATABASES, SITE_HOST, MAIL_FROM, MAIL_HR, SEEKUBE_SOURCE_ID
+    DATABASES, SITE_HOST, MAIL_FROM, MAIL_HR, SEEKUBE_SOURCE_ID, SECRET_ANON_SALT
 except NameError as e:
     print("{}. You need to declare it in settings in your settings/local.py file".format(e))
     exit()
