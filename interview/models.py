@@ -106,14 +106,20 @@ class Candidate(models.Model):
             This is irreversible
         """
         if not self.anonymized:
-            self.name = ""
-            self.email = ""
-            self.phone = ""
-
             # remove the candidate's documents
             for doc in Document.objects.filter(candidate=self):
                 doc.content.delete()
             Document.objects.filter(candidate=self).delete()
+            # remove directory as well
+            try:
+                path = settings.MEDIA_ROOT + f"/CV/{self.id}_{self.name}"
+                os.rmdir(path)
+            except FileNotFoundError:
+                print(f"directory {path} doesnt exist")
+
+            self.name = ""
+            self.email = ""
+            self.phone = ""
 
             self.anonymized = True
 
