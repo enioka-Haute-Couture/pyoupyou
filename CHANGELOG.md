@@ -1,3 +1,7 @@
+# x.xx.x (xxxx-xx-xx)
+
+- Update to django 3.1.13
+
 # 1.10.1 (2021-04-12)
 
 - All interviews export: fix a crash when an interview didn't have a date
