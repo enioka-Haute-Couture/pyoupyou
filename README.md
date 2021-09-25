@@ -9,7 +9,7 @@ http://www.gnu.org/licenses/agpl-3.0.html
 
 ## Dependencies
 
-- Python >= 3.5
+- Python >= 3.7.1
 - pipenv
 
 ## Dev environment
