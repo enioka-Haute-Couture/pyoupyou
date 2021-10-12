@@ -291,15 +291,14 @@ def new_candidate(request, past_candidate_id=None):
             candidate = candidate_form.save(commit=False)
             duplicates = None
             if past_candidate_id:
-                candidate.id = past_candidate_id
                 if not "summit" in request.POST:
                     candidate = Candidate.objects.get(id=past_candidate_id)
-                    print(candidate)
-                    for f in ["email", "phone"]:
-                        if candidate_form.data[f]:
-                            setattr(candidate, f, candidate_form.data[f])
-                        if not candidate.name:
-                            setattr(candidate, f, candidate_form.data["name"])
+                    if not candidate.name:
+                        candidate.name = candidate_form.data["name"]
+                    if candidate_form.data["email"]:
+                        candidate.email = candidate_form.data["email"]
+                    if candidate_form.data["phone"]:
+                        candidate.phone = candidate_form.data["phone"]
                     candidate_form = ProcessCandidateForm(instance=candidate)
             elif not "new-candidate" in request.POST:
                 duplicates = candidate.find_duplicates()
