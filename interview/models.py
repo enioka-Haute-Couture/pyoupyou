@@ -163,6 +163,10 @@ class Candidate(models.Model):
 
         return res
 
+    @property
+    def display_name(self):
+        return self.name if not self.anonymized else _("anonymized")
+
     class Meta:
         verbose_name = _("Candidate")
 
