@@ -30,21 +30,13 @@
 {% block content %}
 <div class="container">
     <form method="post" class="relative" enctype="multipart/form-data" id="process-candidate-form">
-        {% crispy candidate_form %}
-        {% crispy process_form %}
-        {% if interviewers_form %}
-        {% crispy interviewers_form %}
-        {% endif %}
-
         {% if duplicates %}
         {% trans "This candidate ressembles to those other candidates:" %}
-        {% trans "Past recruitement processes" %}:
         {% regroup duplicates by candidate as dups %}
         <ul>
             {% for candidate, processes in dups %}
                 <li>
-                    {% if candidate.name %}{{ candidate.name }}{% else %}{% trans "Anonymized candidate" %}{% endif %}
-                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
+                    {{ candidate.display_name }}
                     <ul>
                     {% for process in processes %}
                             <li>
@@ -52,6 +44,28 @@
                             </li>
                     {% endfor %}
                     </ul>
+                </li>
+            {% endfor %}
+        </ul>
+        <p>
+        {% trans "Reuse a candidate or create a new one, checkout options at the bottom of this form." %}
+        </p>
+        {% endif %}
+
+        {% crispy candidate_form %}
+        {% crispy process_form %}
+        {% if interviewers_form %}
+        {% crispy interviewers_form %}
+        {% endif %}
+
+        {% if duplicates %}
+        {% trans "Candidate(s) that can be reused:" %}
+        {% regroup duplicates by candidate as dups %}
+        <ul>
+            {% for candidate, processes in dups %}
+                <li>
+                    {{ candidate.display_name }}
+                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
                 </li>
             {% endfor %}
         </ul>
