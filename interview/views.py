@@ -322,7 +322,8 @@ def new_candidate(request, past_candidate_id=None):
 
                 return HttpResponseRedirect(
                     reverse(
-                        "process-details", kwargs={"process_id": process.id, "candidate_name": process.candidate.name_slug}
+                        "process-details",
+                        kwargs={"process_id": process.id, "candidate_name": process.candidate.name_slug},
                     )
                 )
     else:
