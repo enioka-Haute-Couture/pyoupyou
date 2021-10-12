@@ -281,7 +281,7 @@ def reuse_candidate(request, candidate_id):
 
 @login_required
 def new_candidate(request, past_candidate_id=None):
-    duplicates_map = None
+    duplicate_processes = None
     candidate = None
     if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
@@ -293,20 +293,17 @@ def new_candidate(request, past_candidate_id=None):
             if past_candidate_id:
                 candidate.id = past_candidate_id
                 if not "summit" in request.POST:
-                    candidate = Candidate.objects.for_user(request.user).get(id=past_candidate_id)
+                    candidate = Candidate.objects.get(id=past_candidate_id)
+                    print(candidate)
+                    for f in ["email", "phone"]:
+                        if candidate_form.data[f]:
+                            setattr(candidate, f, candidate_form.data[f])
+                        if not candidate.name:
+                            setattr(candidate, f, candidate_form.data["name"])
                     candidate_form = ProcessCandidateForm(instance=candidate)
             elif not "new-candidate" in request.POST:
                 duplicates = candidate.find_duplicates()
-                if duplicates:
-                    duplicates_map = map(
-                        lambda dup: {
-                            "duplicate": dup,
-                            "diff": candidate.compare(dup),
-                            "process": Process.objects.distinct().filter(candidate__id=dup.id),
-                        },
-                        duplicates,
-                    )
-
+                duplicate_processes = Process.objects.distinct().filter(candidate__in=duplicates)
             if (
                 not duplicates or candidate.id is not None or "new-candidate" in request.POST
             ) and "summit" in request.POST:
@@ -342,7 +339,7 @@ def new_candidate(request, past_candidate_id=None):
             "source_form": source_form,
             "offer_form": offer_form,
             "interviewers_form": interviewers_form,
-            "duplicates": duplicates_map,
+            "duplicates": duplicate_processes,
             "candidate": candidate,
         },
     )
