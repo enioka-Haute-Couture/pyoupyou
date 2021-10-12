@@ -38,41 +38,21 @@
 
         {% if duplicates %}
         {% trans "This candidate ressembles to those other candidates:" %}
+        {% trans "Past recruitement processes" %}:
+        {% regroup duplicates by candidate as dups %}
         <ul>
-            {% for dup in duplicates %}
-
-                {% if "name" in dup.diff %}
-                    <li>{%  trans "Name matching" %}<br />
-                {% endif %}
-
-                {% if "email" in dup.diff %}
-                    <li>{%  trans "Email matching" %}<br />
-                {% endif %}
-                
-                {% trans "Past recruitement processes" %}:
-
-                <ul>
-                {% for process in dup.process %}
+            {% for candidate, processes in dups %}
                 <li>
-                    <a href="{% url 'process-details' process_id=process.id %}">{{ process }}</a>
-                    
+                    {% if candidate.name %}{{ candidate.name }}{% else %}{% trans "Anonymized candidate" %}{% endif %}
+                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
                     <ul>
-                    {% if process.start_date %}
-                        <li>{% trans "Process start date" %}: {{ process.start_date }}</li>
-                    {% endif %}
-
-                    {% if process.end_date %}
-                        <li>{% trans "Process end date" %}:   {{ process.end_date }}</li>
-                    {% endif %}
+                    {% for process in processes %}
+                            <li>
+                                {{ process.subsidiary }}: {{ process.start_date }}{% if process.end_date %} - {{ process.end_date }}{% endif %} <a class="btn btn-xs btn-info" href="{% url 'process-details' process_id=process.id %}"><i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}</a>
+                            </li>
+                    {% endfor %}
                     </ul>
-
-                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=process.candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
                 </li>
-                {% endfor %}
-                </ul>
-            </li>
-
-            </li>
             {% endfor %}
         </ul>
         {% endif %}
