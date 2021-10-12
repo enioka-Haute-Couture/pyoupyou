@@ -103,7 +103,7 @@
           <li>{{ process.grouper }}
           <ul>
               {% for p in process.list %}
-                  <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
+                  <li> {{ p.candidate.display_name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
               {% endfor %}
           </ul>
           </li>
@@ -118,7 +118,7 @@
             <li>{{ process.grouper }}
             <ul>
                 {% for p in process.list %}
-                    <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
+                    <li> {{ p.candidate.display_name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"?" }} </li>
                 {% endfor %}
             </ul>
             </li>
@@ -134,7 +134,7 @@
                 <li>{{ process.grouper }}
                 <ul>
                     {% for p in process.list %}
-                        <li> {{ p.candidate.name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"" }} </li>
+                        <li> {{ p.candidate.display_name }} ({{ p.contract_type|default_if_none:"?" }}) : {{ p.contract_start_date|default_if_none:"" }} </li>
                     {% endfor %}
                 </ul>
                 </li>
