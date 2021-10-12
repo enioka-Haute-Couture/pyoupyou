@@ -26,10 +26,9 @@ class Command(BaseCommand):
         parser.add_argument("date", nargs="?", type=str)
 
     def handle(self, *args, **options):
-
         current_date = (
             date.fromisoformat(options["date"]) if options["date"] else now().date() - relativedelta(months=12)
-        )  # 6 months ago by default
+        )
         logger.info("Start batch anonymization {}".format(current_date))
 
         closed_processes = (
@@ -41,9 +40,8 @@ class Command(BaseCommand):
         )
 
         for proc in closed_processes:
-            if proc.state != Process.HIRED:
-                logger.info("Anonymizing candidate {candidate_id}".format(candidate_id=proc.candidate.id))
-                proc.candidate.anonymize()
-                proc.candidate.save()
+            logger.info("Anonymizing candidate {candidate_id}".format(candidate_id=proc.candidate.id))
+            proc.candidate.anonymize()
+            proc.candidate.save()
 
         logger.info("End batch anonymization")
