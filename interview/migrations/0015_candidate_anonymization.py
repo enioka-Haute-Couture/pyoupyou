@@ -3,49 +3,6 @@
 from django.db import migrations, models
 
 
-def anonymize_name(name):
-    h = hashlib.sha256()
-    h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-    h.update(remove_accents(name.lower()))
-    return h.digest()
-
-
-def anonymized_email(candidate):
-    if candidate.email:
-        m = hashlib.sha256()
-        m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-        m.update(candidate.email.lower().encode("utf-8"))
-        return m.digest()
-    return ""
-
-
-def compute_anonymized_fields(candidate):
-    if not candidate.anonymized:
-        if candidate.name != "":
-            candidate.anonymized_hashed_name = anonymized_name(candidate.name)
-        if candidate.email != "":
-            candidate.anonymized_hashed_email = anonymized_email(candidate)
-        if candidate.phone != "":
-            candidate.phone = ""
-
-
-def migrate_state(apps, schema_editor):
-    Candidate = apps.get_model("interview", "Candidate")
-
-    for candidate in Candidate.objects.all():
-        compute_anonymized_fields(candidate)
-        candidate.save()
-
-
-def migrate_state_reverse(apps, schema_editor):
-    Candidate = apps.get_model("interview", "Candidate")
-    for candidate in Candidate.objects.all():
-        candidate.anonymized_hashed_name = ""
-        candidate.anonymized_hashed_email = ""
-
-        candidate.save()
-
-
 class Migration(migrations.Migration):
 
     dependencies = [("interview", "0014_auto_20201201_1832")]
@@ -63,5 +20,4 @@ class Migration(migrations.Migration):
             name="anonymized_hashed_name",
             field=models.CharField(blank=True, max_length=41, verbose_name="Anonymized Hashed Name"),
         ),
-        migrations.RunPython(migrate_state, migrate_state_reverse),
     ]
