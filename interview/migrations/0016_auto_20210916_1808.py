@@ -8,6 +8,7 @@ from django.conf import settings
 
 import unicodedata
 
+
 def remove_accents(input_str):
     nfkd_form = unicodedata.normalize("NFKD", input_str)
     only_ascii = nfkd_form.encode("ASCII", "ignore")
@@ -56,13 +57,9 @@ def migrate_state_reverse(apps, schema_editor):
 
         candidate.save()
 
+
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0015_candidate_anonymization'),
-    ]
+    dependencies = [("interview", "0015_candidate_anonymization")]
 
-    operations = [
-        migrations.RunPython(migrate_state, migrate_state_reverse),
-
-    ]
+    operations = [migrations.RunPython(migrate_state, migrate_state_reverse)]
