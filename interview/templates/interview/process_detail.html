@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="container">
-    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.pk %}">{{ process.candidate.name }} </a> [{{ process.subsidiary }}]</h3>
+    <h3> {% trans "Candidate:" %} <a href="{% url 'candidate' process.pk %}">{{ process.candidate.display_name }} </a> [{{ process.subsidiary }}]</h3>
     {% if process.is_open %}
         <h5> {% trans "This process is in progress" %} </h5>
     {% else %}
