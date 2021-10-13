@@ -40,7 +40,7 @@
                     <ul>
                     {% for process in processes %}
                             <li>
-                                {{ process.subsidiary }}: {{ process.start_date }}{% if process.end_date %} - {{ process.end_date }}{% endif %} <a class="btn btn-xs btn-info" href="{% url 'process-details' process_id=process.id %}"><i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}</a>
+                                {{ process.subsidiary }}: {{ process.start_date }}{% if process.end_date %} - {{ process.end_date }}{% endif %} <a class="btn btn-xs btn-info" href="{% url 'process-details' process_id=process.id slug_info=process.candidate.name_slug %}"><i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}</a>
                             </li>
                     {% endfor %}
                     </ul>
