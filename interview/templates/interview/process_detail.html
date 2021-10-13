@@ -4,6 +4,8 @@
 {% load admin_urls %}
 {% load i18n %}
 {% load crispy_forms_tags %}
+{% load markup %}
+{% load bleach_tags %}  
 
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
@@ -107,7 +109,7 @@
         <div class="col-md-12">
             <p>
                 <dt>{% trans "Other informations" %}</dt>
-                <dd>{{ process.other_informations }}</dd>
+                <dd>{{ process.other_informations | bleach | commonmark }}</dd>
             </p>
         </div>
     </div>
