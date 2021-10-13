@@ -322,8 +322,7 @@ def new_candidate(request, past_candidate_id=None):
 
                 return HttpResponseRedirect(
                     reverse(
-                        "process-details",
-                        kwargs={"process_id": process.id, "candidate_name": process.candidate.name_slug},
+                        "process-details", kwargs={"process_id": process.id, "slug_info": process.candidate.name_slug}
                     )
                 )
     else:
@@ -372,7 +371,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
         ret = HttpResponseRedirect(
             reverse(
                 viewname="process-details",
-                kwargs={"process_id": process_id, "candidate_name": interview.process.candidate.name_slug},
+                kwargs={"process_id": process_id, "slug_info": interview.process.candidate.name_slug},
             )
         )
         if action == "planning-request":
@@ -416,7 +415,7 @@ def minute_edit(request, interview_id):
                     viewname="interview-minute",
                     kwargs={
                         "interview_id": interview.id,
-                        "candidate_name": interview.candidate.name_slug,
+                        "slug_info": interview.candidate.name_slug,
                         "consultant_trigram": interview.interviewers_trigram_slug,
                         "interview_rank": interview.rank,
                     },
