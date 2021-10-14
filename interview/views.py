@@ -3,9 +3,12 @@ import datetime
 import calendar
 import io
 import re
+import this
 from collections import defaultdict
 import json
 
+from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
+from django.contrib.admin.options import get_content_type_for_model
 from plotly.offline import plot
 import plotly.figure_factory as ff
 import plotly.express as px
@@ -57,6 +60,19 @@ import datetime
 from django import template
 
 register = template.Library()
+
+
+def log_action(added, object, user, view):
+    LogEntry.objects.log_action(
+        user_id=user.pk,
+        content_type_id=get_content_type_for_model(object).pk,
+        object_id=object.pk,
+        object_repr=str(object),
+        action_flag=ADDITION if added else CHANGE,
+        change_message=f"{object} has been Added through {view.__name__}"
+        if added
+        else f"{object} has been updated through {view.__name__}",
+    )
 
 
 @register.simple_tag
@@ -192,6 +208,7 @@ def close_process(request, process_id):
     if form.is_valid():
         form.instance.end_date = datetime.date.today()
         form.save()
+        log_action(False, process, request.user, close_process)
     # TODO manage errors
     return HttpResponseRedirect(process.get_absolute_url())
 
@@ -208,6 +225,7 @@ def reopen_process(request, process_id):
     process.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
     process.closed_comment = ""
     process.save()
+    log_action(False, process, request.user, reopen_process)
     return HttpResponseRedirect(process.get_absolute_url())
 
 
@@ -307,17 +325,20 @@ def new_candidate(request, past_candidate_id=None):
                 not duplicates or candidate.id is not None or "new-candidate" in request.POST
             ) and "summit" in request.POST:
                 candidate.save()
+                log_action(True, candidate, request.user, new_candidate)
                 content = request.FILES.get("cv", None)
                 if content:
                     Document.objects.create(document_type="CV", content=content, candidate=candidate)
                 process = process_form.save(commit=False)
                 process.candidate = candidate
                 process.save()
+                log_action(True, process, request.user, new_candidate)
 
                 if interviewers_form.cleaned_data["interviewers"]:
                     interview = interviewers_form.save(commit=False)
                     interview.process = process
                     interview.save()
+                    log_action(True, interview, request.user, new_candidate)
                     interviewers_form.save_m2m()
 
                 return HttpResponseRedirect(
@@ -357,32 +378,36 @@ def interview(request, process_id=None, interview_id=None, action=None):
     """
     if interview_id is not None:
         try:
-            interview = Interview.objects.for_user(request.user).get(id=interview_id)
-            if action in ["plan", "planning-request"] and request.user.consultant not in interview.interviewers.all():
+            interview_model = Interview.objects.for_user(request.user).get(id=interview_id)
+            if (
+                action in ["plan", "planning-request"]
+                and request.user.consultant not in interview_model.interviewers.all()
+            ):
                 return HttpResponseNotFound()
 
         except Interview.DoesNotExist:
             return HttpResponseNotFound()
     else:
-        interview = Interview(process_id=process_id)
+        interview_model = Interview(process_id=process_id)
 
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     if request.method == "POST":
         ret = HttpResponseRedirect(
             reverse(
                 viewname="process-details",
-                kwargs={"process_id": process_id, "slug_info": interview.process.candidate.name_slug},
+                kwargs={"process_id": process_id, "slug_info": interview_model.process.candidate.name_slug},
             )
         )
         if action == "planning-request":
-            interview.toggle_planning_request()
+            interview_model.toggle_planning_request()
             return ret
-        form = InterviewForm(request.POST, instance=interview)
+        form = InterviewForm(request.POST, instance=interview_model)
         if form.is_valid():
             form.save()
+            log_action(False, interview_model, request.user, interview)
             return ret
     else:
-        form = InterviewForm(instance=interview)
+        form = InterviewForm(instance=interview_model)
 
     process = Process.objects.for_user(request.user).get(id=process_id)
 
@@ -410,6 +435,7 @@ def minute_edit(request, interview_id):
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()
+            log_action(False, interview, request.user, minute_edit)
             return HttpResponseRedirect(
                 reverse(
                     viewname="interview-minute",
@@ -494,6 +520,7 @@ def create_source_ajax(request):
     form = SourceForm(request.POST, prefix="source")
     if form.is_valid():
         form.save()
+        log_action(True, form.instance, request.user, create_source_ajax)
         data = {}
         return JsonResponse(data)
     else:
@@ -507,6 +534,7 @@ def create_offer_ajax(request):
     form = OfferForm(request.POST, prefix="offer")
     if form.is_valid():
         form.save()
+        log_action(True, form.instance, request.user, create_offer_ajax)
         data = {}
         return JsonResponse(data)
     else:
@@ -533,7 +561,7 @@ def create_account(request):
             email=data["email"],
             company=subsidiary,
             full_name=data["name"],
-            **extra_fields
+            **extra_fields,
         )
         return JsonResponse({"consultant": consultant.__str__()})
     except:
@@ -568,12 +596,14 @@ def edit_candidate(request, process_id):
         if candidate_form.is_valid() and process_form.is_valid():
             candidate_form.id = candidate.id
             candidate = candidate_form.save()
+            log_action(False, candidate, request.user, edit_candidate)
             content = request.FILES.get("cv", None)
             if content:
                 Document.objects.create(document_type="CV", content=content, candidate=candidate)
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
+            log_action(False, process, request.user, edit_candidate)
             return HttpResponseRedirect(process.get_absolute_url())
     else:
         candidate_form = ProcessCandidateForm(instance=candidate)
