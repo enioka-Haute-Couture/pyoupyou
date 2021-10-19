@@ -3,7 +3,6 @@ import datetime
 import calendar
 import io
 import re
-import this
 from collections import defaultdict
 import json
 
