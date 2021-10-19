@@ -1,3 +1,6 @@
+# 1.11.1 (2021-10-19)
+- Fix digest computation
+
 # 1.11.0 (2021-10-15)
 - Update to django 3.1.13
 - Add anonymization feature and candidate duplication prevention

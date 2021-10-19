@@ -301,14 +301,14 @@ class AnonymizesCanditateTestCase(TestCase):
         name_hash.update("name lastname".encode("utf-8"))
 
         self.assertEqual(self.p.candidate.name, "")
-        self.assertEqual(self.p.candidate.anonymized_hashed_name, name_hash.digest())
+        self.assertEqual(self.p.candidate.anonymized_hashed_name, name_hash.hexdigest())
 
         # email
         email_hash = hashlib.sha256()
         email_hash.update(settings.SECRET_ANON_SALT.encode("utf-8"))
         email_hash.update("test@test.com".encode("utf-8"))
         self.assertEqual(self.p.candidate.email, "")
-        self.assertEqual(self.p.candidate.anonymized_hashed_email, email_hash.digest())
+        self.assertEqual(self.p.candidate.anonymized_hashed_email, email_hash.hexdigest())
 
         # phone
         self.assertEqual(self.p.candidate.phone, "")
@@ -319,7 +319,7 @@ class AnonymizesCanditateTestCase(TestCase):
 
         other_candidate1 = CandidateFactory()
         other_candidate1.name = "Nâme lAstName"
-        self.assertEqual(other_candidate1.anonymized_name(), name_hash.digest())
+        self.assertEqual(other_candidate1.anonymized_name(), name_hash.hexdigest())
         previous_candidate_anoymized = other_candidate1.find_duplicates()
         self.assertEqual(1, previous_candidate_anoymized.count())
         other_candidate1.save()
@@ -331,6 +331,6 @@ class AnonymizesCanditateTestCase(TestCase):
 
         other_candidate2 = CandidateFactory()
         other_candidate2.email = "tesT@test.Com"
-        self.assertEqual(other_candidate2.anonymized_email(), email_hash.digest())
+        self.assertEqual(other_candidate2.anonymized_email(), email_hash.hexdigest())
         previous_candidate_anoymized = other_candidate2.find_duplicates()
         self.assertEqual(1, previous_candidate_anoymized.count())

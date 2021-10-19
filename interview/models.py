@@ -65,19 +65,19 @@ def remove_accents(input_str):
     return only_ascii
 
 
-def anonymize_name(name):
+def anonymize_text(text):
     h = hashlib.sha256()
     h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-    h.update(remove_accents(name.lower()))
-    return h.digest()
+    h.update(remove_accents(text.lower()))
+    return h.hexdigest()
 
 
 class Candidate(models.Model):
     name = models.CharField(_("Name"), max_length=200)
     email = models.EmailField(blank=True)
     phone = models.CharField(_("Phone"), max_length=30, blank=True)
-    anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=41, blank=True)
-    anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=41, blank=True)
+    anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=64, blank=True)
+    anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=64, blank=True)
     anonymized = models.BooleanField(default=False)
 
     # TODO Required by the reverse admin url resolver?
@@ -124,19 +124,16 @@ class Candidate(models.Model):
             self.anonymized = True
 
     def anonymized_name(self):
-        return anonymize_name(self.name)
+        return anonymize_text(self.name)
 
     def anonymized_email(self):
         if self.email:
-            m = hashlib.sha256()
-            m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
-            m.update(self.email.lower().encode("utf-8"))
-            return m.digest()
+            return anonymize_text(self.email)
         return ""
 
     def find_duplicates(self):
         name_permutations = list(itertools.permutations(self.name.lower().split(" ")))
-        hash_permutations = map(lambda words: anonymize_name(" ".join(words)), name_permutations)
+        hash_permutations = map(lambda words: anonymize_text(" ".join(words)), name_permutations)
 
         return Candidate.objects.filter(
             (
@@ -153,12 +150,12 @@ class Candidate(models.Model):
 
         if self.name:
             name_permutations = list(itertools.permutations(self.name.lower().split(" ")))
-            hash_permutations = map(lambda words: anonymize_name(" ".join(words)), name_permutations)
+            hash_permutations = map(lambda words: anonymize_text(" ".join(words)), name_permutations)
 
             if other.anonymized_hashed_name in hash_permutations:
                 res.append("name")
 
-        if self.email and str(self.anonymized_email()) == other.anonymized_hashed_email:
+        if self.email and self.anonymized_email() == other.anonymized_hashed_email:
             res.append("email")
 
         return res
