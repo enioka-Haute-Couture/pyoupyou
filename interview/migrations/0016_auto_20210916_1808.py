@@ -19,7 +19,7 @@ def anonymize_name(name):
     h = hashlib.sha256()
     h.update(settings.SECRET_ANON_SALT.encode("utf-8"))
     h.update(remove_accents(name.lower()))
-    return h.digest()
+    return h.hexdigest()
 
 
 def anonymize_email(candidate):
@@ -27,7 +27,7 @@ def anonymize_email(candidate):
         m = hashlib.sha256()
         m.update(settings.SECRET_ANON_SALT.encode("utf-8"))
         m.update(candidate.email.lower().encode("utf-8"))
-        return m.digest()
+        return m.hexdigest()
     return ""
 
 
