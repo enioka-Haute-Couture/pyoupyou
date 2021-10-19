@@ -1,3 +1,6 @@
+# 1.11.2 (2021-10-19)
+- Invert migration 16/17
+
 # 1.11.1 (2021-10-19)
 - Fix digest computation
 

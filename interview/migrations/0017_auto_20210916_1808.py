@@ -60,6 +60,6 @@ def migrate_state_reverse(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("interview", "0015_candidate_anonymization")]
+    dependencies = [("interview", "0016_auto_20211019_1056")]
 
     operations = [migrations.RunPython(migrate_state, migrate_state_reverse)]

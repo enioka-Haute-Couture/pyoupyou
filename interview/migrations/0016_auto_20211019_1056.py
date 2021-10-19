@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('interview', '0016_auto_20210916_1808'),
+        ('interview', '0015_candidate_anonymization'),
     ]
 
     operations = [
