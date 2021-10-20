@@ -48,6 +48,13 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.7, 3.8]
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: pyoupyou
+        ports: [ '3306:3306' ]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python
@@ -67,5 +74,7 @@ jobs:
       run: pipenv install --dev
     - name: test
       run: |
+        cp pyoupyou/settings/local.py.ci pyoupyou/settings/local.py
+        pipenv run pip install mysqlclient
         pipenv run coverage run ./manage.py test
         
