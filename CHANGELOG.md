@@ -1,4 +1,7 @@
-# 1.11.2 (2021-10-19)
+# 1.11.4 (2021-10-19)
+- Fix activity summary page (lazy translation)
+
+# 1.11.3 (2021-10-19)
 - Fix reverse url usage when we validate minute
 
 # 1.11.2 (2021-10-19)
