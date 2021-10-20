@@ -1226,10 +1226,10 @@ def activity_summary(request):
         color="subsidiary_state",
         title="",
         labels={
-            "planned_date_month": _("Interview date"),
+            "planned_date_month": _t("Interview date"),
             "process__subsidiary__name": _t("Subsidiary"),
-            "count": _("Count"),
-            "subsidiary_state": _("Subsidiary and state"),
+            "count": _t("Count"),
+            "subsidiary_state": _t("Subsidiary and state"),
         },
     )
 
