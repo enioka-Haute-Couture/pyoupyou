@@ -100,7 +100,7 @@ class ConsultantManager(models.Manager):
     @transaction.atomic
     def create_consultant(self, trigramme, email, company, full_name, **extra_fields):
         user = PyouPyouUser.objects.create_user(trigramme, email, full_name=full_name, **extra_fields)
-        consultant = self.model(user=user, company=company, productive=True)
+        consultant = self.model(user=user, company=company)
         consultant.save()
         return consultant
 
@@ -110,7 +110,6 @@ class Consultant(models.Model):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
-    productive = models.BooleanField(_("Productive"), default=True)
 
     objects = ConsultantManager()
 

@@ -19,7 +19,6 @@ class ConsultantFactory(factory.django.DjangoModelFactory):
 
     user = factory.SubFactory(PyouPyouUserFactory)
     company = factory.Iterator(Subsidiary.objects.all())
-    productive = True
 
 
 class SubsidiaryFactory(factory.django.DjangoModelFactory):
