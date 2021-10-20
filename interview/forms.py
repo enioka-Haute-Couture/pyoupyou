@@ -17,6 +17,12 @@ class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     search_fields = ["user__trigramme__icontains", "user__full_name__icontains"]
 
 
+class SingleConsultantWidget(ModelSelect2Widget):
+    model = Consultant
+    queryset = Consultant.objects.filter(user__is_active=True)
+    search_fields = ["user__trigramme__icontains", "user__full_name__icontains"]
+
+
 class SourcesWidget(ModelSelect2Widget):
     model = Sources
     queryset = Sources.objects.filter(archived=False)
@@ -134,6 +140,7 @@ class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ["minute", "suggested_interviewer", "next_interview_goal"]
+        widgets = {"suggested_interviewer": SingleConsultantWidget}
 
     helper = FormHelper()
     helper.form_tag = False
