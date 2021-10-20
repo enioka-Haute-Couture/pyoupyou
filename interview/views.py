@@ -440,9 +440,7 @@ def minute_edit(request, interview_id):
                     viewname="interview-minute",
                     kwargs={
                         "interview_id": interview.id,
-                        "slug_info": interview.candidate.name_slug,
-                        "consultant_trigram": interview.interviewers_trigram_slug,
-                        "interview_rank": interview.rank,
+                        "slug_info": f"_{interview.process.candidate.name_slug}-{interview.interviewers_trigram_slug}-{interview.rank}",
                     },
                 )
             )

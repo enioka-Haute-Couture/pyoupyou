@@ -5,19 +5,17 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('interview', '0015_candidate_anonymization'),
-    ]
+    dependencies = [("interview", "0015_candidate_anonymization")]
 
     operations = [
         migrations.AlterField(
-            model_name='candidate',
-            name='anonymized_hashed_email',
-            field=models.CharField(blank=True, max_length=64, verbose_name='Anonymized Hashed Email'),
+            model_name="candidate",
+            name="anonymized_hashed_email",
+            field=models.CharField(blank=True, max_length=64, verbose_name="Anonymized Hashed Email"),
         ),
         migrations.AlterField(
-            model_name='candidate',
-            name='anonymized_hashed_name',
-            field=models.CharField(blank=True, max_length=64, verbose_name='Anonymized Hashed Name'),
+            model_name="candidate",
+            name="anonymized_hashed_name",
+            field=models.CharField(blank=True, max_length=64, verbose_name="Anonymized Hashed Name"),
         ),
     ]
