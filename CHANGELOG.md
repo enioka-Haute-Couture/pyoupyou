@@ -1,3 +1,7 @@
+# 1.12.0 (xxxx-xx-xx)
+- Admin:
+  - Process: Filter and sort by state
+
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
 
