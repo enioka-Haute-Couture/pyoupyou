@@ -38,8 +38,9 @@ class ProcessAdmin(admin.ModelAdmin):
         "contract_type",
         "salary_expectation",
         "contract_duration",
+        "state",
     )
-    list_filter = ("subsidiary", "sources", "start_date", "end_date", "contract_type")
+    list_filter = ("subsidiary", "start_date", "end_date", "contract_type", "state", "sources")
     search_fields = ("candidate__name",)
 
 
