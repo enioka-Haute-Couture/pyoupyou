@@ -3,6 +3,8 @@
   - Process: Filter and sort by state
 - CI:
   - Run tests against mariadb
+- Remove uneeded productive flag on consultant
+- Use select2 form to select suggested interviewer and filter disabled users
 
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
