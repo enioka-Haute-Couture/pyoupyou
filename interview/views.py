@@ -713,7 +713,7 @@ def export_processes_tsv(request):
 @login_required
 @require_http_methods(["GET"])
 def export_interviews_tsv(request):
-    consultants = Consultant.objects.filter(productive=True).select_related("user").select_related("company")
+    consultants = Consultant.objects.filter(user__is_active=True).select_related("user").select_related("company")
     interviews = (
         Interview.objects.for_user(request.user)
         .select_related("process")
@@ -893,7 +893,7 @@ def interviewers_load(request, subsidiary_id=None):
     else:
         consultants_qs = Consultant.objects.all()
     data = []
-    for c in consultants_qs.filter(productive=True).order_by("company", "user__full_name"):
+    for c in consultants_qs.filter(user__is_active=True).order_by("company", "user__full_name"):
         load = _interviewer_load(c)
         data.append(
             {
