@@ -340,11 +340,7 @@ def new_candidate(request, past_candidate_id=None):
                     log_action(True, interview, request.user, new_candidate)
                     interviewers_form.save_m2m()
 
-                return HttpResponseRedirect(
-                    reverse(
-                        "process-details", kwargs={"process_id": process.id, "slug_info": process.candidate.name_slug}
-                    )
-                )
+                return HttpResponseRedirect(process.get_absolute_url())
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
@@ -390,13 +386,9 @@ def interview(request, process_id=None, interview_id=None, action=None):
         interview_model = Interview(process_id=process_id)
 
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
+    process = Process.objects.for_user(request.user).get(id=process_id)
     if request.method == "POST":
-        ret = HttpResponseRedirect(
-            reverse(
-                viewname="process-details",
-                kwargs={"process_id": process_id, "slug_info": interview_model.process.candidate.name_slug},
-            )
-        )
+        ret = HttpResponseRedirect(process.get_absolute_url())
         if action == "planning-request":
             interview_model.toggle_planning_request()
             return ret
@@ -407,8 +399,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
             return ret
     else:
         form = InterviewForm(instance=interview_model)
-
-    process = Process.objects.for_user(request.user).get(id=process_id)
 
     return render(request, "interview/interview.html", {"form": form, "process": process})
 
@@ -435,15 +425,7 @@ def minute_edit(request, interview_id):
         if form.is_valid():
             form.save()
             log_action(False, interview, request.user, minute_edit)
-            return HttpResponseRedirect(
-                reverse(
-                    viewname="interview-minute",
-                    kwargs={
-                        "interview_id": interview.id,
-                        "slug_info": f"_{interview.process.candidate.name_slug}-{interview.interviewers_trigram_slug}-{interview.rank}",
-                    },
-                )
-            )
+            return HttpResponseRedirect(interview.get_absolute_url())
     else:
         form = InterviewMinuteForm(instance=interview)
 
