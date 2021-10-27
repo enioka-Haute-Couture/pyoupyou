@@ -1108,14 +1108,16 @@ def active_sources(request, subsidiary_id=None):
             pass
 
     data = []
-
+    filtered_process = Process.objects.all()
+    if subsidiary:
+        filtered_process = filtered_process.filter(subsidiary=subsidiary)
     for s in sources_qs:
-        total_processes = Process.objects.filter(sources=s)
+        total_processes = filtered_process.filter(sources=s)
         total_processes_count = total_processes.count()
-        active_processes_count = Process.objects.filter(sources=s, state__in=Process.OPEN_STATE_VALUES).count()
-        total_hired = Process.objects.filter(sources=s, state=Process.HIRED).count()
-        last_state_change = Process.objects.filter(sources=s).aggregate(Max("last_state_change"))
-        distinct_offers = Offer.objects.filter(process__in=Process.objects.filter(sources=s)).distinct().count()
+        active_processes_count = filtered_process.filter(sources=s, state__in=Process.OPEN_STATE_VALUES).count()
+        total_hired = filtered_process.filter(sources=s, state=Process.HIRED).count()
+        last_state_change = filtered_process.filter(sources=s).aggregate(Max("last_state_change"))
+        distinct_offers = Offer.objects.filter(process__in=filtered_process.filter(sources=s)).distinct().count()
 
         data.append(
             {

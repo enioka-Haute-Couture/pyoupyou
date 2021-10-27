@@ -7,6 +7,8 @@
 - Use select2 form to select suggested interviewer and filter disabled users
 - Stop spamming RH via email
 - New ICS feeds: per subsidiary and per user
+- Bugs
+  - Fix source report page, show count filtered by subsidiary
 
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
