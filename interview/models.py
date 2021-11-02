@@ -399,7 +399,7 @@ class Process(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"process": self, "url": url})
-            recipient_list = [settings.MAIL_HR]
+            recipient_list = []
             if self.subsidiary.responsible:
                 recipient_list.append(self.subsidiary.responsible.user.email)
             mail.send_mail(
@@ -549,7 +549,7 @@ class Interview(models.Model):
         return ""
 
     def trigger_notification(self):
-        recipient_list = [settings.MAIL_HR]
+        recipient_list = []
         if self.process.subsidiary.responsible:
             recipient_list.append(self.process.subsidiary.responsible.user.email)
         if self.id:
