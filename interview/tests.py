@@ -178,19 +178,19 @@ class StatusAndNotificationTestCase(TestCase):
         # When we create a process
         # Process state will be: WAITING_INTERVIEWER_TO_BE_DESIGNED
         # Action responsible will be: Subsidiary responsible
-        # Mail will be sent to global HR
+        # Mail will be sent to subsidiary responsible
         p = ProcessFactory(subsidiary=subsidiary)
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # When we create an interview
         # Process state will be: WAITING_INTERVIEW_PLANIFICATION
         # Interview state will be: WAITING_PLANIFICATION
         # Action responsible will be: Interviewer
-        # Mail will be sent to global HR and interviewer
+        # Mail will be sent to  subsidiary responsible and interviewer
         i1 = Interview(process_id=p.id)
         i1.save()
         i1.interviewers.add(interviewer)
@@ -198,16 +198,14 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(
-            mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email]
-        )
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # After interview planification
         # Process state will be: INTERVIEW_IS_PLANNED
         # Interview state will be: PLANNED
         # Action responsible will be: Interviewer
-        # Mail will be sent to global HR and interviewer if more than one
+        # Mail will be sent to  subsidiary responsible and interviewer if more than one
         i1.planned_date = datetime.datetime.now(pytz.timezone("Europe/Paris")) + datetime.timedelta(days=7)
         i1.save()
 
@@ -216,9 +214,7 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(
-            mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email, interviewer.user.email]
-        )
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
@@ -233,7 +229,7 @@ class StatusAndNotificationTestCase(TestCase):
         # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
         # Interview state will be: GO or NO_GO
         # Action responsible will be: Subsidiary responsible
-        # Mail will be sent to global HR
+        # Mail will be sent to subsidiary responsible
         i1.state = Interview.GO
         i1.save()
 
@@ -243,32 +239,32 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.GO)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # After we go for a job offer
         # Process state will be: JOB_OFFER
         # Action responsible will be: Subsidiary responsible
-        # Mail will be sent to global HR
+        # Mail will be sent to subsidiary responsible
         p.state = Process.JOB_OFFER
         p.save()
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
         mail.outbox = []
 
         # After we hired the candidate or we didn't hired him (can be our offer is refused by the candidate for example)
         # Process state will be: HIRED or JOB_OFFER_DECLINED
         # No more action responsible
-        # Mail will be sent to global HR
+        # Mail will be sent to subsidiary responsible
         p.state = Process.HIRED
         p.save()
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
         self.assertEqual(list(p.responsible.all()), [])
-        self.assertCountEqual(mail.outbox[0].to, [settings.MAIL_HR, subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
         mail.outbox = 0
 
 
