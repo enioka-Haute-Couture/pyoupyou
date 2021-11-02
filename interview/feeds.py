@@ -6,6 +6,7 @@ from django.utils.html import escape
 from django_ical.views import ICalFeed
 
 from interview.models import Interview
+from ref.models import Subsidiary
 
 
 class InterviewFeed(ICalFeed):
@@ -13,17 +14,43 @@ class InterviewFeed(ICalFeed):
     A simple event calender
     """
 
-    product_id = "-//pyoupyou//Full"
     timezone = "Europe/Paris"
-    file_name = "pyoupyou_full.ics"
 
     def __call__(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return HttpResponse("Unauthenticated user", status=401)
         return super().__call__(request, *args, **kwargs)
 
-    def items(self):
-        return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
+    def title(self, obj):
+        if obj:
+            return f"{obj.name} Pyoupyou Interviews"
+        else:
+            return "Pyoupyou Interviews"
+
+    def product_id(self, obj):
+        if obj:
+            return f"-//pyoupyou//{obj.name}"
+        else:
+            return "-//pyoupyou//Full"
+
+    def file_name(self, obj):
+        if obj:
+            return f"pyoupyou_{obj.name}.ics"
+        else:
+            return "pyoupyou_full.ics"
+
+    def get_object(self, request, subsidiary_id=None):
+        if not subsidiary_id:
+            return None
+        return Subsidiary.objects.get(id=subsidiary_id)
+
+    def items(self, obj):
+        if obj:
+            return Interview.objects.filter(process__subsidiary=obj, planned_date__isnull=False).order_by(
+                "-planned_date"
+            )
+        else:
+            return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
 
     def item_title(self, item):
         itws = ", ".join([i.user.trigramme for i in item.interviewers.all()])

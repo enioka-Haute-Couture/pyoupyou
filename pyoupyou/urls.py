@@ -68,6 +68,7 @@ urlpatterns = [
     url(r"^create_account/$", views.create_account, name="create_acount"),
     url(r"^delete_account/(?P<trigramme>[a-z]{3})$", views.delete_account, name="delete_acount"),
     url(r"^feed/pyoupyou_full.ics$", feeds.InterviewFeed(), name="calendar_full"),
+    url(r"^feed/(?P<subsidiary_id>\d+)/pyoupyou_interviews.ics$", feeds.InterviewFeed(), name="calendar_subsidiary"),
     url(r"^export/all_interviews.tsv$", views.export_interviews_tsv, name="export_interviews_tsv"),
     url(r"^export/all_processes.tsv$", views.export_processes_tsv, name="export_processess_tsv"),
     url(r"^select2/", include("django_select2.urls")),
