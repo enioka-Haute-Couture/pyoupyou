@@ -62,7 +62,16 @@
                     <li><form class="navbar-form" role="search" action="{% url 'search' %}" method="GET">
                         <input type="text" class="form-control" placeholder="{% trans "Search" %}" name="q" value="{{ search_query }}">
                     </form></li>
-                    <li><a href="{% url 'calendar_full' %}"><i class="fa fa-calendar" aria-hidden="true"></i></a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> <i class="fa fa-calendar" aria-hidden="true"> </i> <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+			    {% for s in subsidiaries %}
+			        <li> <a href='{% url "calendar_subsidiary" subsidiary_id=s.id %}'> {{ s.name }} </a> </li>
+			    {% endfor %}
+			    <li><a href="{% url 'calendar_full' %}"> {% trans "All" %} </a></li>
+                        </ul>
+                    </li>
+
                </ul>
             </div><!--/.nav-collapse -->
         </div>

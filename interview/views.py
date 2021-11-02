@@ -191,6 +191,7 @@ def process(request, process_id, slug_info=None):
         "interviews_for_process_table": interviews_for_process_table,
         "interviews": interviews,
         "close_form": close_form,
+        "subsidiaries": Subsidiary.objects.all(),
     }
     return render(request, "interview/process_detail.html", context)
 
@@ -242,7 +243,11 @@ def closed_processes(request):
     config = RequestConfig(request)
     config.configure(closed_processes_table)
 
-    context = {"title": _("Closed processes"), "table": closed_processes_table}
+    context = {
+        "title": _("Closed processes"),
+        "table": closed_processes_table,
+        "subsidiaries": Subsidiary.objects.all(),
+    }
 
     return render(request, "interview/single_table.html", context)
 
@@ -264,7 +269,11 @@ def processes_for_source(request, source_id):
     config = RequestConfig(request)
     config.configure(processes_table)
 
-    context = {"title": source.name + " (" + source.category.name + ")", "table": processes_table}
+    context = {
+        "title": source.name + " (" + source.category.name + ")",
+        "table": processes_table,
+        "subsidiaries": Subsidiary.objects.all(),
+    }
 
     return render(request, "interview/single_table.html", context)
 
@@ -286,6 +295,7 @@ def processes(request):
     context = {
         "open_processes_table": open_processes_table,
         "recently_closed_processes_table": recently_closed_processes_table,
+        "subsidiaries": Subsidiary.objects.all(),
     }
     return render(request, "interview/list_processes.html", context)
 
@@ -360,6 +370,7 @@ def new_candidate(request, past_candidate_id=None):
             "interviewers_form": interviewers_form,
             "duplicates": duplicate_processes,
             "candidate": candidate,
+            "subsidiaries": Subsidiary.objects.all(),
         },
     )
 
@@ -400,7 +411,11 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         form = InterviewForm(instance=interview_model)
 
-    return render(request, "interview/interview.html", {"form": form, "process": process})
+    return render(
+        request,
+        "interview/interview.html",
+        {"form": form, "process": process, "subsidiaries": Subsidiary.objects.all()},
+    )
 
 
 @login_required
@@ -432,7 +447,7 @@ def minute_edit(request, interview_id):
     return render(
         request,
         "interview/interview_minute_form.html",
-        {"form": form, "process": interview.process, "interview": interview},
+        {"form": form, "process": interview.process, "interview": interview, "subsidiaries": Subsidiary.objects.all()},
     )
 
 
@@ -444,7 +459,7 @@ def minute(request, interview_id, slug_info=None):
     except Interview.DoesNotExist:
         return HttpResponseNotFound()
 
-    context = {"interview": interview, "process": interview.process}
+    context = {"interview": interview, "process": interview.process, "subsidiaries": Subsidiary.objects.all()}
     return render(request, "interview/interview_minute.html", context)
 
 
@@ -488,6 +503,7 @@ def dashboard(request):
         "actions_needed_processes_table": actions_needed_processes_table,
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
+        "subsidiaries": Subsidiary.objects.all(),
     }
 
     return render(request, "interview/dashboard.html", context)
@@ -597,6 +613,7 @@ def edit_candidate(request, process_id):
         "process_form": process_form,
         "source_form": source_form,
         "offer_form": offer_form,
+        "subsidiaries": Subsidiary.objects.all(),
     }
     return render(request, "interview/new_candidate.html", data)
 
@@ -894,7 +911,12 @@ def interviewers_load(request, subsidiary_id=None):
     return render(
         request,
         "interview/interviewers-load.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "load_table": load_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "load_table": load_table,
+            "subsidiaries": Subsidiary.objects.all(),
+        },
     )
 
 
@@ -914,7 +936,12 @@ def search(request):
     config = RequestConfig(request)
     config.configure(search_result)
 
-    context = {"title": _('Search result for "{q}"').format(q=q), "table": search_result, "search_query": q}
+    context = {
+        "title": _('Search result for "{q}"').format(q=q),
+        "table": search_result,
+        "search_query": q,
+        "subsidiaries": Subsidiary.objects.all(),
+    }
 
     return render(request, "interview/single_table.html", context)
 
@@ -976,7 +1003,7 @@ def import_seekube(request):
                 print(e)
                 form.add_error(None, _("Processing seekube ics failed"))
 
-    return render(request, "interview/seekube_import.html", {"form": form})
+    return render(request, "interview/seekube_import.html", {"form": form, "subsidiaries": Subsidiary.objects.all()})
 
 
 @login_required
@@ -1043,7 +1070,7 @@ def gantt(request):
 
     grant_chart = plot(fig, output_type="div", config=config)
 
-    context = {"gantt": grant_chart, "filter": filter}
+    context = {"gantt": grant_chart, "filter": filter, "subsidiaries": Subsidiary.objects.all()}
 
     return render(request, "interview/gantt.html", context)
 
@@ -1116,7 +1143,12 @@ def active_sources(request, subsidiary_id=None):
     return render(
         request,
         "interview/active-sources.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "active_sources": sources_table,
+            "subsidiaries": Subsidiary.objects.all(),
+        },
     )
 
 
@@ -1239,5 +1271,6 @@ def activity_summary(request):
             "start": start_date,
             "end": end_date,
             "plot_div": plot_div,
+            "subsidiaries": Subsidiary.objects.all(),
         },
     )
