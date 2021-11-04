@@ -6,7 +6,7 @@
 - Remove uneeded productive flag on consultant
 - Use select2 form to select suggested interviewer and filter disabled users
 - Stop spamming RH via email
-- New ICS feeds per subsidiary
+- New ICS feeds: per subsidiary and per user
 
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
