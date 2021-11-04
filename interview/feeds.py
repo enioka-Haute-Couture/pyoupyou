@@ -6,13 +6,10 @@ from django.utils.html import escape
 from django_ical.views import ICalFeed
 
 from interview.models import Interview
-from ref.models import Subsidiary
+from ref.models import Subsidiary, PyouPyouUser, Consultant
 
 
-class InterviewFeed(ICalFeed):
-    """
-    A simple event calender
-    """
+class AbstractPyoupyouInterviewFeed(ICalFeed):
 
     timezone = "Europe/Paris"
 
@@ -20,37 +17,6 @@ class InterviewFeed(ICalFeed):
         if not request.user.is_authenticated:
             return HttpResponse("Unauthenticated user", status=401)
         return super().__call__(request, *args, **kwargs)
-
-    def title(self, obj):
-        if obj:
-            return f"{obj.name} Pyoupyou Interviews"
-        else:
-            return "Pyoupyou Interviews"
-
-    def product_id(self, obj):
-        if obj:
-            return f"-//pyoupyou//{obj.name}"
-        else:
-            return "-//pyoupyou//Full"
-
-    def file_name(self, obj):
-        if obj:
-            return f"pyoupyou_{obj.name}.ics"
-        else:
-            return "pyoupyou_full.ics"
-
-    def get_object(self, request, subsidiary_id=None):
-        if not subsidiary_id:
-            return None
-        return Subsidiary.objects.get(id=subsidiary_id)
-
-    def items(self, obj):
-        if obj:
-            return Interview.objects.filter(process__subsidiary=obj, planned_date__isnull=False).order_by(
-                "-planned_date"
-            )
-        else:
-            return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
 
     def item_title(self, item):
         itws = ", ".join([i.user.trigramme for i in item.interviewers.all()])
@@ -64,3 +30,75 @@ class InterviewFeed(ICalFeed):
 
     def item_end_datetime(self, item):
         return item.planned_date + timedelta(hours=1)
+
+
+class SubsidiaryInterviewFeed(AbstractPyoupyouInterviewFeed):
+    """
+    A simple event calendar for a given subsidiary
+    """
+
+    timezone = "Europe/Paris"
+
+    def title(self, obj):
+        return f"{obj.name} Pyoupyou Interviews"
+
+    def product_id(self, obj):
+        return f"-//pyoupyou//{obj.name}"
+
+    def file_name(self, obj):
+        return f"pyoupyou_{obj.name}.ics"
+
+    def get_object(self, request, subsidiary_id=None):
+        return Subsidiary.objects.get(id=subsidiary_id)
+
+    def items(self, obj):
+        return Interview.objects.filter(process__subsidiary=obj, planned_date__isnull=False).order_by("-planned_date")
+
+
+class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
+    """
+    A simple event calender
+    """
+
+    def title(self, obj):
+        return "Pyoupyou Interviews"
+
+    def product_id(self, obj):
+        return "-//pyoupyou//Full"
+
+    def file_name(self, obj):
+        return "pyoupyou_full.ics"
+
+    def get_object(self, request, subsidiary_id=None):
+        return None
+
+    def items(self, obj):
+        return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
+
+
+class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
+    """
+    A simple event calendar for a given subsidiary
+    """
+
+    timezone = "Europe/Paris"
+
+    def title(self, obj):
+        return f"{obj.get_short_name()} Pyoupyou Interviews"
+
+    def product_id(self, obj):
+        return f"-//pyoupyou//{obj.get_short_name()}"
+
+    def file_name(self, obj):
+        return f"pyoupyou_{obj.trigramme}.ics"
+
+    def get_object(self, request, user_id=None):
+        user = PyouPyouUser.objects.get(id=user_id)
+        print("USER ((")
+        print(user)
+        print("))")
+        return user
+
+    def items(self, obj):
+        consultant = Consultant.objects.get(user=obj)
+        return Interview.objects.filter(interviewers=consultant, planned_date__isnull=False).order_by("-planned_date")

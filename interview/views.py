@@ -911,12 +911,7 @@ def interviewers_load(request, subsidiary_id=None):
     return render(
         request,
         "interview/interviewers-load.html",
-        {
-            "subsidiary": subsidiary,
-            "subsidiaries": Subsidiary.objects.all(),
-            "load_table": load_table,
-            "subsidiaries": Subsidiary.objects.all(),
-        },
+        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "load_table": load_table},
     )
 
 
