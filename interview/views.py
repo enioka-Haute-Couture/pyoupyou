@@ -1138,12 +1138,7 @@ def active_sources(request, subsidiary_id=None):
     return render(
         request,
         "interview/active-sources.html",
-        {
-            "subsidiary": subsidiary,
-            "subsidiaries": Subsidiary.objects.all(),
-            "active_sources": sources_table,
-            "subsidiaries": Subsidiary.objects.all(),
-        },
+        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
     )
 
 

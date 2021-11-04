@@ -78,7 +78,7 @@ class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
 
 class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
     """
-    A simple event calendar for a given subsidiary
+    A simple event calendar for a given Consultant
     """
 
     timezone = "Europe/Paris"
@@ -93,12 +93,7 @@ class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
         return f"pyoupyou_{obj.trigramme}.ics"
 
     def get_object(self, request, user_id=None):
-        user = PyouPyouUser.objects.get(id=user_id)
-        print("USER ((")
-        print(user)
-        print("))")
-        return user
+        return PyouPyouUser.objects.get(id=user_id)
 
-    def items(self, obj):
-        consultant = Consultant.objects.get(user=obj)
-        return Interview.objects.filter(interviewers=consultant, planned_date__isnull=False).order_by("-planned_date")
+    def items(self, user):
+        return Interview.objects.filter(interviewers__user=user, planned_date__isnull=False).order_by("-planned_date")
