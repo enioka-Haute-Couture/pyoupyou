@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-11-04 14:39+0100\n"
-"PO-Revision-Date: 2021-11-04 14:38+0100\n"
+"POT-Creation-Date: 2021-11-04 14:51+0100\n"
+"PO-Revision-Date: 2021-11-04 14:50+0100\n"
 "Last-Translator: Sebastien Renard <renard@kde.org>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
 "Language: fr\n"
@@ -33,7 +33,7 @@ msgstr "Proposition en cours, attente du retour du candidat"
 msgid "Import"
 msgstr "Importer"
 
-#: interview/models.py:28 interview/models.py:76 interview/views.py:1083
+#: interview/models.py:28 interview/models.py:76 interview/views.py:1079
 #: ref/models.py:13
 msgid "Name"
 msgstr "Nom"
@@ -414,10 +414,12 @@ msgid ""
 "Reuse a candidate or create a new one, checkout options at the bottom of "
 "this form."
 msgstr ""
+"Réutilisez un candidat ou créer en un nouveau. Les options sont en bas du "
+"formulaire."
 
 #: interview/templates/interview/new_candidate.html:62
 msgid "Candidate(s) that can be reused:"
-msgstr ""
+msgstr "Candidat(s) potentiels à réutiliser :"
 
 #: interview/templates/interview/new_candidate.html:68
 msgid "Reuse this candidate"
@@ -531,7 +533,7 @@ msgstr "Période"
 
 #: interview/templates/interview/summary.html:66
 #: interview/templates/interview/tables/source_name.html:3
-#: interview/views.py:1086
+#: interview/views.py:1082
 msgid "Processes"
 msgstr "Processus"
 
@@ -552,7 +554,7 @@ msgstr "positif"
 msgid "Hires"
 msgstr "Embauches"
 
-#: interview/templates/interview/summary.html:114 interview/views.py:1089
+#: interview/templates/interview/summary.html:114 interview/views.py:1085
 msgid "Offers"
 msgstr "Offres"
 
@@ -608,32 +610,32 @@ msgstr "À venir"
 msgid "To plan"
 msgstr "À planifier"
 
-#: interview/views.py:939
+#: interview/views.py:935
 #, python-brace-format
 msgid "Search result for \"{q}\""
 msgstr "Résultats de recherche pour \"{q}\""
 
-#: interview/views.py:1003
+#: interview/views.py:999
 msgid "Processing seekube ics failed"
 msgstr "Erreur lors du traitement du fichier ics seekube"
 
-#: interview/views.py:1084
+#: interview/views.py:1080
 msgid "Type"
 msgstr "Type"
 
-#: interview/views.py:1085
+#: interview/views.py:1081
 msgid "Active processes"
 msgstr "processus actif"
 
-#: interview/views.py:1087
+#: interview/views.py:1083
 msgid "Hired"
 msgstr "Embauché"
 
-#: interview/views.py:1088
+#: interview/views.py:1084
 msgid "Ratio"
 msgstr "Ratio"
 
-#: interview/views.py:1090
+#: interview/views.py:1086
 msgid "Last change"
 msgstr "Dernier changement"
 
