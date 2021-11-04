@@ -9,6 +9,7 @@
 - New ICS feeds: per subsidiary and per user
 - Bugs
   - Fix source report page, show count filtered by subsidiary
+- Provisionning API now uses company code instead of full name
 
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
