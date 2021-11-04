@@ -542,7 +542,7 @@ def create_offer_ajax(request):
 @user_passes_test(lambda u: u.is_superuser)
 def create_account(request):
     data = json.loads(request.body)
-    subsidiary = Subsidiary.objects.filter(name=data["company"]).first()
+    subsidiary = Subsidiary.objects.filter(code=data["company"]).first()
     if not subsidiary:
         return JsonResponse({"error": "Company not found"}, status=404)
     try:
