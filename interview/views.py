@@ -141,6 +141,14 @@ class ProcessEndTable(ProcessTable):
         order_by = "-end_date"
 
 
+def get_state_color(record):
+    if record.needs_attention:
+        return "danger"
+    elif record.prequalification:
+        return "info"
+    return None
+
+
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
     interviewers = tables.TemplateColumn(
@@ -165,7 +173,7 @@ class InterviewTable(tables.Table):
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
-        row_attrs = {"class": lambda record: "danger" if record.needs_attention else None}
+        row_attrs = {"class": get_state_color}
 
 
 @login_required
@@ -846,24 +854,36 @@ def _interviewer_load(interviewer):
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     end_of_today = timezone.now().replace(hour=23, minute=59, second=59)
 
-    itw_last_month = (
+    itw_last_month = calculate_load(
         Interview.objects.filter(interviewers=interviewer)
         .filter(planned_date__gte=a_month_ago)
         .filter(planned_date__lt=end_of_today)
-        .count()
+        .values("prequalification")
+        .annotate(load=Count("id"))
+        .order_by("prequalification")
     )
-    itw_last_week = (
+    itw_last_week = calculate_load(
         Interview.objects.filter(interviewers=interviewer)
         .filter(planned_date__gte=a_week_ago)
         .filter(planned_date__lt=end_of_today)
-        .count()
+        .values("prequalification")
+        .annotate(load=Count("id"))
+        .order_by("prequalification")
     )
-    itw_planned = Interview.objects.filter(interviewers=interviewer).filter(planned_date__gte=timezone.now()).count()
-    itw_not_planned_yet = (
+    itw_planned = calculate_load(
+        Interview.objects.filter(interviewers=interviewer)
+        .filter(planned_date__gte=timezone.now())
+        .values("prequalification")
+        .annotate(load=Count("id"))
+        .order_by("prequalification")
+    )
+    itw_not_planned_yet = calculate_load(
         Interview.objects.filter(interviewers=interviewer)
         .filter(planned_date=None)
         .filter(process__state__in=Process.OPEN_STATE_VALUES)
-        .count()
+        .values("prequalification")
+        .annotate(load=Count("id"))
+        .order_by("prequalification")
     )
 
     load = pow(itw_planned + itw_not_planned_yet + 2, 2) + 2 * itw_last_week + itw_last_month - 4
@@ -875,6 +895,12 @@ def _interviewer_load(interviewer):
         "itw_not_planned_yet": itw_not_planned_yet,
         "itw_planned": itw_planned,
     }
+
+
+def calculate_load(itws):
+    prequalification_weight = 2
+    loads = {x["prequalification"]: x["load"] for x in itws}
+    return loads[False] + (loads[True] / prequalification_weight)
 
 
 @login_required

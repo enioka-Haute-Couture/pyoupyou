@@ -460,6 +460,7 @@ class Interview(models.Model):
         on_delete=models.SET_NULL,
     )
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
+    prequalification = models.BooleanField(verbose_name=_("Prequalification"), default=False)
 
     def __str__(self):
         interviewers = ", ".join(i.user.trigramme for i in self.interviewers.all())
