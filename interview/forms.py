@@ -91,7 +91,7 @@ class OfferForm(forms.ModelForm):
 class InterviewersForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["interviewers"]
+        fields = ["interviewers", "prequalification"]
         widgets = {"interviewers": MultipleConsultantWidget}
 
     def __init__(self, *args, **kwargs):
@@ -128,7 +128,7 @@ class InterviewFormPlan(forms.ModelForm):
 class InterviewFormEditInterviewers(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["interviewers"]
+        fields = ["interviewers", "prequalification"]
         widgets = {"interviewers": MultipleConsultantWidget}
 
     helper = FormHelper()
