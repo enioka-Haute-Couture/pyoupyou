@@ -1,4 +1,4 @@
-# 1.12.0 (xxxx-xx-xx)
+# 1.12.0 (2021-11-18)
 - Admin:
   - Process: Filter and sort by state
 - CI:
