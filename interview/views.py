@@ -28,7 +28,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware, now
 from django.utils.html import format_html
 from django.utils.translation import ugettext as _t
 from django.utils.translation import ugettext_lazy as _
@@ -444,6 +444,8 @@ def minute_edit(request, interview_id):
             interview.state = Interview.NO_GO
         elif "itw-draft" in request.POST:
             interview.state = Interview.DRAFT
+        if interview.planned_date is None:
+            interview.planned_date = now()
         form = InterviewMinuteForm(request.POST, instance=interview)
         if form.is_valid():
             form.save()

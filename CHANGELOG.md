@@ -11,6 +11,7 @@
   - Fix source report page, show count filtered by subsidiary
 - Provisionning API now uses company code instead of full name
 - Add prequalification flag to interview
+- Set planned date to today if not present when completing interview
 
 # 1.11.4 (2021-10-19)
 - Fix activity summary page (lazy translation)
