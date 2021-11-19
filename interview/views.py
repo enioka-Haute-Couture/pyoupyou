@@ -902,7 +902,7 @@ def _interviewer_load(interviewer):
 def calculate_load(itws):
     prequalification_weight = 2
     loads = {x["prequalification"]: x["load"] for x in itws}
-    return loads[False] + (loads[True] / prequalification_weight)
+    return loads.get(False, 0) + (loads.get(True, 0) / prequalification_weight)
 
 
 @login_required

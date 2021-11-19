@@ -1,3 +1,6 @@
+# 1.12.1 (2021-11-19)
+- Fix page load if interviewer don't have prequalification interviews
+
 # 1.12.0 (2021-11-18)
 - Admin:
   - Process: Filter and sort by state
