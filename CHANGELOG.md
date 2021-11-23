@@ -1,3 +1,6 @@
+# XXX
+- Add interview.prequalification to interviews TSV export
+
 # 1.12.1 (2021-11-19)
 - Fix page load if interviewer don't have prequalification interviews
 
