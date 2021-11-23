@@ -760,6 +760,7 @@ def export_interviews_tsv(request):
                 "interview rank",
                 "days since last",
                 "planned_date",
+                "prequalification",
             ]
         )
     )
@@ -828,6 +829,7 @@ def export_interviews_tsv(request):
             interview.rank,
             time_since_last_event,
             interview.planned_date,
+            interview.prequalification,
         ]
         ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
 
