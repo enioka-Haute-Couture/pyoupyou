@@ -407,6 +407,13 @@ class Process(models.Model):
             )
 
 
+class InterviewKind(models.Model):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+
 class InterviewManager(models.Manager):
     def for_user(self, user):
         return super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
@@ -461,6 +468,9 @@ class Interview(models.Model):
     )
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
     prequalification = models.BooleanField(verbose_name=_("Prequalification"), default=False)
+    kind_of_interview = models.ForeignKey(
+        InterviewKind, verbose_name=_("Kind of interview"), blank=True, null=True, on_delete=models.SET_NULL
+    )
 
     def __str__(self):
         interviewers = ", ".join(i.user.trigramme for i in self.interviewers.all())
