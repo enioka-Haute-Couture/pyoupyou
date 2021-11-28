@@ -3,7 +3,17 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 
-from interview.models import ContractType, Candidate, Document, Process, Interview, SourcesCategory, Sources, Offer
+from interview.models import (
+    ContractType,
+    Candidate,
+    Document,
+    Process,
+    Interview,
+    SourcesCategory,
+    Sources,
+    Offer,
+    InterviewKind,
+)
 
 
 @admin.register(ContractType)
@@ -73,4 +83,10 @@ class SourcesAdmin(admin.ModelAdmin):
 class OfferAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "subsidiary", "archived")
     list_filter = ("subsidiary", "archived")
+    search_fields = ("name",)
+
+
+@admin.register(InterviewKind)
+class InterviewKindAdmin(admin.ModelAdmin):
+    list_display = ("id", "name")
     search_fields = ("name",)

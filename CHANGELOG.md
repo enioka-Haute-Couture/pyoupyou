@@ -1,5 +1,6 @@
-# XXX
+# v1.13.0
 - Add interview.prequalification to interviews TSV export
+- Add kind of interview, will allow differentiating phone call, visio or physical interview
 
 # 1.12.1 (2021-11-19)
 - Fix page load if interviewer don't have prequalification interviews
