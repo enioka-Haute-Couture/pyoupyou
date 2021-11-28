@@ -102,18 +102,6 @@ class InterviewersForm(forms.ModelForm):
     helper.form_tag = False
 
 
-class InterviewForm(forms.ModelForm):
-    class Meta:
-        model = Interview
-        fields = ["planned_date", "interviewers"]
-
-        widgets = {"interviewers": MultipleConsultantWidget}
-
-    helper = FormHelper()
-    helper.form_method = "POST"
-    helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
-
-
 class InterviewFormPlan(forms.ModelForm):
     class Meta:
         model = Interview
