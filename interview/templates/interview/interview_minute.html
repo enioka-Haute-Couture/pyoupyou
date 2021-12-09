@@ -15,6 +15,8 @@
         <li>{{ interviewer }}</li>
         {% endfor %}
     </ul>
+    <h3>{% trans "Interview goal" %}</h3>
+    <p>{{ goal | bleach | commonmark}}</p>
     <h3>{% trans "Minute" %}
         {% if interview.kind_of_interview %}
             - {{interview.kind_of_interview }}

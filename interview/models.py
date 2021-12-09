@@ -502,6 +502,7 @@ class Interview(models.Model):
     minute = models.TextField(verbose_name=_("Minute"), blank=True)
     minute_format = models.CharField(max_length=3, choices=MINUTE_FORMAT, default=MINUTE_FORMAT[0][0])
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
+    goal = models.TextField(verbose_name=_("Interview goal"), blank=True)
     prequalification = models.BooleanField(verbose_name=_("Prequalification"), default=False)
     kind_of_interview = models.ForeignKey(
         InterviewKind, verbose_name=_("Kind of interview"), blank=True, null=True, on_delete=models.SET_NULL
