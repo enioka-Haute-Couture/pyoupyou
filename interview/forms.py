@@ -91,7 +91,7 @@ class OfferForm(forms.ModelForm):
 class InterviewersForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["interviewers", "prequalification"]
+        fields = ["interviewers", "kind_of_interview", "prequalification"]
         widgets = {"interviewers": MultipleConsultantWidget}
 
     def __init__(self, *args, **kwargs):
@@ -110,13 +110,13 @@ class InterviewFormPlan(forms.ModelForm):
     helper = FormHelper()
     helper.form_method = "POST"
     helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
-    helper.layout = Layout(Div(Column("planned_date", "kind_of_interview"), css_class="relative"))
+    helper.layout = Layout(Div(Column("planned_date"), css_class="relative"))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["interviewers", "prequalification"]
+        fields = ["interviewers", "kind_of_interview", "prequalification"]
         widgets = {"interviewers": MultipleConsultantWidget}
 
     helper = FormHelper()
