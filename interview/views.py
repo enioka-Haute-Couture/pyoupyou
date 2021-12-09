@@ -165,11 +165,13 @@ class InterviewTable(tables.Table):
     )
     state = tables.TemplateColumn(template_name="interview/tables/interview_state.html", orderable=False)
 
+    kind_of_interview = tables.Column(verbose_name=_("Kind of interview"), orderable=False)
+
     class Meta:
         model = Interview
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
-        sequence = ("needs_attention", "interviewers", "planned_date", "state", "actions")
+        sequence = ("needs_attention", "interviewers", "planned_date", "state", "kind_of_interview", "actions")
         fields = sequence
         order_by = "id"
         empty_text = _("No data")

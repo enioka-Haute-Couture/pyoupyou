@@ -16,6 +16,9 @@
         {% endfor %}
     </ul>
     <h3>{% trans "Minute" %}
+        {% if interview.kind_of_interview %}
+            - {{interview.kind_of_interview }}
+        {% endif %}
         {% if interview.state == "GO" %}
         <i class="fa fa-thumbs-up text-success" aria-hidden="true"></i>
         {% elif interview.state == "NO" %}
