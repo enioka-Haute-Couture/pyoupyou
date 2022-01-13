@@ -182,19 +182,25 @@ class InterviewTable(tables.Table):
 @require_http_methods(["GET"])
 def process(request, process_id, slug_info=None):
     try:
-        process = Process.objects.for_user(request.user).get(id=process_id)
+        process = (
+            Process.objects.for_user(request.user)
+            .select_related("candidate", "contract_type", "sources__category", "subsidiary")
+            .prefetch_related("candidate__document_set")
+            .get(id=process_id)
+        )
     except Process.DoesNotExist:
         return HttpResponseNotFound()
     interviews = (
         Interview.objects.for_user(request.user)
         .filter(process=process)
-        .prefetch_related("process__candidate", "interviewers")
+        .select_related("process__candidate")
+        .prefetch_related("interviewers__user")
     )
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
 
-    documents = Document.objects.filter(candidate=process.candidate)
+    documents = process.candidate.document_set.all()
     context = {
         "process": process,
         "documents": documents,
@@ -242,11 +248,7 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = (
-        Process.objects.for_user(request.user)
-        .filter(end_date__isnull=False)
-        .select_related("candidate", "contract_type")
-    )
+    closed_processes = Process.objects.for_table(request.user).filter(end_date__isnull=False)
 
     closed_processes_table = ProcessEndTable(closed_processes, prefix="c")
 
@@ -270,10 +272,7 @@ def processes_for_source(request, source_id):
     except Sources.DoesNotExist:
         return HttpResponseNotFound()
 
-    processes = (
-        Process.objects.for_user(request.user).filter(sources_id=source_id).select_related("candidate", "contract_type")
-    )
-
+    processes = Process.objects.for_table(request.user).filter(sources_id=source_id)
     processes_table = ProcessEndTable(processes, prefix="c")
 
     config = RequestConfig(request)
@@ -291,9 +290,9 @@ def processes_for_source(request, source_id):
 @login_required
 @require_http_methods(["GET"])
 def processes(request):
-    open_processes = Process.objects.for_user(request.user).filter(end_date__isnull=True)
+    open_processes = Process.objects.for_table(request.user).filter(end_date__isnull=True)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
-    recently_closed_processes = Process.objects.for_user(request.user).filter(end_date__gte=a_week_ago)
+    recently_closed_processes = Process.objects.for_table(request.user).filter(end_date__gte=a_week_ago)
 
     open_processes_table = ProcessTable(open_processes, prefix="o")
     recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix="c")
@@ -481,28 +480,23 @@ def dashboard(request):
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
     c = request.user.consultant
     actions_needed_processes = (
-        Process.objects.for_user(request.user)
-        .exclude(state__in=Process.CLOSED_STATE_VALUES)
-        .filter(responsible=c)
-        .select_related("candidate", "subsidiary__responsible__user")
+        Process.objects.for_table(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
     )
 
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix="a")
 
     related_processes = (
-        Process.objects.for_user(request.user)
+        Process.objects.for_table(request.user)
         .filter(interview__interviewers__user=request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
-        .select_related("candidate", "subsidiary__responsible__user")
         .distinct()
     )
     related_processes_table = ProcessTable(related_processes, prefix="r")
 
     subsidiary_processes = (
-        Process.objects.for_user(request.user)
+        Process.objects.for_table(request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
         .filter(subsidiary=c.company)
-        .select_related("candidate", "subsidiary__responsible__user")
     )
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix="s")
 
