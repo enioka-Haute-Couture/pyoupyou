@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.http.response import HttpResponseNotAllowed, HttpResponse
 from django.utils.encoding import force_text
@@ -52,7 +52,8 @@ class SubsidiaryInterviewFeed(AbstractPyoupyouInterviewFeed):
         return Subsidiary.objects.get(id=subsidiary_id)
 
     def items(self, obj):
-        return Interview.objects.filter(process__subsidiary=obj, planned_date__isnull=False).order_by("-planned_date")
+        last_month = datetime.today() - timedelta(days=30)
+        return Interview.objects.filter(process__subsidiary=obj, planned_date__gte=last_month).order_by("-planned_date")
 
 
 class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
@@ -73,7 +74,8 @@ class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
         return None
 
     def items(self, obj):
-        return Interview.objects.filter(planned_date__isnull=False).order_by("-planned_date")
+        last_month = datetime.today() - timedelta(days=30)
+        return Interview.objects.filter(planned_date__gte=last_month).order_by("-planned_date")
 
 
 class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
@@ -96,4 +98,5 @@ class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
         return PyouPyouUser.objects.get(id=user_id)
 
     def items(self, user):
-        return Interview.objects.filter(interviewers__user=user, planned_date__isnull=False).order_by("-planned_date")
+        last_month = datetime.today() - timedelta(days=30)
+        return Interview.objects.filter(interviewers__user=user, planned_date__gte=last_month).order_by("-planned_date")
