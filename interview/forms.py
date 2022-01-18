@@ -147,6 +147,11 @@ class InterviewMinuteForm(forms.ModelForm):
         model = Interview
         fields = ["minute", "next_interview_goal", "kind_of_interview"]
 
+    # https://docs.djangoproject.com/en/1.11/topics/http/file-uploads/#uploading-multiple-files
+    # Only way to select multiple files is when selecting them at the same time (e.g: using SHIFT + click)
+    document = forms.FileField(
+        label="Document", required=False, widget=forms.ClearableFileInput(attrs={"multiple": True})
+    )
     helper = FormHelper()
     helper.form_tag = False
 

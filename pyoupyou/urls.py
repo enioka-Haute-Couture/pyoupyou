@@ -54,6 +54,11 @@ urlpatterns = [
     ),
     url(r"^interview/(?P<interview_id>\d+)(?P<slug_info>(\w-?)*)/minute/$", views.minute, name="interview-minute"),
     url(r"^interview/(?P<interview_id>\d+)/minute/edit/$", views.minute_edit, name="interview-minute-edit"),
+    url(
+        r"^delete_document_interview_minute$",
+        views.delete_document_minute_ajax,
+        name="delete-document-minute",
+    ),
     url(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
     url(
         r"^reports/interviewers-load/(?P<subsidiary_id>\d*)$",

@@ -53,7 +53,7 @@ from interview.forms import (
     OfferForm,
     InterviewersForm,
 )
-from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
+from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
 from ref.models import Consultant, PyouPyouUser, Subsidiary
 
 import datetime
@@ -525,8 +525,10 @@ def minute_edit(request, interview_id):
             interview.state = Interview.DRAFT
         if interview.planned_date is None:
             interview.planned_date = now()
-        form = InterviewMinuteForm(request.POST, instance=interview)
+        form = InterviewMinuteForm(request.POST, request.FILES, instance=interview)
         if form.is_valid():
+            for document in request.FILES.getlist("document", []):
+                DocumentInterview.objects.create(content=document, interview=interview, name=document.name)
             form.save()
             log_action(False, interview, request.user, minute_edit)
             return HttpResponseRedirect(interview.get_absolute_url())
@@ -536,8 +538,25 @@ def minute_edit(request, interview_id):
     return render(
         request,
         "interview/interview_minute_form.html",
-        {"form": form, "process": interview.process, "interview": interview, "subsidiaries": Subsidiary.objects.all()},
+        {
+            "form": form,
+            "process": interview.process,
+            "interview": interview,
+            "subsidiaries": Subsidiary.objects.all(),
+            "documents": DocumentInterview.objects.filter(interview=interview),
+        },
     )
+
+
+def delete_document_minute_ajax(request):
+    document_id = request.POST.get("document_id")
+    try:
+        document = DocumentInterview.objects.get(id=document_id)
+        document.delete()
+    except DocumentInterview.DoesNotExist:
+        return JsonResponse({"error": "Not found"})
+
+    return JsonResponse({})
 
 
 @login_required
@@ -548,7 +567,12 @@ def minute(request, interview_id, slug_info=None):
     except Interview.DoesNotExist:
         return HttpResponseNotFound()
 
-    context = {"interview": interview, "process": interview.process, "subsidiaries": Subsidiary.objects.all()}
+    context = {
+        "interview": interview,
+        "process": interview.process,
+        "subsidiaries": Subsidiary.objects.all(),
+        "document": interview.documentinterview_set.all(),
+    }
     return render(request, "interview/interview_minute.html", context)
 
 

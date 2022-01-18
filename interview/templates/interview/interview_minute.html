@@ -29,6 +29,13 @@
         {% endif %}
     </h3>
     <p>{{ interview.minute | bleach | commonmark}}</p>
+    {% if document %}
+        <ul>
+        {% for d in document %}
+            <li> <a href="{{ d.content.url }}" > {{ d.name }} </a> </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
     <h3>{% trans "Next interview goal" %}</h3>
     <p>{{ interview.next_interview_goal | bleach | commonmark}}</p>
 </div>
