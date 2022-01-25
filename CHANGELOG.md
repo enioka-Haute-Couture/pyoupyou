@@ -2,6 +2,7 @@
 - Add interview.prequalification to interviews TSV export
 - Add kind of interview, will allow differentiating phone call, visio or physical interview
 - Update to django 3.1.14
+- Limit ics history 1 month
 - Optimize table sql queries
 - Add offers to processes and interviews exports
 
