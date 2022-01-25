@@ -677,6 +677,7 @@ def export_processes_tsv(request):
                 "process length",
                 "sources",
                 "source_category",
+                "offer",
                 "contract_type",
                 "contract_start_date",
                 "contract_duration",
@@ -699,6 +700,7 @@ def export_processes_tsv(request):
             process_length,
             process.sources,
             "" if process.sources is None else process.sources.category.name,
+            process.offer,
             process.contract_type,
             process.contract_start_date,
             process.contract_duration,
@@ -726,6 +728,7 @@ def export_interviews_tsv(request):
         .select_related("process__contract_type")
         .select_related("process__candidate")
         .select_related("process__subsidiary")
+        .select_related("process__offer")
         .prefetch_related(Prefetch("interviewers", queryset=consultants))
     )
 
@@ -743,6 +746,7 @@ def export_interviews_tsv(request):
                 "process length",
                 "source",
                 "source category",
+                "offer",
                 "contract_type",
                 "contract_start_date",
                 "contract_duration",
@@ -812,6 +816,7 @@ def export_interviews_tsv(request):
             process_length,
             interview.process.sources,
             "" if interview.process.sources is None else interview.process.sources.category.name,
+            interview.process.offer,
             interview.process.contract_type,
             interview.process.contract_start_date,
             interview.process.contract_duration,

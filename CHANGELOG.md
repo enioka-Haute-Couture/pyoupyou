@@ -3,6 +3,7 @@
 - Add kind of interview, will allow differentiating phone call, visio or physical interview
 - Update to django 3.1.14
 - Optimize table sql queries
+- Add offers to processes and interviews exports
 
 # 1.12.1 (2021-11-19)
 - Fix page load if interviewer don't have prequalification interviews
