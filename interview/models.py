@@ -9,7 +9,7 @@ import itertools
 from django.conf import settings
 from django.core import mail
 from django.db import models
-from django.db.models import Q, CharField
+from django.db.models import Q, CharField, Count
 from django.db.models.signals import post_save, m2m_changed
 from django.db.models.functions import Lower
 from django.dispatch import receiver
@@ -208,7 +208,16 @@ class Offer(models.Model):
 
 class ProcessManager(models.Manager):
     def for_user(self, user):
-        return super(ProcessManager, self).get_queryset().filter(start_date__gte=user.date_joined)
+        return super().get_queryset().filter(start_date__gte=user.date_joined)
+
+    def for_table(self, user):
+        qs = (
+            self.for_user(user)
+            .select_related("subsidiary", "candidate", "contract_type")
+            .prefetch_related("responsible__user")
+            .annotate(current_rank=Count("interview", distinct=True))
+        )
+        return qs
 
 
 class Process(models.Model):
@@ -362,13 +371,6 @@ class Process(models.Model):
                 Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
             )
         )
-
-    @property
-    def current_rank(self):
-        last_interview = self.interview_set.last()
-        if last_interview is None:
-            return "0"
-        return last_interview.rank
 
     def trigger_notification(self, is_new):
         subject = None
