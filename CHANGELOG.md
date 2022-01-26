@@ -5,6 +5,9 @@
 - Limit ics history 1 month
 - Optimize table sql queries
 - Add offers to processes and interviews exports
+- Add a page to follow offers
+- Add per offer process follow up
+  - Accessible from all offers page, offers admin page, process page
 
 # 1.12.1 (2021-11-19)
 - Fix page load if interviewer don't have prequalification interviews

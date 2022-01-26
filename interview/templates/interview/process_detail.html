@@ -53,7 +53,7 @@
                     {% if process.offer %}
                         <p>
                             <dt>{% trans "Offer" %}</dt>
-                        <dd>{{ process.offer.name }}</dd>
+                            <dd><a href="{% url 'process-list-offer' process.offer.id %}">{{ process.offer.name }}</a></dd>
                         </p>
                     {% endif %}
                         <p>

@@ -289,6 +289,29 @@ def processes_for_source(request, source_id):
 
 @login_required
 @require_http_methods(["GET"])
+def processes_for_offer(request, offer_id):
+    try:
+        offer = Offer.objects.get(id=offer_id)
+    except Offer.DoesNotExist:
+        return HttpResponseNotFound()
+
+    processes = Process.objects.for_table(request.user).filter(offer_id=offer_id)
+    processes_table = ProcessEndTable(processes, prefix="c")
+
+    config = RequestConfig(request)
+    config.configure(processes_table)
+
+    context = {
+        "title": offer.name + " (" + offer.subsidiary.name + ")",
+        "table": processes_table,
+        "subsidiaries": Subsidiary.objects.all(),
+    }
+
+    return render(request, "interview/single_table.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
 def processes(request):
     open_processes = Process.objects.for_table(request.user).filter(end_date__isnull=True)
     a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
@@ -1126,6 +1149,26 @@ class ActiveSourcesTable(tables.Table):
         attrs = {"class": "table table-striped table-condensed"}
 
 
+class OffersTable(tables.Table):
+    name = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, verbose_name=_("Name"))
+    subsidiary = tables.Column(verbose_name=_("Subsidiary"))
+    active_processes_count = tables.Column(verbose_name=_("Active processes"))
+    total_processes_count = tables.Column(verbose_name=_("Processes"))
+    total_hired = tables.Column(verbose_name=_("Hired"))
+    ratio = PercentColumn(verbose_name=_("Ratio"))
+    sources = tables.Column(verbose_name=_("Sources"))
+    last_state_change = tables.Column(verbose_name=_("Last change"))
+    details = tables.TemplateColumn(verbose_name="", orderable=False, template_name="interview/tables/source_name.html")
+    offer_admin = tables.TemplateColumn(
+        verbose_name="", orderable=False, template_name="interview/tables/edit_source.html"
+    )
+
+    class Meta:
+        order_by = "name"
+        template_name = "interview/_tables.html"
+        attrs = {"class": "table table-striped table-condensed"}
+
+
 @login_required
 @require_http_methods(["GET"])
 def active_sources(request, subsidiary_id=None):
@@ -1172,6 +1215,55 @@ def active_sources(request, subsidiary_id=None):
         request,
         "interview/active-sources.html",
         {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def offers(request, subsidiary_id=None):
+    subsidiary = None
+    offers_qs = Offer.objects.filter(archived=False)
+    if subsidiary_id:
+        try:
+            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
+            offers_qs = offers_qs.filter(process__subsidiary=subsidiary).distinct()
+        except Subsidiary.DoesNotExist:
+            pass
+
+    data = []
+    filtered_process = Process.objects.all()
+    if subsidiary:
+        filtered_process = filtered_process.filter(subsidiary=subsidiary)
+    for o in offers_qs:
+        total_processes = filtered_process.filter(offer=o)
+        total_processes_count = total_processes.count()
+        active_processes_count = filtered_process.filter(offer=o, state__in=Process.OPEN_STATE_VALUES).count()
+        total_hired = filtered_process.filter(offer=o, state=Process.HIRED).count()
+        last_state_change = filtered_process.filter(offer=o).aggregate(Max("last_state_change"))
+        distinct_sources = Sources.objects.filter(process__in=filtered_process.filter(offer=o)).distinct().count()
+
+        data.append(
+            {
+                "name": o.name,
+                "subsidiary": o.subsidiary,
+                "last_active_process_days": last_state_change,
+                "total_processes_count": total_processes_count,
+                "active_processes_count": active_processes_count,
+                "total_hired": total_hired,
+                "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
+                "last_state_change": last_state_change["last_state_change__max"],
+                "url": reverse(viewname="process-list-offer", kwargs={"offer_id": o.id}),
+                "admin_url": reverse(viewname="admin:interview_offer_change", kwargs={"object_id": o.id}),
+                "sources": distinct_sources,
+            }
+        )
+
+    offers_table = OffersTable(data, order_by="-last_active_process_days")
+    RequestConfig(request, paginate={"per_page": 100}).configure(offers_table)
+    return render(
+        request,
+        "interview/offers.html",
+        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "offers": offers_table},
     )
 
 
