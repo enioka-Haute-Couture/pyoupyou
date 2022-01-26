@@ -1,4 +1,4 @@
-# v1.13.0
+# v1.13.0 (2022-01-26)
 - Add interview.prequalification to interviews TSV export
 - Add kind of interview, will allow differentiating phone call, visio or physical interview
 - Update to django 3.1.14
