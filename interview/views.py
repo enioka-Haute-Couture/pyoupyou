@@ -1344,28 +1344,30 @@ def activity_summary(request):
         _t("WAIT INFORMATION"),
     ]
 
-    df = df.replace(Interview.ALL_STATE_VALUES, translated_values)
-    df["subsidiary_state"] = df["process__subsidiary__name"] + " " + df["state"]
-    df = df.sort_values("subsidiary_state")
+    chart = None
+    if len(df) > 0:
+        df = df.replace(Interview.ALL_STATE_VALUES, translated_values)
+        df["subsidiary_state"] = df["process__subsidiary__name"] + " " + df["state"]
+        df = df.sort_values("subsidiary_state")
 
-    fig = px.bar(
-        df,
-        x="planned_date_month",
-        y="count",
-        color="subsidiary_state",
-        title="",
-        labels={
-            "planned_date_month": _t("Interview date"),
-            "process__subsidiary__name": _t("Subsidiary"),
-            "count": _t("Count"),
-            "subsidiary_state": _t("Subsidiary and state"),
-        },
-    )
+        fig = px.bar(
+            df,
+            x="planned_date_month",
+            y="count",
+            color="subsidiary_state",
+            title="",
+            labels={
+                "planned_date_month": _t("Interview date"),
+                "process__subsidiary__name": _t("Subsidiary"),
+                "count": _t("Count"),
+                "subsidiary_state": _t("Subsidiary and state"),
+            },
+        )
 
-    config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
-    chart = plot(fig, output_type="div", config=config)
-
-    plot_div = chart
+        config = dict(
+            {"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False}
+        )
+        chart = plot(fig, output_type="div", config=config)
 
     return render(
         request,
@@ -1385,7 +1387,7 @@ def activity_summary(request):
             "declined_processes": declined_processes,
             "start": start_date,
             "end": end_date,
-            "plot_div": plot_div,
+            "plot_div": chart if chart else "",
             "subsidiaries": Subsidiary.objects.all(),
         },
     )
