@@ -35,7 +35,7 @@ jobs:
     - name: Check coding style (black)
       run: pipenv run black --check .
     - name: Check safety
-      run: PIPENV_PYUP_API_KEY="" pipenv check
+      run: PIPENV_PYUP_API_KEY="" pipenv check -i 44716 -i 44717 -i 44715 -i 43453
     - name: Check requirements.txt is up to date
       run: |
         pipenv lock -r > requirements2.txt
