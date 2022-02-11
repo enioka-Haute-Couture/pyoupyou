@@ -1,0 +1,66 @@
+{% extends "interview/base.html" %}
+{% load render_table from django_tables2 %}
+{% load static %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+
+{% block more_css %}
+
+<script type="application/javascript">
+  $(function () {
+            $('#id_last_state_change_0').datetimepicker({
+                locale: 'fr',
+                format: "DD/MM/YYYY",
+                tooltips: {
+                    selectMonth: 'Sélection du mois',
+                    prevMonth: 'Mois précédent',
+                    nextMonth: 'Mois suivant',
+                    selectYear: "Sélection de l'année",
+                    prevYear: 'Année précédente',
+                    nextYear: 'Année suivante',
+                    selectDecade: 'Sélection de la décennie',
+                    prevDecade: 'Décennie précédente',
+                    nextDecade: 'Décennie suivante',
+                    prevCentury: 'Siècle précédent',
+                    nextCentury: 'Siècle suivant'
+                }
+            });
+            $('#id_last_state_change_1').datetimepicker({
+                locale: 'fr',
+                format: "DD/MM/YYYY",
+                tooltips: {
+                    selectMonth: 'Sélection du mois',
+                    prevMonth: 'Mois précédent',
+                    nextMonth: 'Mois suivant',
+                    selectYear: "Sélection de l'année",
+                    prevYear: 'Année précédente',
+                    nextYear: 'Année suivante',
+                    selectDecade: 'Sélection de la décennie',
+                    prevDecade: 'Décennie précédente',
+                    nextDecade: 'Décennie suivante',
+                    prevCentury: 'Siècle précédent',
+                    nextCentury: 'Siècle suivant'
+                }
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="panel panel-primary">
+
+    <div class="filters">
+      <form class="form-inline" style="position: relative" method="get">
+        {{ filter.form|crispy }}
+        <input class="btn btn-default" type="submit" value="Filter" />
+      </form>
+    </div>
+        <div class="panel-heading">
+            <div class="panel-title">{% trans "Interviews" %}</div>
+        </div>
+        {% render_table interviews_table %}
+    </div>
+
+</div>
+{% endblock %}
