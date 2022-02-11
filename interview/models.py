@@ -420,6 +420,15 @@ class InterviewManager(models.Manager):
     def for_user(self, user):
         return super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
 
+    def for_table(self, user):
+        qs = (
+            self.for_user(user)
+            .select_related("process", "process__subsidiary", "process__candidate")
+            .prefetch_related("interviewers__user")
+            .prefetch_related("interviewers__company")
+        )
+        return qs
+
 
 class Interview(models.Model):
     WAITING_PLANIFICATION = "NP"

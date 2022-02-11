@@ -39,7 +39,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
 
-from interview.filters import ProcessFilter, ProcessSummaryFilter, InterviewSummaryFilter
+from interview.filters import ProcessFilter, ProcessSummaryFilter, InterviewSummaryFilter, InterviewListFilter
 from interview.forms import (
     ProcessCandidateForm,
     InterviewMinuteForm,
@@ -176,6 +176,27 @@ class InterviewTable(tables.Table):
         order_by = "id"
         empty_text = _("No data")
         row_attrs = {"class": get_state_color}
+
+
+class InterviewDetailTable(InterviewTable):
+    process_detail = tables.TemplateColumn(
+        verbose_name=_("Candidate"), orderable=False, template_name="interview/tables/interview_process.html"
+    )
+
+    class Meta(InterviewTable.Meta):
+        sequence = (
+            "needs_attention",
+            "process.subsidiary",
+            "process_detail",
+            "interviewers",
+            "planned_date",
+            "state",
+            "kind_of_interview",
+        )
+        fields = sequence
+        per_page = 50
+
+        order_by = "-planned_date"
 
 
 @login_required
@@ -1364,7 +1385,9 @@ def activity_summary(request):
             },
         )
 
-        config = dict({"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False})
+        config = dict(
+            {"scrollZoom": False, "staticPlot": False, "showAxisRangeEntryBoxes": False, "displayModeBar": False}
+        )
         chart = plot(fig, output_type="div", config=config)
 
     return render(
@@ -1389,3 +1412,42 @@ def activity_summary(request):
             "subsidiaries": Subsidiary.objects.all(),
         },
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def interviews_list(request):
+    a_month_ago = datetime.date.today() - datetime.timedelta(days=30)
+    interview_filter = InterviewListFilter(
+        request.GET, queryset=Interview.objects.for_table(request.user).order_by("planned_date")
+    )
+
+    # By default, filter for interviews of user's susidiary.
+    # User can still view interviews for all subsidiaries by selecting "---" in the dropdown list
+    if "subsidiary" not in interview_filter.data:
+        interview_filter.data["subsidiary"] = request.user.consultant.company
+    # By default, filter for last month interviews
+    print(a_month_ago.strftime("%D/%M/%Y"))
+    if "last_state_change_after" not in interview_filter.data:
+        interview_filter.data["last_state_change_after"] = a_month_ago.strftime("%d/%m/%Y")
+
+    interviews_not_planned = (
+        Interview.objects.for_table(request.user)
+        .filter(planned_date=None)
+        .filter(process__state__in=Process.OPEN_STATE_VALUES)
+    )
+
+    # We need to replicate filters because we can't mutate an existing filter :(
+    if interview_filter.data.get("subsidiary", None):
+        interviews_not_planned = interviews_not_planned.filter(process__subsidiary=interview_filter.data["subsidiary"])
+    if interview_filter.data.get("interviewer", None):
+        interviews_not_planned = interviews_not_planned.filter(interviewers=interview_filter.data["interviewer"])
+
+    interviews_table = InterviewDetailTable(list(interview_filter.qs) + list(interviews_not_planned), prefix="i")
+
+    config = RequestConfig(request)
+    config.configure(interviews_table)
+
+    context = {"interviews_table": interviews_table, "filter": interview_filter}
+
+    return render(request, "interview/list_interviews.html", context)

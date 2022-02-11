@@ -27,6 +27,7 @@ urlpatterns = [
     url(r"^processes/closed$", views.closed_processes, name="process-closed-list"),
     url(r"^processes/source/(?P<source_id>\d+)$", views.processes_for_source, name="process-list-source"),
     url(r"^processes/offer/(?P<offer_id>\d+)$", views.processes_for_offer, name="process-list-offer"),
+    url(r"^interviews/$", views.interviews_list, name="interviews-list"),
     url(r"^candidate/$", views.new_candidate, name="candidate-new"),
     url(r"^import-seekube/$", views.import_seekube, name="import-seekube"),
     url(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
