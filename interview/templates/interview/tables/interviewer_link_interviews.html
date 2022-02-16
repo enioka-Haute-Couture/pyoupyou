@@ -1,0 +1,4 @@
+{% load i18n %}
+<a href="{% url 'interviews-list'%}?interviewer={{record.interviewer.pk}}&last_state_change_after={{record.a_month_ago}}">
+  {{record.interviewer}}
+</a>
