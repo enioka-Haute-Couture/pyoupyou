@@ -182,15 +182,18 @@ class InterviewDetailTable(InterviewTable):
     process_detail = tables.TemplateColumn(
         verbose_name=_("Candidate"), orderable=False, template_name="interview/tables/interview_process.html"
     )
+    rank = tables.Column(verbose_name=_("No itw"))
 
     class Meta(InterviewTable.Meta):
         sequence = (
+            "rank",
             "needs_attention",
             "process.subsidiary",
             "process_detail",
             "interviewers",
             "planned_date",
             "state",
+            "process.offer",
             "kind_of_interview",
         )
         fields = sequence
@@ -886,7 +889,9 @@ def export_interviews_tsv(request):
 
 class LoadTable(tables.Table):
     subsidiary = tables.Column(verbose_name=_("Subsidiary"))
-    interviewer = tables.Column(verbose_name=_("Interviewer"), attrs={"td": {"style": "font-weight: bold"}})
+    interviewer = tables.TemplateColumn(
+        template_name="interview/tables/interviewer_link_interviews.html", verbose_name=_("Interviewer")
+    )
     load = tables.Column(verbose_name=_("Load"))
     itw_last_month = tables.Column(verbose_name=_("Past month"))
     itw_last_week = tables.Column(verbose_name=_("Past week"))
@@ -978,6 +983,9 @@ def interviewers_load(request, subsidiary_id=None):
                 "itw_last_week": load["itw_last_week"],
                 "itw_not_planned_yet": load["itw_not_planned_yet"],
                 "itw_planned": load["itw_planned"],
+                "a_month_ago": (datetime.date.today() - datetime.timedelta(days=30)).strftime(
+                    "%d/%m/%Y"
+                ),  # For the link to interviews_list
             }
         )
 
@@ -1422,13 +1430,12 @@ def interviews_list(request):
         request.GET, queryset=Interview.objects.for_table(request.user).order_by("planned_date")
     )
 
-    # By default, filter for interviews of user's susidiary.
+    # By default (if no filter data was sent in request), filter for
+    #   - interviews of user's susidiary.
+    #   - last month interviews
     # User can still view interviews for all subsidiaries by selecting "---" in the dropdown list
-    if "subsidiary" not in interview_filter.data:
+    if {} == interview_filter.data:
         interview_filter.data["subsidiary"] = request.user.consultant.company
-    # By default, filter for last month interviews
-    print(a_month_ago.strftime("%D/%M/%Y"))
-    if "last_state_change_after" not in interview_filter.data:
         interview_filter.data["last_state_change_after"] = a_month_ago.strftime("%d/%m/%Y")
 
     interviews_not_planned = (
