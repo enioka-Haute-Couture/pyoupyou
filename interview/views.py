@@ -1455,6 +1455,10 @@ def interviews_list(request):
     config = RequestConfig(request)
     config.configure(interviews_table)
 
-    context = {"interviews_table": interviews_table, "filter": interview_filter}
+    context = {
+        "interviews_table": interviews_table,
+        "filter": interview_filter,
+        "subsidiaries": Subsidiary.objects.all(),
+    }
 
     return render(request, "interview/list_interviews.html", context)
