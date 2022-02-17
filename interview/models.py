@@ -423,9 +423,15 @@ class InterviewManager(models.Manager):
     def for_table(self, user):
         qs = (
             self.for_user(user)
-            .select_related("process", "process__subsidiary", "process__candidate")
+            .select_related(
+                "process",
+                "process__subsidiary",
+                "process__candidate",
+                "process__offer",
+                "kind_of_interview",
+                "process__offer__subsidiary",
+            )
             .prefetch_related("interviewers__user")
-            .prefetch_related("interviewers__company")
         )
         return qs
 
