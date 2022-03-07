@@ -110,7 +110,7 @@ class InterviewFormPlan(forms.ModelForm):
     helper = FormHelper()
     helper.form_method = "POST"
     helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
-    helper.layout = Layout(Div(Column("planned_date"), css_class="relative"))
+    helper.layout = Layout(Div(Column("planned_date", "kind_of_interview"), css_class="relative"))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
@@ -127,7 +127,7 @@ class InterviewFormEditInterviewers(forms.ModelForm):
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["minute", "suggested_interviewer", "next_interview_goal"]
+        fields = ["minute", "suggested_interviewer", "next_interview_goal", "kind_of_interview"]
         widgets = {"suggested_interviewer": SingleConsultantWidget}
 
     helper = FormHelper()
