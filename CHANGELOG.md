@@ -1,6 +1,7 @@
 # v1.14.0
 - Update django to 3.2.11
 - New page: list past and future interviews
+- Fix an error when we reopen a closed process wthout interview
 
 # v1.13.0 (2022-01-26)
 - Add interview.prequalification to interviews TSV export

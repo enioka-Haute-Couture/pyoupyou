@@ -386,6 +386,12 @@ class Process(models.Model):
             subject = _("Process {process}: Candidate accepted our offer").format(process=self)
             body_template = "interview/email/candidate_hired.txt"
 
+        elif (
+            self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+            and not self.interview_set.last()
+        ):
+            pass  # No mail in this case, reached at least when we reopen a process without interview
+
         elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS and self.interview_set.last().state in [
             Interview.GO,
             Interview.NO_GO,
