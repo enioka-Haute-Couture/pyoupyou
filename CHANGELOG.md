@@ -1,4 +1,4 @@
-# v1.14.0
+# v1.14.0 (2022-03-07)
 - Update django to 3.2.12
 - New page: list past and future interviews
 - Fix an error when we reopen a closed process wthout interview
