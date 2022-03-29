@@ -1,3 +1,6 @@
+# v1.xx.x (xxxx-xx-xx)
+- All interviews: only display active interviewers in filter dropdown
+
 # v1.14.0 (2022-03-07)
 - Update django to 3.2.12
 - New page: list past and future interviews
