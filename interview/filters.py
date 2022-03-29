@@ -24,5 +24,5 @@ class InterviewListFilter(django_filters.FilterSet):
     subsidiary = django_filters.ModelChoiceFilter(queryset=Subsidiary.objects.all(), field_name="process__subsidiary")
     last_state_change = django_filters.DateFromToRangeFilter(field_name="planned_date")
     interviewer = django_filters.ModelChoiceFilter(
-        queryset=Consultant.objects.all().select_related("user"), field_name="interviewers"
+        queryset=Consultant.objects.filter(user__is_active=True).select_related("user"), field_name="interviewers"
     )
