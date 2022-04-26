@@ -4,6 +4,7 @@ from django.http.response import HttpResponseNotAllowed, HttpResponse
 from django.utils.encoding import force_text
 from django.utils.html import escape
 from django_ical.views import ICalFeed
+from django.utils import timezone
 
 from interview.models import Interview
 from ref.models import Subsidiary, PyouPyouUser, Consultant
@@ -52,7 +53,7 @@ class SubsidiaryInterviewFeed(AbstractPyoupyouInterviewFeed):
         return Subsidiary.objects.get(id=subsidiary_id)
 
     def items(self, obj):
-        last_month = datetime.today() - timedelta(days=30)
+        last_month = timezone.now() - timedelta(days=30)
         return Interview.objects.filter(process__subsidiary=obj, planned_date__gte=last_month).order_by("-planned_date")
 
 
@@ -74,7 +75,7 @@ class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
         return None
 
     def items(self, obj):
-        last_month = datetime.today() - timedelta(days=30)
+        last_month = timezone.now() - timedelta(days=30)
         return Interview.objects.filter(planned_date__gte=last_month).order_by("-planned_date")
 
 
@@ -98,5 +99,5 @@ class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
         return PyouPyouUser.objects.get(id=user_id)
 
     def items(self, user):
-        last_month = datetime.today() - timedelta(days=30)
+        last_month = timezone.now() - timedelta(days=30)
         return Interview.objects.filter(interviewers__user=user, planned_date__gte=last_month).order_by("-planned_date")
