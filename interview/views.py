@@ -246,7 +246,7 @@ def close_process(request, process_id):
 
     form = CloseForm(request.POST, instance=process)
     if form.is_valid():
-        form.instance.end_date = datetime.date.today()
+        form.instance.end_date = timezone.now()
         form.save()
         log_action(False, process, request.user, close_process)
     # TODO manage errors
@@ -338,7 +338,7 @@ def processes_for_offer(request, offer_id):
 @require_http_methods(["GET"])
 def processes(request):
     open_processes = Process.objects.for_table(request.user).filter(end_date__isnull=True)
-    a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+    a_week_ago = timezone.now() - datetime.timedelta(days=7)
     recently_closed_processes = Process.objects.for_table(request.user).filter(end_date__gte=a_week_ago)
 
     open_processes_table = ProcessTable(open_processes, prefix="o")
@@ -524,7 +524,7 @@ def minute(request, interview_id, slug_info=None):
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
-    a_week_ago = datetime.date.today() - datetime.timedelta(days=7)
+    a_week_ago = timezone.now() - datetime.timedelta(days=7)
     c = request.user.consultant
     actions_needed_processes = (
         Process.objects.for_table(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
@@ -983,7 +983,7 @@ def interviewers_load(request, subsidiary_id=None):
                 "itw_last_week": load["itw_last_week"],
                 "itw_not_planned_yet": load["itw_not_planned_yet"],
                 "itw_planned": load["itw_planned"],
-                "a_month_ago": (datetime.date.today() - datetime.timedelta(days=30)).strftime(
+                "a_month_ago": (timezone.now() - datetime.timedelta(days=30)).strftime(
                     "%d/%m/%Y"
                 ),  # For the link to interviews_list
             }
@@ -1088,12 +1088,12 @@ def import_seekube(request):
 @require_http_methods(["GET"])
 def gantt(request):
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
-    today = datetime.date.today()
+    today = timezone.now().date()
     processes = Process.objects.filter(state__in=state_filter).select_related("contract_type", "candidate")
     filter = ProcessFilter(request.GET, queryset=processes)
 
     processes_dict = []
-    max_end_date = datetime.date.today()
+    max_end_date = timezone.now().date()
 
     for process in filter.qs:
         if process.contract_type is None:
@@ -1343,7 +1343,7 @@ def activity_summary(request):
     active_sources = process_filter.qs.values("sources__name").annotate(count=Count("sources")).filter(count__gt=0)
 
     start_date = Process.objects.order_by("start_date").first().start_date
-    end_date = datetime.date.today()
+    end_date = timezone.now()
     if process_filter.form.cleaned_data["last_state_change"]:
         if process_filter.form.cleaned_data["last_state_change"].start:
             start_date = process_filter.form.cleaned_data["last_state_change"].start
@@ -1425,7 +1425,7 @@ def activity_summary(request):
 @login_required
 @require_http_methods(["GET"])
 def interviews_list(request):
-    a_month_ago = datetime.date.today() - datetime.timedelta(days=30)
+    a_month_ago = timezone.now() - datetime.timedelta(days=30)
     interview_filter = InterviewListFilter(
         request.GET, queryset=Interview.objects.for_table(request.user).order_by("planned_date")
     )

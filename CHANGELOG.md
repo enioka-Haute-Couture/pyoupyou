@@ -1,5 +1,6 @@
 # v1.xx.x (xxxx-xx-xx)
 - All interviews: only display active interviewers in filter dropdown
+- Fix NonExistentTimeError that could happen exactly 30 or 7 days after spring DST change
 
 # v1.14.0 (2022-03-07)
 - Update django to 3.2.12
