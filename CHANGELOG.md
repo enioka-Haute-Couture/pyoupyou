@@ -5,6 +5,7 @@
 - Remove suggested interviewer for interview
 - Add limited_to_source field to restrict access for external consultants
 - Add privilege field to consultant to implement access filtering
+- Update search, allowing user to search old candidate but not the detail
 
 # v1.16.0 (2022-11-14)
 - More refined factories

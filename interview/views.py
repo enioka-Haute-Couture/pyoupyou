@@ -1048,11 +1048,7 @@ def interviewers_load(request, subsidiary_id=None):
 def search(request):
     q = request.GET.get("q", "")
 
-    results = (
-        Process.objects.for_user(request.user)
-        .filter(Q(candidate__name__icontains=q) | Q(candidate__email__icontains=q))
-        .distinct()
-    )
+    results = Process.objects.filter(Q(candidate__name__icontains=q) | Q(candidate__email__icontains=q)).distinct()
 
     search_result = ProcessEndTable(results, prefix="c")
 
