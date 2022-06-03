@@ -3,6 +3,7 @@
 - Fix NonExistentTimeError that could happen exactly 30 or 7 days after spring DST change
 - Fix character escaping in email body
 - Add interview kind to all_interviews.tsv export
+- Re-enable the dump_data view, which was unreachable since the django 3.2 migration
 - Update to django 3.2.15 
 - Update black to 22.8.0
 - Migrate from pipenv to poetry

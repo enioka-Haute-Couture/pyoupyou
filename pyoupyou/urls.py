@@ -20,8 +20,8 @@ from django.contrib import admin
 from interview import views, feeds
 
 urlpatterns = [
-    url(r"^admin/", admin.site.urls),
     url(r"^admin/dump_data", views.dump_data),
+    url(r"^admin/", admin.site.urls),
     url(r"^$", views.dashboard, name="dashboard"),
     url(r"^processes/$", views.processes, name="process-list"),
     url(r"^processes/closed$", views.closed_processes, name="process-closed-list"),
