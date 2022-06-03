@@ -808,6 +808,7 @@ def export_interviews_tsv(request):
                 "days since last",
                 "planned_date",
                 "prequalification",
+                "kind",
             ]
         )
     )
@@ -878,6 +879,7 @@ def export_interviews_tsv(request):
             time_since_last_event,
             interview.planned_date,
             interview.prequalification,
+            interview.kind_of_interview,
         ]
         ret.append("\t".join(str(c).replace("\t", " ") for c in columns))
 
