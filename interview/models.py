@@ -102,8 +102,8 @@ class Candidate(models.Model):
 
     def anonymize(self):
         """
-            Anonymize the candidate data, removing its documents
-            This is irreversible
+        Anonymize the candidate data, removing its documents
+        This is irreversible
         """
         if not self.anonymized:
             # remove the candidate's documents
@@ -392,10 +392,14 @@ class Process(models.Model):
         ):
             pass  # No mail in this case, reached at least when we reopen a process without interview
 
-        elif self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS and self.interview_set.last().state in [
-            Interview.GO,
-            Interview.NO_GO,
-        ]:
+        elif (
+            self.state == Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+            and self.interview_set.last().state
+            in [
+                Interview.GO,
+                Interview.NO_GO,
+            ]
+        ):
 
             subject = _("Process {process}: {result}").format(process=self, result=self.interview_set.last().state)
             body_template = "interview/email/minute_done.txt"
