@@ -10,18 +10,18 @@ http://www.gnu.org/licenses/agpl-3.0.html
 ## Dependencies
 
 - Python >= 3.9.1
-- pipenv
+- poetry
 
 ## Dev environment
 
 ```
-pipenv install --dev
+poetry install --with dev
 ```
 
 ## Prod environment
 
 ```
-- pipenv install
+- poetry install
 ```
 
 # Contribute
@@ -43,8 +43,8 @@ To format string using format will be prefered over the % syntax. In order to fa
 # Setup dev
 
 ```
-# Switch to pipenv
-pipenv shell
+# Switch to poetry
+poetry shell
 
 # set environment to dev, will load settings in pyoupyou/settings/dev.py
 export PYOUPYOU_ENV=dev
@@ -70,13 +70,13 @@ https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 ```
 # install dependencies
 export PIPENV_VENV_IN_PROJECT=true # To create virtualenv on the project folder under .venv
-pipenv install
+poetry install
 
 # collect static files
-PYOUPYOU_ENV="prod" pipenv run ./manage.py collectstatic
+PYOUPYOU_ENV="prod" poetry run ./manage.py collectstatic
 
 # migrate database
-PYOUPYOU_ENV="prod" pipenv run ./manage.py migrate
+PYOUPYOU_ENV="prod" poetry run ./manage.py migrate
 
 ```
 
