@@ -14,36 +14,21 @@ jobs:
     env:
       PYOUPYOU_ENV: dev
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
-    - name: Install poetry
-      run: |
-        export POETRY_HOME=/opt/poetry
-        python3 -m venv $POETRY_HOME
-        $POETRY_HOME/bin/pip install poetry==1.2.0
-        $POETRY_HOME/bin/poetry --version
-    - name: Cache poetry virtualenv
-      id: cache-poetry
-      uses: actions/cache@v1
-      with:
-        path: ~/.local/share/virtualenvs
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-    - name: Install dependencies
-      if: steps.cache-poetry.outputs.cache-hit != 'true'
-      run: $POETRY_HOME/bin/poetry install --with dev
-    - name: Check migrations
-      run: $POETRY_HOME/bin/poetry run ./manage.py makemigrations --check
-    - name: Check coding style (black)
-      run: $POETRY_HOME/bin/poetry run run black --check .
-    - name: Check safety
-      run: POETRY_PYUP_API_KEY="" $POETRY_HOME/bin/poetry run check
-    - name: Check requirements.txt is up to date
-      run: |
-        $POETRY_HOME/bin/poetry run export -f requirements.txt --output requirements2.txt
-        diff requirements.txt requirements2.txt
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          cache: 'poetry'
+      - run: poetry install
+      - name: Check migrations
+        run: poetry run ./manage.py makemigrations --check
+      - name: Check coding style (black)
+        run: poetry run black --check .
+      - name: Check requirements.txt is up to date
+        run: |
+          poetry export --without-hashes -f requirements.txt|diff requirements.txt -
   test:
     runs-on: ubuntu-latest
     env:
@@ -51,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.9,'3.10']
+        python-version: ["3.9"]
     services:
       mariadb:
         image: mariadb:latest
@@ -60,29 +45,16 @@ jobs:
           MYSQL_DATABASE: pyoupyou
         ports: [ '3306:3306' ]
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install poetry
-      run: |
-        export POETRY_HOME=/opt/poetry
-        python3 -m venv $POETRY_HOME
-        $POETRY_HOME/bin/pip install poetry==1.2.0
-        $POETRY_HOME/bin/poetry --version
-    - name: Cache poetry virtualenv
-      id: cache-poetry
-      uses: actions/cache@v1
-      with:
-        path: ~/.local/share/virtualenvs
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-    - name: Install dependencies
-      if: steps.cache-poetry.outputs.cache-hit != 'true'
-      run: $POETRY_HOME/bin/poetry run install --with dev
-    - name: test
-      run: |
-        cp pyoupyou/settings/local.py.ci pyoupyou/settings/local.py
-        $POETRY_HOME/bin/poetry run run pip install mysqlclient
-        $POETRY_HOME/bin/poetry run run coverage run ./manage.py test
-        
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
+      - run: poetry install --no-interaction
+      - name: test
+        run: |
+          cp pyoupyou/settings/local.py.ci pyoupyou/settings/local.py
+          poetry run pip install mysqlclient
+          poetry run coverage run ./manage.py test
