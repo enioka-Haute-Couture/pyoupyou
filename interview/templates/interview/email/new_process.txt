@@ -1,4 +1,6 @@
 {% load i18n %}
+{% autoescape off %}
 {% blocktrans with candidate=process.candidate %}New process for candidate {{ candidate }}{% endblocktrans %}
+{% endautoescape %}
 
 {{ url }}

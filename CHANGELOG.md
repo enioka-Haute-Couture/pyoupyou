@@ -1,6 +1,7 @@
 # v1.xx.x (xxxx-xx-xx)
 - All interviews: only display active interviewers in filter dropdown
 - Fix NonExistentTimeError that could happen exactly 30 or 7 days after spring DST change
+- Fix character escaping in email body
 - Update to django 3.2.15 
 - Update black to 22.8.0
 - Migrate from pipenv to poetry

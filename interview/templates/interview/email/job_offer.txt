@@ -1,4 +1,6 @@
 {% load i18n %}
+{% autoescape off %}
 {% blocktrans with candidate=process.candidate %}A job offer is ongoing for {{ candidate }}{% endblocktrans %}
+{% endautoescape %}
 
 {{ url }}

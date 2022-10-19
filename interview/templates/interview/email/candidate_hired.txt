@@ -1,4 +1,6 @@
 {% load i18n %}
+{% autoescape off %}
 {% blocktrans with candidate=process.candidate %}Candidate {{ candidate }} accepted our offer{% endblocktrans %}
+{% endautoescape %}
 
 {{ url }}
