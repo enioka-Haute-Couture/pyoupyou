@@ -1,4 +1,6 @@
 {% load i18n %}
+{% autoescape off %}
 {% blocktrans with candidate=process.candidate itws=process.interview_set.last.interviewers_str state=process.interview_set.last.state %}Interview by {{ itws }} for {{ candidate }}: {{ state }}{% endblocktrans %}
+{% endautoescape %}
 
 {{ url }}
