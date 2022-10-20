@@ -1,4 +1,4 @@
-# v1.xx.x (xxxx-xx-xx)
+# v1.15.0 (2022-10-20)
 - All interviews: only display active interviewers in filter dropdown
 - Fix NonExistentTimeError that could happen exactly 30 or 7 days after spring DST change
 - Fix character escaping in email body
