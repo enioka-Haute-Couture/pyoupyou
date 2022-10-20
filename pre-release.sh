@@ -1,4 +1,4 @@
 #!/bin/bash
 
 echo "Update requirements.txt file"
-pipenv lock -r > requirements.txt
+poetry export --without-hashes -f requirements.txt --output requirements.txt

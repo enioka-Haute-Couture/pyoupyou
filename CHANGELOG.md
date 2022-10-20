@@ -5,9 +5,13 @@
 - Add interview kind to all_interviews.tsv export
 - Re-enable the dump_data view, which was unreachable since the django 3.2 migration
 - Set default autofield type
-- Update to django 3.2.15 
 - Update black to 22.8.0
+- Security / CVE
+  - Update to django 3.2.16
+  - Update numpy to 1.23.4
+  - Update urllib3 to 1.26.12
 - Migrate from pipenv to poetry
+- Support only python 3.9
 
 # v1.14.0 (2022-03-07)
 - Update django to 3.2.12

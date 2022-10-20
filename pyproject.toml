@@ -13,7 +13,7 @@ authors = [
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">= 3.9"
+python = "~= 3.9"
 django-bootstrap-static = ">=3.3.7,<3.4"
 django-crispy-forms = "==1.9.1"
 django-select2 = "==7.0.3"
@@ -23,14 +23,15 @@ django-ical = "==1.4"
 django-markwhat = "==1.6.1"
 commonmark = "==0.9.1"
 django-bleach = "==0.3.0"
-Django = "==3.2.15"
 django-split-settings = "==0.3.0"
 requests = '==2.26.0 '
 django-filter = "==2.4.0"
 plotly = "==4.8.2"
-numpy = "==1.18.5"
+numpy = "1.23.4"
 pytz = "==2021.1"
 pandas = "==1.2.2"
+django = "3.2.16"
+urllib3 = "1.26.12"
 
 [tool.poetry.group.dev.dependencies]
 black = "==22.8.0"
