@@ -9,7 +9,7 @@ http://www.gnu.org/licenses/agpl-3.0.html
 
 ## Dependencies
 
-- Python >= 3.9.1
+- Python ~= 3.9
 - poetry
 
 ## Dev environment
@@ -27,6 +27,8 @@ poetry install --with dev
 # Contribute
 
 To contribute do Pull Request against this repository (https://github.com/pyoupyou/pyoupyou)
+
+In order to create a branch from an issue use github name suggestion <issue-id>-issue-name
 
 ## Style Guide
 
