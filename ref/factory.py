@@ -22,17 +22,20 @@ class PyouPyouUserFactory(factory.django.DjangoModelFactory):
     password = factory.Faker("password")
 
 
-class ConsultantFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "ref.Consultant"
-
-    user = factory.SubFactory(PyouPyouUserFactory)
-    company = factory.Iterator(Subsidiary.objects.all())
-
-
 class SubsidiaryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "ref.Subsidiary"
 
     name = factory.Faker("company")
     code = factory.LazyAttribute(lambda n: n.name[0:3].upper())
+
+
+class ConsultantFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "ref.Consultant"
+
+    if Subsidiary.objects.all().count() == 0:
+        SubsidiaryFactory()
+
+    user = factory.SubFactory(PyouPyouUserFactory)
+    company = factory.Iterator(Subsidiary.objects.all())

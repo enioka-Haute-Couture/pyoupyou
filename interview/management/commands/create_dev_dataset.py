@@ -20,12 +20,13 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        call_command("delete_dataset")
-        subsidiary = SubsidiaryFactory(name="HauteCouture")
-        subsidiary_consultants = []
+        for i in range(1, 3):
+            call_command("flush", "--no-input")
+            subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i))
+            subsidiary_consultants = []
 
-        for _ in range(5):
-            subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
+            for _ in range(5):
+                subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
 
-        subsidiary.responsible = subsidiary_consultants[0]
-        subsidiary.save()
+            subsidiary.responsible = subsidiary_consultants[0]
+            subsidiary.save()
