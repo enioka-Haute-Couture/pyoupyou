@@ -1,7 +1,11 @@
-import factory
-import factory.faker
+import datetime
 
-from ref.models import Subsidiary, Consultant
+import factory.fuzzy
+import pytz
+
+from ref.models import Subsidiary
+
+test_tz = pytz.timezone("Europe/Paris")
 
 
 class PyouPyouUserFactory(factory.django.DjangoModelFactory):
@@ -11,6 +15,11 @@ class PyouPyouUserFactory(factory.django.DjangoModelFactory):
     full_name = factory.Faker("name")
     trigramme = factory.LazyAttribute(lambda n: n.full_name[0:1].upper() + n.full_name.split(" ")[1][0:2].upper())
     email = factory.LazyAttribute(lambda u: u.trigramme.lower() + "@mail.com")
+
+    date_joined = factory.fuzzy.FuzzyDateTime(
+        start_dt=datetime.datetime(2010, 1, 1, tzinfo=test_tz), end_dt=datetime.datetime(2020, 1, 1, tzinfo=test_tz)
+    )
+    password = factory.Faker("password")
 
 
 class ConsultantFactory(factory.django.DjangoModelFactory):
