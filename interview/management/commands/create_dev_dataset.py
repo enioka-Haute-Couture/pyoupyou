@@ -1,8 +1,11 @@
 import random
 
 import factory
+import pytz
+from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
 from django.core.management import call_command
+from factory.faker import faker
 
 from interview.factory import (
     OfferFactory,
@@ -13,9 +16,10 @@ from interview.factory import (
     InterviewKindFactory,
     InterviewFactory,
 )
-from interview.models import ContractType, SourcesCategory, InterviewKind, Interview
+from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process
 from ref.factory import SubsidiaryFactory, PyouPyouUserFactory, ConsultantFactory
 from ref.models import Consultant
+from interview.factory import date_minus_time_ago, date_random_plus_minus_time, test_tz
 
 """
 Create some data and load them
@@ -82,30 +86,52 @@ class Command(BaseCommand):
             for offer in subsidiary_offers:
                 processes = []
                 for _ in range(random.randrange(start=9, stop=12)):
-                    # TODO: add fine tuning for process dates (start, end, etc)
                     process = ProcessFactory(offer=offer, subsidiary=subsidiary)
 
-                    # TODO: maybe change responsible for it not to be only the same person
                     process.responsible.set([subsidiary.responsible])
                     process.save()
 
                     processes.append(process)
-                processes_given_offer.append({offer: processes})
+                processes_given_offer.append(processes)
 
             # for each process create some itw
-            for item in processes_given_offer:
-                offer, processes = item.popitem()
+            for processes in processes_given_offer:
                 for process in processes:
                     number_of_itw = random.randrange(1, 5)
+
+                    # generate random date
+                    fake = faker.Faker()
+                    process.start_date = fake.date_time_between(
+                        start_date=date_minus_time_ago(years=2, tz=test_tz),
+                        end_date=date_minus_time_ago(weeks=(2 + 2 * number_of_itw), tz=test_tz),
+                        tzinfo=test_tz
+                    )
+                    process.save()
+
+                    # first itw around a week after +|- 5 days
+                    next_planned_date = date_random_plus_minus_time(
+                        date=(process.start_date + relativedelta(weeks=1)), days=5
+                    )
+
+                    # generate itws for process
                     for itw_number in range(number_of_itw):
                         all_itw = Interview.objects.filter(process=process)
 
-                        # TODO: set correct planned date
-                        itw = InterviewFactory(process=process)
+                        itw = InterviewFactory(process=process, planned_date=next_planned_date)
 
                         # if there are more interview then the last ones were a GO
                         if itw_number + 1 < number_of_itw:
                             itw.state = Interview.GO
+                        else:
+                            # choose random if GO or NO_GO
+                            # itw.state = random.choice([Interview.GO, Interview.NO_GO])
+                            itw.state = Interview.NO_GO
+                            # set Process: state, end_date
+                            process.contract_start_date = next_planned_date + relativedelta(weeks=2)
+                            process.end_date = next_planned_date
+                            process.state = random.choices(
+                                [Process.NO_GO, Process.CANDIDATE_DECLINED], weights=(80, 20), k=1
+                            )[0]
 
                         possible_interviewer = (
                             Consultant.objects.filter(subsidiary=subsidiary)
@@ -117,3 +143,19 @@ class Command(BaseCommand):
 
                         itw.interviewers.add(random.choice(possible_interviewer))
                         itw.save()
+
+                        # compute next planned date
+                        next_planned_date = date_random_plus_minus_time(
+                            (next_planned_date + relativedelta(weeks=1)), days=5
+                        )
+
+            # set one process of each offer to Hired
+            for o in subsidiary_offers:
+                process_hired = random.choice(Process.objects.filter(offer=o))
+                process_hired.state = Process.HIRED
+                process_hired.save()
+
+                # update last interview state to reflect hired
+                last_itw = Interview.objects.filter(process=process_hired).last()
+                last_itw.state = Interview.GO
+                last_itw.save()

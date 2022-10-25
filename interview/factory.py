@@ -13,8 +13,17 @@ from ref.models import Subsidiary, Consultant
 test_tz = pytz.timezone("Europe/Paris")
 
 
-def n_years_ago(n):
-    datetime.datetime.now(tz=test_tz) - relativedelta(years=n)
+# TODO: test these functions
+def date_minus_time_ago(years=0, months=0, weeks=0, days=0, tz=test_tz):
+    return datetime.datetime.now(tz=tz) - relativedelta(years=years, months=months, weeks=weeks, days=days)
+
+
+def date_random_plus_minus_time(date=None, years=0, months=0, weeks=0, days=0, tz=test_tz):
+    if date is None:
+        return datetime.datetime.now(tz=tz) + (
+            random.choice([-1, +1]) * relativedelta(years=years, months=months, weeks=weeks, days=days)
+        )
+    return date + (random.choice([-1, +1]) * relativedelta(years=years, months=months, weeks=weeks, days=days))
 
 
 class CandidateFactory(factory.django.DjangoModelFactory):
@@ -115,9 +124,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
     contract_duration = factory.Faker("random_int", min=2, max=36)
 
     # default (start contract in between 1 and 6 months from now)
-    contract_start_date = factory.LazyFunction(
-        lambda: datetime.datetime.now(tz=test_tz) + relativedelta(month=random.randrange(1, 6))
-    )
+    contract_start_date = factory.LazyFunction(lambda: date_minus_time_ago(months=random.randrange(1, 6)))
 
     # end_date is set when process is closed
     # end_date = factory.LazyAttribute(
@@ -131,7 +138,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
     salary_expectation = factory.Faker("random_int", min=30, max=70)
 
     # FIXME: when process was created
-    start_date = factory.fuzzy.FuzzyDateTime(datetime.datetime.now(tz=test_tz) - relativedelta(years=2))
+    start_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
 
 
 class InterviewKindFactory(factory.django.DjangoModelFactory):
@@ -179,7 +186,7 @@ class InterviewFactory(factory.django.DjangoModelFactory):
     # default
     next_interview_goal = factory.Faker("text")
 
-    planned_date = factory.fuzzy.FuzzyDateTime(datetime.datetime.now(tz=test_tz) - relativedelta(years=2))
+    planned_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
 
     # prequal if it's first interview
     prequalification = factory.LazyAttribute(
