@@ -13,7 +13,6 @@ from ref.models import Subsidiary, Consultant
 test_tz = pytz.timezone("Europe/Paris")
 
 
-# TODO: test these functions
 def date_minus_time_ago(years=0, months=0, weeks=0, days=0, tz=test_tz):
     return datetime.datetime.now(tz=tz) - relativedelta(years=years, months=months, weeks=weeks, days=days)
 
@@ -59,9 +58,6 @@ class SourcesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.Sources"
 
-    # class Params:
-    #     number_of_categories = 5
-
     @factory.lazy_attribute
     def name(self):
         # Prefer to choose existing subsidiary instead of defaulting to creating a new one each time
@@ -100,7 +96,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
     candidate = factory.SubFactory(CandidateFactory)
 
     contract_type = factory.LazyFunction(
-        lambda: factory.SubFactory(ContractTypeFactory)
+        lambda: ContractTypeFactory()
         if ContractType.objects.all().count() == 0
         else random.choice(ContractType.objects.all())
     )
@@ -110,9 +106,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
 
     # default
     sources = factory.LazyFunction(
-        lambda: factory.SubFactory(SourcesFactory)
-        if Sources.objects.all().count() == 0
-        else random.choice(Sources.objects.all())
+        lambda: SourcesFactory() if Sources.objects.all().count() == 0 else random.choice(Sources.objects.all())
     )
 
     subsidiary = factory.LazyAttribute(lambda process: process.offer.subsidiary)
@@ -137,7 +131,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
     # default (between 30k and 70k)
     salary_expectation = factory.Faker("random_int", min=30, max=70)
 
-    # FIXME: when process was created
+    # (when process was created)
     start_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
 
 
@@ -155,19 +149,16 @@ class InterviewFactory(factory.django.DjangoModelFactory):
         model = "interview.Interview"
 
     kind_of_interview = factory.LazyFunction(
-        lambda: factory.SubFactory(InterviewKindFactory)
-        if InterviewKind.objects.all().count == 0
+        lambda: InterviewKindFactory()
+        if InterviewKind.objects.all().count() == 0
         else random.choice(InterviewKind.objects.all())
     )
 
     # default
     process = factory.SubFactory(ProcessFactory)
 
-    # FIXME: add suggested_interviewer(s) MUST BE SOMEONE THAT'S NOT BEEN IN THE PROCESS YET
     @factory.lazy_attribute
     def suggested_interviewer(self):
-        # FIXME: needs test (w/ more than 1 subsidiary + check suggested interviewers + check all interviewers are
-        #  distinct
         all_itw_given_process = Interview.objects.filter(process=self.process)
         q = (
             Consultant.objects.filter(company=self.process.subsidiary)

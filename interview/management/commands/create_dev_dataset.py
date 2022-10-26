@@ -108,7 +108,7 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        call_command("flush", "--no-input")
+        # call_command("flush", "--no-input") # dev
         for i in range(1, 3):
             # create subsidiary
             subsidiary = SubsidiaryFactory()

@@ -1,9 +1,10 @@
 import datetime
+import random
 
 import factory.fuzzy
 import pytz
 
-from ref.models import Subsidiary
+from ref.models import Subsidiary, PyouPyouUser
 
 test_tz = pytz.timezone("Europe/Paris")
 
@@ -34,8 +35,9 @@ class ConsultantFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "ref.Consultant"
 
-    if Subsidiary.objects.all().count() == 0:
-        SubsidiaryFactory()
-
     user = factory.SubFactory(PyouPyouUserFactory)
-    company = factory.Iterator(Subsidiary.objects.all())
+    company = factory.LazyAttribute(
+        lambda: SubsidiaryFactory()
+        if Subsidiary.objects.all().count() == 0
+        else random.choice(Subsidiary.objects.all())
+    )
