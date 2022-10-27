@@ -17,7 +17,7 @@ from interview.factory import (
     InterviewKindFactory,
     InterviewFactory,
 )
-from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process
+from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process, Sources
 from ref.factory import SubsidiaryFactory, PyouPyouUserFactory, ConsultantFactory
 from ref.models import Consultant
 from interview.factory import date_minus_time_ago, date_random_plus_minus_time, test_tz
@@ -111,7 +111,7 @@ class Command(BaseCommand):
         # call_command("flush", "--no-input") # dev
         for i in range(1, 3):
             # create subsidiary
-            subsidiary = SubsidiaryFactory()
+            subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i), code="SU{no}".format(no=i))
             generate_basic_data(subsidiary)
 
             # create consultants for this subsidiary
@@ -133,7 +133,12 @@ class Command(BaseCommand):
             for offer in subsidiary_offers:
                 processes = []
                 for _ in range(random.randrange(start=9, stop=12)):
-                    process = ProcessFactory(offer=offer, subsidiary=subsidiary)
+                    process = ProcessFactory(
+                        offer=offer,
+                        subsidiary=subsidiary,
+                        contract_type=random.choice(ContractType.objects.all()),
+                        sources=random.choice(Sources.objects.all()),
+                    )
 
                     process.responsible.set([subsidiary.responsible])
                     process.save()
@@ -162,7 +167,11 @@ class Command(BaseCommand):
                     for itw_number in range(number_of_itw):
                         all_itw = Interview.objects.filter(process=process)
 
-                        itw = InterviewFactory(process=process, planned_date=next_planned_date)
+                        itw = InterviewFactory(
+                            process=process,
+                            planned_date=next_planned_date,
+                            kind_of_interview=random.choice(InterviewKind.objects.all()),
+                        )
 
                         # if there are more interview then the last ones were a GO
                         if itw_number + 1 < number_of_itw:
@@ -203,7 +212,12 @@ class Command(BaseCommand):
 
             # create some processes for it
             for _ in range(random.randrange(start=5, stop=10)):
-                process = ProcessFactory(offer=pending_offer, subsidiary=subsidiary)
+                process = ProcessFactory(
+                    offer=pending_offer,
+                    subsidiary=subsidiary,
+                    contract_type=random.choice(ContractType.objects.all()),
+                    sources=random.choice(Sources.objects.all()),
+                )
 
                 process.responsible.set([subsidiary.responsible])
                 process.save()
@@ -222,7 +236,11 @@ class Command(BaseCommand):
                     # get all past interviews for given process
                     all_itw = Interview.objects.filter(process=process)
 
-                    itw = InterviewFactory(process=process, planned_date=next_planned_date)
+                    itw = InterviewFactory(
+                        process=process,
+                        planned_date=next_planned_date,
+                        kind_of_interview=random.choice(InterviewKind.objects.all()),
+                    )
 
                     # if there are more interview then the last ones were a GO
                     if itw_number + 1 < number_of_itw:
