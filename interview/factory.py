@@ -42,9 +42,7 @@ class ContractTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.ContractType"
 
-    name = factory.Faker(
-        "random_element", elements=["Contract Type 1", "Contract Type 2", "Contract Type 3", "Contract Type 4"]
-    )
+    name = "Default Contract Type"
 
 
 class SourcesCategoryFactory(factory.django.DjangoModelFactory):
@@ -58,9 +56,7 @@ class SourcesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.Sources"
 
-    name = factory.LazyFunction(lambda: random.choice(Subsidiary.objects.values_list("name", flat=True)))
-
-    category = factory.LazyFunction(lambda: random.choice(SourcesCategory.objects.all()))
+    name = factory.Faker("company")
 
 
 class OfferFactory(factory.django.DjangoModelFactory):
@@ -69,7 +65,7 @@ class OfferFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: "Offer {offer_number}".format(offer_number=n))
 
-    subsidiary = factory.LazyFunction(lambda: random.choice(Subsidiary.objects.all()))
+    subsidiary = factory.SubFactory(SubsidiaryFactory)
 
 
 class ProcessFactory(factory.django.DjangoModelFactory):
@@ -78,15 +74,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
 
     candidate = factory.SubFactory(CandidateFactory)
 
-    contract_type = factory.LazyFunction(lambda: random.choice(ContractType.objects.all()))
-
-    # default
-    offer = factory.SubFactory(OfferFactory)
-
-    # default
-    sources = factory.LazyFunction(lambda: random.choice(Sources.objects.all()))
-
-    subsidiary = factory.LazyAttribute(lambda process: process.offer.subsidiary)
+    subsidiary = factory.SubFactory(SubsidiaryFactory)
 
     # default
     closed_comment = factory.Faker("text")
@@ -116,16 +104,12 @@ class InterviewKindFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.InterviewKind"
 
-    name = factory.Faker(
-        "random_element", elements=["Interview Kind 1", "Interview Kind 2", "Interview Kind 3", "Interview Kind 4"]
-    )
+    name = "Default Interview Kind"
 
 
 class InterviewFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.Interview"
-
-    kind_of_interview = factory.LazyFunction(lambda: random.choice(InterviewKind.objects.all()))
 
     # default
     process = factory.SubFactory(ProcessFactory)
