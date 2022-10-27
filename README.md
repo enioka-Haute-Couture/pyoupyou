@@ -54,6 +54,9 @@ export PYOUPYOU_ENV=dev
 # Migrate Database, create schema ....
 python manage.py migrate
 
+# Generate dev dataset
+python manage.py create_dev_dataset
+
 # launch the dev server
 python manage.py runserver
 # pyoupyou is now launched at http://127.0.0.1:8000/

@@ -1,3 +1,7 @@
+# v1.16.0 (2022-10-27)
+- More refined factories
+- New command: create_dev_dataset to generate a basic dev dataset
+
 # v1.15.0 (2022-10-20)
 - All interviews: only display active interviewers in filter dropdown
 - Fix NonExistentTimeError that could happen exactly 30 or 7 days after spring DST change
