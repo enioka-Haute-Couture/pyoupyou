@@ -172,6 +172,14 @@ class Command(BaseCommand):
                             planned_date=next_planned_date,
                             kind_of_interview=random.choice(InterviewKind.objects.all()),
                         )
+                        prequal = (
+                            Interview.objects.filter(process=itw.process).values_list("rank", flat=True).last() is None
+                        )
+                        # if this itw could be a prequal
+                        if prequal:
+                            # choose randomly if this interview is a prequal or not
+                            prequal = random.choice([True, False])
+                        itw.prequal = prequal
 
                         # if there are more interview then the last ones were a GO
                         if itw_number + 1 < number_of_itw:

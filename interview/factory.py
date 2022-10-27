@@ -135,8 +135,3 @@ class InterviewFactory(factory.django.DjangoModelFactory):
     next_interview_goal = factory.Faker("text")
 
     planned_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
-
-    # prequal if it's first interview
-    prequalification = factory.LazyAttribute(
-        lambda itw: Interview.objects.filter(process=itw.process).values_list("rank", flat=True).last() is None
-    )
