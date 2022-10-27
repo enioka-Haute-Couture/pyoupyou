@@ -36,8 +36,4 @@ class ConsultantFactory(factory.django.DjangoModelFactory):
         model = "ref.Consultant"
 
     user = factory.SubFactory(PyouPyouUserFactory)
-    company = factory.LazyAttribute(
-        lambda: SubsidiaryFactory()
-        if Subsidiary.objects.all().count() == 0
-        else random.choice(Subsidiary.objects.all())
-    )
+    company = factory.LazyAttribute(lambda: random.choice(Subsidiary.objects.all()))

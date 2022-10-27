@@ -58,20 +58,9 @@ class SourcesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.Sources"
 
-    @factory.lazy_attribute
-    def name(self):
-        # Prefer to choose existing subsidiary instead of defaulting to creating a new one each time
-        if Subsidiary.objects.all().count() == 0:
-            SubsidiaryFactory()
-        return random.choice(Subsidiary.objects.values_list("name", flat=True))
+    name = factory.LazyFunction(lambda: random.choice(Subsidiary.objects.values_list("name", flat=True)))
 
-    @factory.lazy_attribute
-    def category(self):
-        # generate sources categories if the table wasn't populated
-        if SourcesCategory.objects.all().count() == 0:
-            for i in range(1, 5):
-                SourcesCategoryFactory(name="Source Category {no}".format(no=i))
-        return random.choice(SourcesCategory.objects.all())
+    category = factory.LazyFunction(lambda: random.choice(SourcesCategory.objects.all()))
 
 
 class OfferFactory(factory.django.DjangoModelFactory):
@@ -80,13 +69,7 @@ class OfferFactory(factory.django.DjangoModelFactory):
 
     name = factory.Sequence(lambda n: "Offer {offer_number}".format(offer_number=n))
 
-    @factory.lazy_attribute
-    def subsidiary(self):
-        # Prefer to choose existing subsidiary instead of defaulting to creating a new one
-        if Subsidiary.objects.all().count() == 0:
-            SubsidiaryFactory()
-
-        return random.choice(Subsidiary.objects.all())
+    subsidiary = factory.LazyFunction(lambda: random.choice(Subsidiary.objects.all()))
 
 
 class ProcessFactory(factory.django.DjangoModelFactory):
@@ -95,19 +78,13 @@ class ProcessFactory(factory.django.DjangoModelFactory):
 
     candidate = factory.SubFactory(CandidateFactory)
 
-    contract_type = factory.LazyFunction(
-        lambda: ContractTypeFactory()
-        if ContractType.objects.all().count() == 0
-        else random.choice(ContractType.objects.all())
-    )
+    contract_type = factory.LazyFunction(lambda: random.choice(ContractType.objects.all()))
 
     # default
     offer = factory.SubFactory(OfferFactory)
 
     # default
-    sources = factory.LazyFunction(
-        lambda: SourcesFactory() if Sources.objects.all().count() == 0 else random.choice(Sources.objects.all())
-    )
+    sources = factory.LazyFunction(lambda: random.choice(Sources.objects.all()))
 
     subsidiary = factory.LazyAttribute(lambda process: process.offer.subsidiary)
 
@@ -148,11 +125,7 @@ class InterviewFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.Interview"
 
-    kind_of_interview = factory.LazyFunction(
-        lambda: InterviewKindFactory()
-        if InterviewKind.objects.all().count() == 0
-        else random.choice(InterviewKind.objects.all())
-    )
+    kind_of_interview = factory.LazyFunction(lambda: random.choice(InterviewKind.objects.all()))
 
     # default
     process = factory.SubFactory(ProcessFactory)
