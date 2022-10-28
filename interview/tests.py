@@ -384,19 +384,13 @@ class HomeViewTestCase(TestCase):
         subsidiary_processes_table = response.context["subsidiary_processes_table"]
 
         # assert all three tables are empty
-        processes = []
-        for p in actions_needed_processes_table.data:
-            processes.append(p)
+        processes = actions_needed_processes_table.data
         self.assertEqual(len(processes), 0)
 
-        processes = []
-        for p in related_processes_table.data:
-            processes.append(p)
+        processes = related_processes_table.data
         self.assertEqual(len(processes), 0)
 
-        processes = []
-        for p in subsidiary_processes_table.data:
-            processes.append(p)
+        processes = subsidiary_processes_table.data
         self.assertEqual(len(processes), 0)
 
     def test_dashboard_with_data(self):
@@ -435,23 +429,22 @@ class HomeViewTestCase(TestCase):
         subsidiary_processes_table = response.context["subsidiary_processes_table"]
 
         # assert all three tables are correctly displayed
-        processes_actions_needed = []
-        for p in actions_needed_processes_table.data:
-            processes_actions_needed.append(p)
+        processes_actions_needed = actions_needed_processes_table.data
         self.assertEqual(len(processes_actions_needed), 1)
+        self.assertEqual(p1.id, processes_actions_needed[0].id)
 
-        related_processes = []
-        for p in related_processes_table.data:
-            related_processes.append(p)
+        related_processes = related_processes_table.data
         self.assertEqual(len(related_processes), 2)
+        ids = []
+        for tmp in related_processes:
+            ids.append(tmp.id)
+        self.assertTrue(p1.id in ids)
+        self.assertTrue(p2.id in ids)
 
-        subsidiary_processes = []
-        for p in subsidiary_processes_table.data:
-            subsidiary_processes.append(p)
+        subsidiary_processes = subsidiary_processes_table.data
         self.assertEqual(len(subsidiary_processes), 1)
-
-        # assert that process in subsidiary_process_table and actions_needed_process-table are different
-        self.assertNotEquals(processes_actions_needed[0].candidate, subsidiary_processes[0].candidate)
+        self.assertNotEquals(p1.id, subsidiary_processes[0].id)
+        self.assertNotEquals(p2.id, subsidiary_processes[0].id)
 
     def test_dashboard_with_needs_attention(self):
 
@@ -509,20 +502,72 @@ class HomeViewTestCase(TestCase):
         related_processes_table = response.context["related_processes_table"]
         subsidiary_processes_table = response.context["subsidiary_processes_table"]
 
-        processes_actions_needed = []
-        for p in actions_needed_processes_table.data:
-            processes_actions_needed.append(p)
+        processes_actions_needed = actions_needed_processes_table.data
+        for p in processes_actions_needed:
             self.assertTrue(p.needs_attention)
         self.assertEqual(len(processes_actions_needed), 4)
 
-        related_processes = []
-        for p in related_processes_table.data:
-            related_processes.append(p)
+        related_processes = related_processes_table.data
+        for p in related_processes:
             self.assertTrue(p.needs_attention)
         self.assertEqual(len(related_processes), 4)
 
-        subsidiary_processes = []
-        for p in subsidiary_processes_table.data:
-            subsidiary_processes.append(p)
+        subsidiary_processes = subsidiary_processes_table.data
+        for p in subsidiary_processes:
             self.assertTrue(p.needs_attention)
         self.assertEqual(len(subsidiary_processes), 4)
+
+
+class ProcessCreationTestCase(TestCase):
+    def setUp(self) -> None:
+        self.url = reverse(views.new_candidate)
+        self.assertEqual(self.url, "/candidate/")
+
+    def test_process_creation_not_logged_in(self):
+        response = self.client.get(self.url)
+        self.assertRedirects(response, "/admin/login/?next=%2Fcandidate%2F")
+
+    def test_process_creation_logged_in(self):
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+
+        # assert we were allowed to access dashboard
+        self.assertEqual(response.status_code, 200)
+        # assert the right template was called
+        self.assertTemplateUsed(response, template_name="interview/new_candidate.html")
+        # assert the header was rendered
+        self.assertTemplateUsed(response, template_name="interview/base.html")
+
+    def test_assert_all_needed_forms_are_displayed(self):
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+
+        # {
+        #     "candidate_form": candidate_form,
+        #     "process_form": process_form,
+        #     "source_form": source_form,
+        #     "offer_form": offer_form,
+        #     "interviewers_form": interviewers_form,
+        #     "duplicates": duplicate_processes,
+        #     "candidate": candidate,
+        #     "subsidiaries": Subsidiary.objects.all(),
+        # },
+
+    def test_form_submitting(self):
+        pass
