@@ -6,13 +6,14 @@ import hashlib
 
 from django.urls import reverse
 
+from interview import views
 from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory
 from interview.models import Process, Document, Interview, Candidate
 
 import pytz
 
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
-from ref.factory import SubsidiaryFactory, ConsultantFactory
+from ref.factory import SubsidiaryFactory, ConsultantFactory, PyouPyouUserFactory
 from ref.models import Consultant
 
 from django.conf import settings
@@ -330,3 +331,198 @@ class AnonymizesCanditateTestCase(TestCase):
         self.assertEqual(other_candidate2.anonymized_email(), email_hash.hexdigest())
         previous_candidate_anoymized = other_candidate2.find_duplicates()
         self.assertEqual(1, previous_candidate_anoymized.count())
+
+
+class HomeViewTestCase(TestCase):
+
+    # subsidiary_processes_table.data => class TableQuerysetData(TableData) in
+    # https://django-tables2.readthedocs.io/en/stable/_modules/django_tables2/data.html
+
+    def setUp(self) -> None:
+        self.url = reverse(views.dashboard)
+        self.assertEqual(self.url, "/")
+
+    def test_dashboard_not_logged_in(self):
+        response = self.client.get(self.url)
+        self.assertRedirects(response, "/admin/login/?next=/")
+
+    def test_dashboard_logged_in(self):
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+
+        # assert we were allowed to access dashboard
+        self.assertEqual(response.status_code, 200)
+        # assert the right template was called
+        self.assertTemplateUsed(response, template_name="interview/dashboard.html")
+        # assert the header was rendered
+        self.assertTemplateUsed(response, template_name="interview/base.html")
+        # assert some tables were rendered inside the dashboard
+        self.assertTemplateUsed(response, template_name="interview/_tables.html")
+
+    def test_dashboard_no_data(self):
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+        # retrieve the three tables displayed
+        actions_needed_processes_table = response.context["actions_needed_processes_table"]
+        related_processes_table = response.context["related_processes_table"]
+        subsidiary_processes_table = response.context["subsidiary_processes_table"]
+
+        # assert all three tables are empty
+        processes = []
+        for p in actions_needed_processes_table.data:
+            processes.append(p)
+        self.assertEqual(len(processes), 0)
+
+        processes = []
+        for p in related_processes_table.data:
+            processes.append(p)
+        self.assertEqual(len(processes), 0)
+
+        processes = []
+        for p in subsidiary_processes_table.data:
+            processes.append(p)
+        self.assertEqual(len(processes), 0)
+
+    def test_dashboard_with_data(self):
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # create 1 process in actions_needed_processes_table & in related_process_table
+        p1 = ProcessFactory()
+        itw1 = InterviewFactory(process=p1)
+        itw1.interviewers.add(consultant)
+        itw1.save()
+
+        # create 1 process only appearing in related_process_table
+        p2 = ProcessFactory()
+        itw2 = InterviewFactory(process=p2)
+        itw2.interviewers.add(consultant)
+        itw2.save()
+        p2.end_date = datetime.datetime.now()
+        p2.state = Process.OTHER
+        p2.save()
+
+        # create a process that will only appear in subsidiary_process_table
+        ProcessFactory(subsidiary=subsidiary)
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+
+        # retrieve the three tables displayed
+        actions_needed_processes_table = response.context["actions_needed_processes_table"]
+        related_processes_table = response.context["related_processes_table"]
+        subsidiary_processes_table = response.context["subsidiary_processes_table"]
+
+        # assert all three tables are correctly displayed
+        processes_actions_needed = []
+        for p in actions_needed_processes_table.data:
+            processes_actions_needed.append(p)
+        self.assertEqual(len(processes_actions_needed), 1)
+
+        related_processes = []
+        for p in related_processes_table.data:
+            related_processes.append(p)
+        self.assertEqual(len(related_processes), 2)
+
+        subsidiary_processes = []
+        for p in subsidiary_processes_table.data:
+            subsidiary_processes.append(p)
+        self.assertEqual(len(subsidiary_processes), 1)
+
+        # assert that process in subsidiary_process_table and actions_needed_process-table are different
+        self.assertNotEquals(processes_actions_needed[0].candidate, subsidiary_processes[0].candidate)
+
+    def test_dashboard_with_needs_attention(self):
+
+        # create a consultant
+        subsidiary = SubsidiaryFactory()
+        consultant = ConsultantFactory(subsidiary=subsidiary)
+        user = consultant.user
+
+        # to have need_attention property we need:
+        #   p.is_active ( == p.end_date is None => default in factory) &&
+        #   p.state in (
+        #               WAITING_ITW_MINUTE ||
+        #               Process.WAITING_INTERVIEW_PLANIFICATION ||
+        #               WAITING_INTERVIEWER_TO_BE_DESIGNED ||
+        #               WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+        #               )
+
+        # creating one of each possibility
+        p1 = ProcessFactory(subsidiary=subsidiary)
+        itw1 = InterviewFactory(process=p1)
+        itw1.interviewers.add(consultant)
+        itw1.save()  # saving an itw updates process state, hence we set process state afterwards
+        p1.state = Process.WAITING_ITW_MINUTE
+        p1.save()
+
+        p2 = ProcessFactory(subsidiary=subsidiary)
+        itw2 = InterviewFactory(process=p2)
+        itw2.interviewers.add(consultant)
+        itw2.save()  # saving an itw updates process state, hence we set process state afterwards
+        p2.state = Process.WAITING_INTERVIEW_PLANIFICATION
+        p2.save()
+
+        p3 = ProcessFactory(subsidiary=subsidiary)
+        itw3 = InterviewFactory(process=p3)
+        itw3.interviewers.add(consultant)
+        itw3.save()  # saving an itw updates process state, hence we set process state afterwards
+        p3.state = Process.WAITING_INTERVIEWER_TO_BE_DESIGNED
+        p3.save()
+
+        p4 = ProcessFactory(subsidiary=subsidiary)
+        itw4 = InterviewFactory(process=p4)
+        itw4.interviewers.add(consultant)
+        itw4.save()  # saving an itw updates process state, hence we set process state afterwards
+        p4.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
+        p4.save()
+
+        # log user in
+        self.client.force_login(user=user)
+
+        # access dashboard
+        response = self.client.get(self.url)
+
+        # retrieve the three tables displayed
+        actions_needed_processes_table = response.context["actions_needed_processes_table"]
+        related_processes_table = response.context["related_processes_table"]
+        subsidiary_processes_table = response.context["subsidiary_processes_table"]
+
+        processes_actions_needed = []
+        for p in actions_needed_processes_table.data:
+            processes_actions_needed.append(p)
+            self.assertTrue(p.needs_attention)
+        self.assertEqual(len(processes_actions_needed), 4)
+
+        related_processes = []
+        for p in related_processes_table.data:
+            related_processes.append(p)
+            self.assertTrue(p.needs_attention)
+        self.assertEqual(len(related_processes), 4)
+
+        subsidiary_processes = []
+        for p in subsidiary_processes_table.data:
+            subsidiary_processes.append(p)
+            self.assertTrue(p.needs_attention)
+        self.assertEqual(len(subsidiary_processes), 4)
