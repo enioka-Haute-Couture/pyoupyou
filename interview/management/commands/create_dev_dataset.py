@@ -1,5 +1,9 @@
 import datetime
-import random
+
+# factory.fuzzy and factory.Faker share a dedicated instance of random.Random, which can be managed through the
+# factory.random module
+from factory.random import random
+
 
 import factory
 import pytz
@@ -36,18 +40,18 @@ For now 2 subsidiaries
 
 def generate_basic_data(subsidiary):
     # generate InterviewKind
-    if InterviewKind.objects.all().count() == 0:
+    if InterviewKind.objects.exists():
         for i in range(1, 5):
             InterviewKindFactory(name="Interview Kind {no}".format(no=i))
 
     # generate ContractType
-    if ContractType.objects.all().count() == 0:
+    if ContractType.objects.exists():
         for i in range(1, 5):
             ContractTypeFactory(name="Contract Type {no}".format(no=i))
 
     # generate SourcesCategory
     source_categories = SourcesCategory.objects.all()
-    if source_categories.count() == 0:
+    if not source_categories:
         source_categories = []
         for i in range(1, 5):
             source_categories.append(SourcesCategoryFactory(name="Source Category {no}".format(no=i)))
@@ -97,7 +101,7 @@ def get_available_consultants_for_itw(subsidiary, all_itw_given_process):
         .distinct()
     )
     # if all consultants were already involved in the process, choose one at random
-    if len(possible_interviewer) == 0:
+    if not possible_interviewer:
         possible_interviewer = Consultant.objects.filter(subsidiary=subsidiary)
 
     return possible_interviewer
@@ -108,7 +112,6 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        # call_command("flush", "--no-input") # dev
         for i in range(1, 3):
             # create subsidiary
             subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i), code="SU{no}".format(no=i))
@@ -116,7 +119,7 @@ class Command(BaseCommand):
 
             # create consultants for this subsidiary
             subsidiary_consultants = []
-            for _ in range(5):
+            for k in range(5):
                 subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
 
             # set subsidiary's responsible
@@ -125,14 +128,14 @@ class Command(BaseCommand):
 
             # create offers for this subsidiary
             subsidiary_offers = []
-            for _ in range(random.randrange(start=9, stop=12)):
+            for k in range(random.randrange(start=9, stop=12)):
                 subsidiary_offers.append(OfferFactory(subsidiary=subsidiary))
 
             # for each offer create some process for it
             processes_given_offer = []
             for offer in subsidiary_offers:
                 processes = []
-                for _ in range(random.randrange(start=9, stop=12)):
+                for k in range(random.randrange(start=9, stop=12)):
                     process = ProcessFactory(
                         offer=offer,
                         subsidiary=subsidiary,
@@ -220,7 +223,7 @@ class Command(BaseCommand):
             pending_processes = []
 
             # create some processes for it
-            for _ in range(random.randrange(start=5, stop=10)):
+            for k in range(random.randrange(start=5, stop=10)):
                 process = ProcessFactory(
                     offer=pending_offer,
                     subsidiary=subsidiary,

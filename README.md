@@ -54,6 +54,9 @@ export PYOUPYOU_ENV=dev
 # Migrate Database, create schema ....
 python manage.py migrate
 
+# Cleanup all data in database
+python manage.py flush
+
 # Generate dev dataset
 python manage.py create_dev_dataset
 
