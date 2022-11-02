@@ -40,12 +40,12 @@ For now 2 subsidiaries
 
 def generate_basic_data(subsidiary):
     # generate InterviewKind
-    if InterviewKind.objects.exists():
+    if not InterviewKind.objects.exists():
         for i in range(1, 5):
             InterviewKindFactory(name="Interview Kind {no}".format(no=i))
 
     # generate ContractType
-    if ContractType.objects.exists():
+    if not ContractType.objects.exists():
         for i in range(1, 5):
             ContractTypeFactory(name="Contract Type {no}".format(no=i))
 
