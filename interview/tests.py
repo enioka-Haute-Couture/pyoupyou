@@ -1,3 +1,4 @@
+import dateutil.relativedelta
 from django.conf import settings
 from django.core import mail
 from django.test import TestCase, RequestFactory
@@ -5,9 +6,18 @@ import datetime
 import hashlib
 
 from django.urls import reverse
+from django.utils.text import slugify
 
 from interview import views
-from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory
+from interview.factory import (
+    ProcessFactory,
+    InterviewFactory,
+    CandidateFactory,
+    ContractTypeFactory,
+    SourcesFactory,
+    OfferFactory,
+    InterviewKindFactory,
+)
 from interview.models import Process, Document, Interview, Candidate
 
 import pytz
@@ -17,6 +27,8 @@ from ref.factory import SubsidiaryFactory, ConsultantFactory, PyouPyouUserFactor
 from ref.models import Consultant
 
 from django.conf import settings
+
+from factory.faker import faker
 
 
 class InterviewTestCase(TestCase):
@@ -334,6 +346,7 @@ class AnonymizesCanditateTestCase(TestCase):
 
 
 class HomeViewTestCase(TestCase):
+    # TODO: change hardcoded urls to using reverse
 
     # subsidiary_processes_table.data => class TableQuerysetData(TableData) in
     # https://django-tables2.readthedocs.io/en/stable/_modules/django_tables2/data.html
@@ -518,23 +531,29 @@ class HomeViewTestCase(TestCase):
         self.assertEqual(len(subsidiary_processes), 4)
 
 
-class ProcessCreationTestCase(TestCase):
-    def setUp(self) -> None:
+class ProcessCreationViewTestCase(TestCase):
+    # TODO: change hardcoded urls to using reverse
+
+    def setUp(self):
         self.url = reverse(views.new_candidate)
         self.assertEqual(self.url, "/candidate/")
+
+        # create a consultant
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.user = self.consultant.user
+
+        self.fake = faker.Faker()
+
+        self.tz = pytz.timezone("Europe/Paris")
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
         self.assertRedirects(response, "/admin/login/?next=%2Fcandidate%2F")
 
     def test_process_creation_logged_in(self):
-        # create a consultant
-        subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
-        user = consultant.user
-
         # log user in
-        self.client.force_login(user=user)
+        self.client.force_login(user=self.user)
 
         # access dashboard
         response = self.client.get(self.url)
@@ -547,27 +566,197 @@ class ProcessCreationTestCase(TestCase):
         self.assertTemplateUsed(response, template_name="interview/base.html")
 
     def test_assert_all_needed_forms_are_displayed(self):
-        # create a consultant
-        subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
-        user = consultant.user
-
         # log user in
-        self.client.force_login(user=user)
+        self.client.force_login(user=self.user)
 
         # access dashboard
         response = self.client.get(self.url)
 
-        # {
-        #     "candidate_form": candidate_form,
-        #     "process_form": process_form,
-        #     "source_form": source_form,
-        #     "offer_form": offer_form,
-        #     "interviewers_form": interviewers_form,
-        #     "duplicates": duplicate_processes,
-        #     "candidate": candidate,
-        #     "subsidiaries": Subsidiary.objects.all(),
-        # },
+        context = response.context
+        candidate_form = context["candidate_form"]
+        process_form = context["process_form"]
+        source_form = context["source_form"]
+        offer_form = context["offer_form"]
+        interviewers_form = context["interviewers_form"]
+        duplicate_processes = context["duplicates"]
+        candidate = context["candidate"]
+        self.assertIsNotNone(candidate_form)
+        self.assertIsNotNone(process_form)
+        self.assertIsNotNone(source_form)
+        self.assertIsNotNone(offer_form)
+        self.assertIsNotNone(interviewers_form)
+        self.assertIsNone(duplicate_processes)
+        self.assertIsNone(candidate)
 
-    def test_form_submitting(self):
-        pass
+    def test_form_submit_with_least_data(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        candidate_name = self.fake.name()
+        response = self.client.post(
+            path="/candidate/",
+            data={
+                "name": candidate_name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+        )
+
+    def test_form_submit_with_full_data(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        candidate_name = self.fake.name()
+        candidate_mail = "{name}@mail.com".format(name=slugify(candidate_name))
+        candidate_phone = "+336{number}".format(number=self.fake.random_number(fix_len=True, digits=8))
+        process_sub = self.subsidiary
+        contract_type = ContractTypeFactory()
+        expected_salary = 40
+        contract_length = 24
+        contract_start_date = datetime.date.today() + dateutil.relativedelta.relativedelta(months=1)
+        source = SourcesFactory()
+        offer = OfferFactory()
+        complementary_informations = "This is a very useful comment"
+        interviewers = self.consultant
+        interview_kind = InterviewKindFactory()
+
+        response = self.client.post(
+            path="/candidate/",
+            data={
+                "name": candidate_name,
+                "email": candidate_mail,
+                "phone": candidate_phone,
+                "subsidiary": process_sub.id,
+                "contract_type": contract_type.id,
+                "salary_expectation": expected_salary,
+                "contract_duration": contract_length,
+                "contract_start_date": contract_start_date,
+                "sources": source.id,
+                "offer": offer.id,
+                "other_informations": complementary_informations,
+                "interviewers-kind_of_interview": interview_kind.id,
+                "interviewers-interviewers": interviewers.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+        )
+
+    def test_correct_display_of_existing_candidate(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # create a new candidate
+        candidate_name = self.fake.name()
+        process_sub = self.subsidiary
+        offer = OfferFactory()
+        response = self.client.post(
+            path="/candidate/",
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        # assert the candidate was correctly created
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+        )
+
+        # same call
+        response = self.client.post(
+            path="/candidate/",
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response, "Réutilisez un candidat ou créer en un nouveau. Les options sont en bas du formulaire."
+        )
+        self.assertIsNotNone(response.context["duplicates"])
+
+    def test_form_submit_reusing_candidate(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # create a new candidate
+        candidate_name = self.fake.name()
+        process_sub = self.subsidiary
+        offer = OfferFactory()
+        response = self.client.post(
+            path="/candidate/",
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        # assert the candidate was correctly created
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+        )
+
+        new_offer = OfferFactory()
+
+        response = self.client.post(
+            path="/candidate-reuse/{p_id}/".format(p_id=p.id),
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": new_offer.id,
+                "email": "",
+                "phone": "",
+                "summit": "Enregistrer",
+            },
+            follow=True,
+        )
+
+        process_for_candidate = Process.objects.filter(candidate__name=candidate_name).count()
+        self.assertEqual(process_for_candidate, 2)
+        p = Process.objects.filter(candidate__name=candidate_name).last()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+        )
+
+
+class ProcessDetailsViewTestCase(TestCase):
+    # TODO: change hardcoded urls to using reverse
+    pass
