@@ -76,14 +76,16 @@ class ContractTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.ContractType"
 
-    name = "Default Contract Type"
+    # name = "Default Contract Type"
+    name = factory.Faker("text", max_nb_chars=20)
 
 
 class SourcesCategoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.SourcesCategory"
 
-    name = "Default Source Category"
+    # name = "Default Source Category"
+    name = factory.Faker("text", max_nb_chars=20)
 
 
 class SourcesFactory(factory.django.DjangoModelFactory):
@@ -226,7 +228,8 @@ class InterviewKindFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "interview.InterviewKind"
 
-    name = "Default Interview Kind"
+    # name = "Default Interview Kind"
+    name = factory.Faker("text", max_nb_chars=20)
 
 
 class InterviewFactory(factory.django.DjangoModelFactory):
