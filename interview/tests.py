@@ -7,6 +7,7 @@ import hashlib
 
 from django.urls import reverse
 from django.utils.text import slugify
+from django.utils.translation import ugettext_lazy as _
 
 from interview import views
 from interview.factory import (
@@ -357,7 +358,7 @@ class HomeViewTestCase(TestCase):
 
     def test_dashboard_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, "/admin/login/?next=/")
+        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
 
     def test_dashboard_logged_in(self):
         # create a consultant
@@ -549,16 +550,16 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, "/admin/login/?next=%2Fcandidate%2F")
+        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
 
     def test_process_creation_logged_in(self):
         # log user in
         self.client.force_login(user=self.user)
 
-        # access dashboard
+        # access process creation view
         response = self.client.get(self.url)
 
-        # assert we were allowed to access dashboard
+        # assert we were allowed to access this view
         self.assertEqual(response.status_code, 200)
         # assert the right template was called
         self.assertTemplateUsed(response, template_name="interview/new_candidate.html")
@@ -759,4 +760,145 @@ class ProcessCreationViewTestCase(TestCase):
 
 class ProcessDetailsViewTestCase(TestCase):
     # TODO: change hardcoded urls to using reverse
-    pass
+
+    def setUp(self):
+        # create a process
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.user = self.consultant.user
+        self.process = ProcessFactory(
+            subsidiary=self.subsidiary,
+            contract_type=ContractTypeFactory(),
+            offer=OfferFactory(),
+            sources=SourcesFactory(),
+        )
+        self.candidate = self.process.candidate
+        self.url = reverse(
+            views.process, kwargs={"process_id": self.process.id, "slug_info": self.process.candidate.name_slug}
+        )
+        self.assertEqual(
+            self.url, "/process/{id}{slug}/".format(id=self.process.id, slug=self.process.candidate.name_slug)
+        )
+
+    def test_process_details_not_logged_in(self):
+        response = self.client.get(self.url)
+        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
+
+    def test_process_details_logged_in(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process details
+        response = self.client.get(self.url)
+
+        # assert we were allowed to access our process details view
+        self.assertEqual(response.status_code, 200)
+        # assert the right template was called
+        self.assertTemplateUsed(response, template_name="interview/process_detail.html")
+        # assert the header was rendered
+        self.assertTemplateUsed(response, template_name="interview/base.html")
+
+    def test_process_details_info_display(self):
+
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process details
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+
+        # open process
+        self.assertContains(response, "Ce processus suit son cours")
+
+        self.assertContains(
+            response,
+            '<a href="{candidate_url}">{candidat} </a> [{subsidiary}]'.format(
+                candidate_url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}),
+                candidat=self.candidate.name,
+                subsidiary=self.subsidiary,
+            ),
+        )
+
+        # Informations de contact
+        self.assertContains(response, self.candidate.email)
+        self.assertContains(response, self.candidate.phone)
+
+        # Informations sur le contrat
+        self.assertContains(response, self.process.sources)
+        self.assertContains(response, self.process.offer.name)
+        self.assertContains(response, "Documents")
+
+        self.assertContains(response, self.process.contract_type)
+        self.assertContains(response, self.process.contract_duration)
+        self.assertContains(
+            response,
+            (
+                "{dt.day} {month} {dt:%Y}".format(
+                    dt=self.process.contract_start_date, month=_(self.process.contract_start_date.strftime("%B"))
+                )
+            ),
+        )
+        self.assertContains(response, "{value} k€".format(value=self.process.salary_expectation))
+
+        self.assertContains(response, self.process.other_informations)
+
+        self.assertContains(response, "Entretiens de ce processus")
+
+        # assert that interview tables is empty
+        interviews = response.context["interviews_for_process_table"].data
+        self.assertFalse(interviews)
+
+        # assert that add itw button exists
+        self.assertContains(response, "Ajouter un entretien")
+
+        # close the process
+        response = self.client.post(
+            path=reverse(views.close_process, kwargs={"process_id": self.process.id}),
+            data={"state": "NG", "closed_comment": "", "summit": "Terminer+le+processus"},
+            follow=True,
+        )
+
+        # update process values after state update
+        self.process = Process.objects.get(id=self.process.id)
+
+        self.assertRedirects(response, self.process.get_absolute_url())
+        self.assertContains(
+            response, "Ce processus est terminé - {state}".format(state=self.process.get_state_display())
+        )
+        self.assertContains(response, self.process.closed_comment)
+
+    def test_process_details_interviews_table(self):
+        # new process as it was closed by last test
+        self.setUp()
+
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # add an interview
+        itw1 = InterviewFactory(process=self.process, kind_of_interview=InterviewKindFactory())
+        itw1.interviewers.add(self.consultant)  # needed to be able to render the process page
+        itw1.save()
+
+        # access process details
+        response = self.client.get(self.url)
+
+        interviews = response.context["interviews_for_process_table"].data
+        self.assertEqual(len(interviews), 1)
+        self.assertEqual(
+            str(interviews[0]), str(itw1)
+        )  # string representation should be enough to differentiate each itw
+
+        # add an interview
+        itw2 = InterviewFactory(process=self.process, kind_of_interview=InterviewKindFactory())
+        itw2.interviewers.add(self.consultant)  # needed to be able to render the process page
+        itw2.save()
+
+        # access process details
+        response = self.client.get(self.url)
+
+        interviews = response.context["interviews_for_process_table"].data
+        self.assertEqual(len(interviews), 2)
+        self.assertEqual(
+            str(interviews[1]), str(itw2)
+        )  # string representation should be enough to differentiate each itw
