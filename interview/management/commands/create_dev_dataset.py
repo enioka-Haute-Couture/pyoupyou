@@ -106,7 +106,7 @@ class Command(BaseCommand):
 
                 # for each process create some itw
                 for process in processes:
-                    ProcessFactory.create_interviews(process=process, subsidiary=subsidiary)
+                    ProcessFactory.create_interviews(process=process)
 
                 # set one process of each offer to Hired
                 set_random_process_given_offer_to_hired(offer=offer)
@@ -120,6 +120,4 @@ class Command(BaseCommand):
             # create some itw for each process
             for process in pending_processes:
                 start_date = date_minus_time_ago(weeks=3) + relativedelta(days=random.randrange(3, 10))
-                ProcessFactory.create_interviews(
-                    process=process, subsidiary=subsidiary, min_number_of_itw=2, start_date=start_date
-                )
+                ProcessFactory.create_interviews(process=process, min_number_of_itw=2, start_date=start_date)

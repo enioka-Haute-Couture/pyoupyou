@@ -151,7 +151,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
     start_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
 
     @staticmethod
-    def create_interviews(process, subsidiary, min_number_of_itw=1, max_number_of_itw=5, start_date=None):
+    def create_interviews(process, min_number_of_itw=1, max_number_of_itw=5, start_date=None):
         # will create interviews in the last two years until now (excluded)
 
         number_of_itw = random.randrange(min_number_of_itw, max_number_of_itw)
@@ -197,7 +197,7 @@ class ProcessFactory(factory.django.DjangoModelFactory):
 
             # retrieve consultants to do the itw
             possible_interviewer = get_available_consultants_for_itw(
-                subsidiary=subsidiary, all_itw_given_process=all_itw
+                subsidiary=process.subsidiary, all_itw_given_process=all_itw
             )
 
             # never more than 3 interviewers
