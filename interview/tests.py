@@ -902,3 +902,142 @@ class ProcessDetailsViewTestCase(TestCase):
         self.assertEqual(
             str(interviews[1]), str(itw2)
         )  # string representation should be enough to differentiate each itw
+
+
+class InterviewMinuteViewTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.user = self.consultant.user
+        self.process = ProcessFactory(
+            subsidiary=self.subsidiary,
+            contract_type=ContractTypeFactory(),
+            offer=OfferFactory(),
+            sources=SourcesFactory(),
+        )
+        self.candidate = self.process.candidate
+
+        self.itw = InterviewFactory(process=self.process, kind_of_interview=InterviewKindFactory())
+        self.itw.interviewers.add(self.consultant)
+        self.itw.save()
+
+        self.url_minute = reverse(
+            views.minute, kwargs={"interview_id": self.itw.id, "slug_info": self.process.candidate.name_slug}
+        )
+        self.assertEqual(
+            self.url_minute,
+            "/interview/{id}{slug}/minute/".format(id=self.itw.id, slug=self.process.candidate.name_slug),
+        )
+
+        self.url_edit = reverse(views.minute_edit, kwargs={"interview_id": self.itw.id})
+        self.assertEqual(self.url_edit, "/interview/{id}/minute/edit/".format(id=self.itw.id))
+
+    def test_interview_minute_not_logged_in(self):
+        response = self.client.get(self.url_minute)
+        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url_minute))
+
+    def test_interview_minute_edit_not_logged_in(self):
+        response = self.client.get(self.url_edit)
+        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url_edit))
+
+    def test_interview_minute_logged_in(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process creation view
+        response = self.client.get(self.url_minute)
+
+        # assert we were allowed to access this view
+        self.assertEqual(response.status_code, 200)
+        # assert the right template was called
+        self.assertTemplateUsed(response, template_name="interview/interview_minute.html")
+        # assert the header was rendered
+        self.assertTemplateUsed(response, template_name="interview/base.html")
+
+    def test_interview_minute_edit_logged_in(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process creation view
+        response = self.client.get(self.url_edit)
+
+        # assert we were allowed to access this view
+        self.assertEqual(response.status_code, 200)
+        # assert the right template was called
+        self.assertTemplateUsed(response, template_name="interview/interview_minute_form.html")
+        # assert the header was rendered
+        self.assertTemplateUsed(response, template_name="interview/base.html")
+
+    def test_interview_minute_display(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process creation view
+        response = self.client.get(self.url_minute)
+
+        self.assertEqual(response.status_code, 200)
+
+        #  Compte rendu d'entretien pour <assert 3> pour <assert 2> pour la filiale <assert 1>
+        self.assertContains(response, self.subsidiary)
+        self.assertContains(
+            response,
+            '<a href="{url}"> {name} </a>'.format(
+                url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}), name=self.candidate.name
+            ),
+        )
+        self.assertContains(
+            response,
+            '<a href="{url}"> pour le processus</a>'.format(url=self.process.get_absolute_url()),
+        )
+
+        # Interviewers (only one tho)
+        self.assertContains(response, self.itw.interviewers.first())
+
+        # CR
+        self.assertContains(response, self.itw.kind_of_interview)
+        self.assertContains(response, self.itw.minute)
+
+        # Suggested interviewer
+        self.assertContains(response, self.itw.suggested_interviewer)
+
+        # Next itw goel
+        self.assertContains(response, self.itw.next_interview_goal)
+
+    def test_interview_minute_edit_display(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # access process creation view
+        response = self.client.get(self.url_edit)
+
+        self.assertEqual(response.status_code, 200)
+
+        #  Compte rendu d'entretien pour <assert 3> pour <assert 2> pour la filiale <assert 1>
+        self.assertContains(response, self.subsidiary)
+        self.assertContains(
+            response,
+            '<a href="{url}"> {name} </a>'.format(
+                url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}), name=self.candidate.name
+            ),
+        )
+        self.assertContains(
+            response,
+            '<a href="{url}"> pour le processus</a>'.format(url=self.process.get_absolute_url()),
+        )
+
+        # CR
+        self.assertContains(response, self.itw.minute)
+
+        # Suggested interviewer
+        self.assertContains(response, self.itw.suggested_interviewer)
+
+        # Suggested interviewer
+        self.assertContains(response, self.itw.suggested_interviewer)
+
+        # Type d'entretien
+        self.assertContains(response, self.itw.kind_of_interview)
+
+        # assert buttons are here
+        self.assertContains(response, "NON")
+        self.assertContains(response, "Brouillon")
+        self.assertContains(response, "GO")
