@@ -1,6 +1,7 @@
 # v1.16.0 (xxxx-xx-xx)
 - More refined factories
 - New command: create_dev_dataset to generate a basic dev dataset
+- Add process creator, creation date and linkedin url on process page
 
 # v1.15.0 (2022-10-20)
 - All interviews: only display active interviewers in filter dropdown
