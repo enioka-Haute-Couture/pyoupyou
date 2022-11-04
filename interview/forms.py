@@ -62,7 +62,16 @@ class SelectOrCreateOffer(ModelSelect2Widget):
 class ProcessForm(forms.ModelForm):
     class Meta:
         model = Process
-        exclude = ["candidate", "start_date", "end_date", "state", "closed_comment", "responsible", "last_state_change"]
+        exclude = [
+            "candidate",
+            "start_date",
+            "end_date",
+            "state",
+            "closed_comment",
+            "responsible",
+            "last_state_change",
+            "creator",
+        ]
 
         widgets = {"sources": SelectOrCreateSource, "offer": SelectOrCreateOffer}
 
