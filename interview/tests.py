@@ -1,13 +1,15 @@
-import dateutil.relativedelta
-from django.conf import settings
-from django.core import mail
-from django.test import TestCase, RequestFactory
 import datetime
 import hashlib
 
+import dateutil.relativedelta
+import pytz
+from django.conf import settings
+from django.core import mail
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
+from factory.faker import faker
 
 from interview import views
 from interview.factory import (
@@ -19,17 +21,10 @@ from interview.factory import (
     OfferFactory,
     InterviewKindFactory,
 )
-from interview.models import Process, Document, Interview, Candidate
-
-import pytz
-
+from interview.models import Process, Document, Interview
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
-from ref.factory import SubsidiaryFactory, ConsultantFactory, PyouPyouUserFactory
+from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
-
-from django.conf import settings
-
-from factory.faker import faker
 
 
 class InterviewTestCase(TestCase):
@@ -347,7 +342,6 @@ class AnonymizesCanditateTestCase(TestCase):
 
 
 class HomeViewTestCase(TestCase):
-    # TODO: change hardcoded urls to using reverse
 
     # subsidiary_processes_table.data => class TableQuerysetData(TableData) in
     # https://django-tables2.readthedocs.io/en/stable/_modules/django_tables2/data.html
@@ -358,12 +352,12 @@ class HomeViewTestCase(TestCase):
 
     def test_dashboard_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
+        self.assertRedirects(response, f"/admin/login/?next={self.url}")
 
     def test_dashboard_logged_in(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
+        consultant = ConsultantFactory(company=subsidiary)
         user = consultant.user
 
         # log user in
@@ -384,7 +378,7 @@ class HomeViewTestCase(TestCase):
     def test_dashboard_no_data(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
+        consultant = ConsultantFactory(company=subsidiary)
         user = consultant.user
 
         # log user in
@@ -410,7 +404,7 @@ class HomeViewTestCase(TestCase):
     def test_dashboard_with_data(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
+        consultant = ConsultantFactory(subsidiary=subsidiary.id)
         user = consultant.user
 
         # create 1 process in actions_needed_processes_table & in related_process_table
@@ -462,9 +456,11 @@ class HomeViewTestCase(TestCase):
 
     def test_dashboard_with_needs_attention(self):
 
+        # this is more of a unit test but now that it has been done I'll leave it there
+
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary)
+        consultant = ConsultantFactory(company=subsidiary)
         user = consultant.user
 
         # to have need_attention property we need:
@@ -533,15 +529,13 @@ class HomeViewTestCase(TestCase):
 
 
 class ProcessCreationViewTestCase(TestCase):
-    # TODO: change hardcoded urls to using reverse
-
     def setUp(self):
         self.url = reverse(views.new_candidate)
         self.assertEqual(self.url, "/candidate/")
 
         # create a consultant
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.consultant = ConsultantFactory(company=self.subsidiary)
         self.user = self.consultant.user
 
         self.fake = faker.Faker()
@@ -550,7 +544,7 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
+        self.assertRedirects(response, f"/admin/login/?next={self.url}")
 
     def test_process_creation_logged_in(self):
         # log user in
@@ -595,7 +589,7 @@ class ProcessCreationViewTestCase(TestCase):
 
         candidate_name = self.fake.name()
         response = self.client.post(
-            path="/candidate/",
+            path=reverse(views.new_candidate),
             data={
                 "name": candidate_name,
                 "subsidiary": self.subsidiary.id,
@@ -609,7 +603,7 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertIsNotNone(p)
         self.assertRedirects(
             response,
-            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+            p.get_absolute_url(),
         )
 
     def test_form_submit_with_full_data(self):
@@ -617,8 +611,8 @@ class ProcessCreationViewTestCase(TestCase):
         self.client.force_login(user=self.user)
 
         candidate_name = self.fake.name()
-        candidate_mail = "{name}@mail.com".format(name=slugify(candidate_name))
-        candidate_phone = "+336{number}".format(number=self.fake.random_number(fix_len=True, digits=8))
+        candidate_mail = f"{slugify(candidate_name)}@mail.com"
+        candidate_phone = f"+336{self.fake.random_number(fix_len=True, digits=8)}"
         process_sub = self.subsidiary
         contract_type = ContractTypeFactory()
         expected_salary = 40
@@ -631,7 +625,7 @@ class ProcessCreationViewTestCase(TestCase):
         interview_kind = InterviewKindFactory()
 
         response = self.client.post(
-            path="/candidate/",
+            path=reverse(views.new_candidate),
             data={
                 "name": candidate_name,
                 "email": candidate_mail,
@@ -656,7 +650,7 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertIsNotNone(p)
         self.assertRedirects(
             response,
-            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+            p.get_absolute_url(),
         )
 
     def test_correct_display_of_existing_candidate(self):
@@ -668,7 +662,7 @@ class ProcessCreationViewTestCase(TestCase):
         process_sub = self.subsidiary
         offer = OfferFactory()
         response = self.client.post(
-            path="/candidate/",
+            path=reverse(views.new_candidate),
             data={
                 "name": candidate_name,
                 "subsidiary": process_sub.id,
@@ -684,12 +678,12 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertIsNotNone(p)
         self.assertRedirects(
             response,
-            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
+            p.get_absolute_url(),
         )
 
         # same call
         response = self.client.post(
-            path="/candidate/",
+            path=reverse(views.new_candidate),
             data={
                 "name": candidate_name,
                 "subsidiary": process_sub.id,
@@ -700,9 +694,6 @@ class ProcessCreationViewTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(
-            response, "Réutilisez un candidat ou créer en un nouveau. Les options sont en bas du formulaire."
-        )
         self.assertIsNotNone(response.context["duplicates"])
 
     def test_form_submit_reusing_candidate(self):
@@ -714,7 +705,7 @@ class ProcessCreationViewTestCase(TestCase):
         process_sub = self.subsidiary
         offer = OfferFactory()
         response = self.client.post(
-            path="/candidate/",
+            path=reverse(views.new_candidate),
             data={
                 "name": candidate_name,
                 "subsidiary": process_sub.id,
@@ -728,15 +719,12 @@ class ProcessCreationViewTestCase(TestCase):
         # assert the candidate was correctly created
         p = Process.objects.filter(candidate__name=candidate_name).first()
         self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
-        )
+        self.assertRedirects(response, p.get_absolute_url())
 
         new_offer = OfferFactory()
 
         response = self.client.post(
-            path="/candidate-reuse/{p_id}/".format(p_id=p.id),
+            path=reverse(views.reuse_candidate, kwargs={"candidate_id": p.candidate.id}),
             data={
                 "name": candidate_name,
                 "subsidiary": process_sub.id,
@@ -752,19 +740,14 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertEqual(process_for_candidate, 2)
         p = Process.objects.filter(candidate__name=candidate_name).last()
         self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            "/process/{process_id}_{name}/".format(process_id=p.id, name=slugify(candidate_name)),
-        )
+        self.assertRedirects(response, p.get_absolute_url())
 
 
 class ProcessDetailsViewTestCase(TestCase):
-    # TODO: change hardcoded urls to using reverse
-
     def setUp(self):
         # create a process
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.consultant = ConsultantFactory(company=self.subsidiary)
         self.user = self.consultant.user
         self.process = ProcessFactory(
             subsidiary=self.subsidiary,
@@ -776,13 +759,11 @@ class ProcessDetailsViewTestCase(TestCase):
         self.url = reverse(
             views.process, kwargs={"process_id": self.process.id, "slug_info": self.process.candidate.name_slug}
         )
-        self.assertEqual(
-            self.url, "/process/{id}{slug}/".format(id=self.process.id, slug=self.process.candidate.name_slug)
-        )
+        self.assertEqual(self.url, f"/process/{self.process.id}{self.process.candidate.name_slug}/")
 
     def test_process_details_not_logged_in(self):
         response = self.client.get(self.url)
-        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url))
+        self.assertRedirects(response, f"/admin/login/?next={self.url}")
 
     def test_process_details_logged_in(self):
         # log user in
@@ -799,7 +780,6 @@ class ProcessDetailsViewTestCase(TestCase):
         self.assertTemplateUsed(response, template_name="interview/base.html")
 
     def test_process_details_info_display(self):
-
         # log user in
         self.client.force_login(user=self.user)
 
@@ -813,11 +793,7 @@ class ProcessDetailsViewTestCase(TestCase):
 
         self.assertContains(
             response,
-            '<a href="{candidate_url}">{candidat} </a> [{subsidiary}]'.format(
-                candidate_url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}),
-                candidat=self.candidate.name,
-                subsidiary=self.subsidiary,
-            ),
+            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}">{self.candidate.name} </a> [{self.subsidiary}]',
         )
 
         # Informations de contact
@@ -831,19 +807,16 @@ class ProcessDetailsViewTestCase(TestCase):
 
         self.assertContains(response, self.process.contract_type)
         self.assertContains(response, self.process.contract_duration)
+        # contract start date display
         self.assertContains(
             response,
             (
-                "{dt.day} {month} {dt:%Y}".format(
-                    dt=self.process.contract_start_date, month=_(self.process.contract_start_date.strftime("%B"))
-                )
+                f"{self.process.contract_start_date.day} {_(self.process.contract_start_date.strftime('%B'))} {self.process.contract_start_date:%Y}"
             ),
         )
-        self.assertContains(response, "{value} k€".format(value=self.process.salary_expectation))
+        self.assertContains(response, f"{self.process.salary_expectation} k€")
 
         self.assertContains(response, self.process.other_informations)
-
-        self.assertContains(response, "Entretiens de ce processus")
 
         # assert that interview tables is empty
         interviews = response.context["interviews_for_process_table"].data
@@ -855,7 +828,7 @@ class ProcessDetailsViewTestCase(TestCase):
         # close the process
         response = self.client.post(
             path=reverse(views.close_process, kwargs={"process_id": self.process.id}),
-            data={"state": "NG", "closed_comment": "", "summit": "Terminer+le+processus"},
+            data={"state": "NG", "closed_comment": "closed", "summit": "Terminer+le+processus"},
             follow=True,
         )
 
@@ -863,9 +836,7 @@ class ProcessDetailsViewTestCase(TestCase):
         self.process = Process.objects.get(id=self.process.id)
 
         self.assertRedirects(response, self.process.get_absolute_url())
-        self.assertContains(
-            response, "Ce processus est terminé - {state}".format(state=self.process.get_state_display())
-        )
+        self.assertContains(response, f"Ce processus est terminé - {self.process.get_state_display()}")
         self.assertContains(response, self.process.closed_comment)
 
     def test_process_details_interviews_table(self):
@@ -907,7 +878,7 @@ class ProcessDetailsViewTestCase(TestCase):
 class InterviewMinuteViewTestCase(TestCase):
     def setUp(self):
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(subsidiary=self.subsidiary)
+        self.consultant = ConsultantFactory(company=self.subsidiary)
         self.user = self.consultant.user
         self.process = ProcessFactory(
             subsidiary=self.subsidiary,
@@ -926,19 +897,19 @@ class InterviewMinuteViewTestCase(TestCase):
         )
         self.assertEqual(
             self.url_minute,
-            "/interview/{id}{slug}/minute/".format(id=self.itw.id, slug=self.process.candidate.name_slug),
+            f"/interview/{self.itw.id}{self.process.candidate.name_slug}/minute/",
         )
 
         self.url_edit = reverse(views.minute_edit, kwargs={"interview_id": self.itw.id})
-        self.assertEqual(self.url_edit, "/interview/{id}/minute/edit/".format(id=self.itw.id))
+        self.assertEqual(self.url_edit, f"/interview/{self.itw.id}/minute/edit/")
 
     def test_interview_minute_not_logged_in(self):
         response = self.client.get(self.url_minute)
-        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url_minute))
+        self.assertRedirects(response, f"/admin/login/?next={self.url_minute}")
 
     def test_interview_minute_edit_not_logged_in(self):
         response = self.client.get(self.url_edit)
-        self.assertRedirects(response, "/admin/login/?next={url}".format(url=self.url_edit))
+        self.assertRedirects(response, f"/admin/login/?next={self.url_edit}")
 
     def test_interview_minute_logged_in(self):
         # log user in
@@ -981,13 +952,12 @@ class InterviewMinuteViewTestCase(TestCase):
         self.assertContains(response, self.subsidiary)
         self.assertContains(
             response,
-            '<a href="{url}"> {name} </a>'.format(
-                url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}), name=self.candidate.name
-            ),
+            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}"> {self.candidate.name} </a>',
         )
+
         self.assertContains(
             response,
-            '<a href="{url}"> pour le processus</a>'.format(url=self.process.get_absolute_url()),
+            f'<a href="{self.process.get_absolute_url()}">',
         )
 
         # Interviewers (only one tho)
@@ -1016,13 +986,11 @@ class InterviewMinuteViewTestCase(TestCase):
         self.assertContains(response, self.subsidiary)
         self.assertContains(
             response,
-            '<a href="{url}"> {name} </a>'.format(
-                url=reverse(views.edit_candidate, kwargs={"process_id": self.process.id}), name=self.candidate.name
-            ),
+            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}"> {self.candidate.name} </a>',
         )
         self.assertContains(
             response,
-            '<a href="{url}"> pour le processus</a>'.format(url=self.process.get_absolute_url()),
+            f'<a href="{self.process.get_absolute_url()}">',
         )
 
         # CR

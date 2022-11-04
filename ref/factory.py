@@ -1,5 +1,4 @@
 import datetime
-import random
 
 import factory.fuzzy
 import pytz
