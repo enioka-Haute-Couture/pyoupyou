@@ -56,6 +56,18 @@
                             <dd><a href="{% url 'process-list-offer' process.offer.id %}">{{ process.offer.name }}</a></dd>
                         </p>
                     {% endif %}
+                    {% if process.creator %}
+                        <p>
+                            <dt>{% trans "Process creator" %}</dt>
+                            <dd>{{ process.creator }}</dd>
+                        </p>
+                    {% endif %}
+                    {% if process.start_date %}
+                        <p>
+                            <dt>{% trans "Process start date" %}</dt>
+                            <dd>{{ process.start_date }}</dd>
+                        </p>
+                    {% endif %}
                         <p>
                         <dt>{% trans "Documents" %}</dt>
                         <dd>
