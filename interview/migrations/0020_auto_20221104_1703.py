@@ -7,24 +7,31 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ref', '0003_remove_consultant_productive'),
-        ('interview', '0019_auto_20211128_1257'),
+        ("ref", "0003_remove_consultant_productive"),
+        ("interview", "0019_auto_20211128_1257"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='candidate',
-            name='linkedin_url',
-            field=models.URLField(blank=True, verbose_name='LinkedIn link'),
+            model_name="candidate",
+            name="linkedin_url",
+            field=models.URLField(blank=True, verbose_name="LinkedIn link"),
         ),
         migrations.AddField(
-            model_name='process',
-            name='creator',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='process_creator', to='ref.consultant', verbose_name='Process creator'),
+            model_name="process",
+            name="creator",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="process_creator",
+                to="ref.consultant",
+                verbose_name="Process creator",
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='start_date',
-            field=models.DateField(auto_now_add=True, verbose_name='Process start date'),
+            model_name="process",
+            name="start_date",
+            field=models.DateField(auto_now_add=True, verbose_name="Process start date"),
         ),
     ]
