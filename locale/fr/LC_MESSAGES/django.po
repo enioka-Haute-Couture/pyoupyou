@@ -497,7 +497,7 @@ msgstr "e-mail"
 
 #: interview/templates/interview/process_detail.html:45
 msgid "Process information"
-msgstr "Informations sur le contrat"
+msgstr "Informations sur le processus"
 
 #: interview/templates/interview/process_detail.html:49
 msgid "Source"
