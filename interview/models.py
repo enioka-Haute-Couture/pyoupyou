@@ -73,13 +73,13 @@ def anonymize_text(text):
 
 
 class Candidate(models.Model):
-    # TODO add: linked in? link field
     name = models.CharField(_("Name"), max_length=200)
     email = models.EmailField(blank=True)
     phone = models.CharField(_("Phone"), max_length=30, blank=True)
     anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=64, blank=True)
     anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=64, blank=True)
     anonymized = models.BooleanField(default=False)
+    linkedin_url = models.URLField(verbose_name=_("LinkedIn link"), blank=True)
 
     # TODO Required by the reverse admin url resolver?
     app_label = "interview"

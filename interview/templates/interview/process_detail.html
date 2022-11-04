@@ -22,7 +22,7 @@
     {% endif %}
         <div class="row">
             <div class="col-md-6">
-                {% if process.candidate.phone or process.candidate.email %}
+                {% if process.candidate.phone or process.candidate.email or process.candidate.linkedin_url %}
                 <div class="bs-callout">
                     <h4> {% trans 'Contact' %}</h4>
                     <p>
@@ -37,6 +37,11 @@
                         <dt>{% trans "mail" %}</dt>
                         <dd><a href="mailto:{{process.candidate.email}}">{{process.candidate.email}}</a></dd>
                         </p>
+                        {% endif %}
+                        {% if process.candidate.linkedin_url %}
+                            <p>
+                                <dt><a href={{ process.candidate.linkedin_url }}> {%  trans "LinkedIn link" %}</a></dt>
+                            </p>
                         {% endif %}
                     </p>
                 </div>
