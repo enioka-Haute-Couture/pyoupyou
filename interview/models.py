@@ -79,6 +79,7 @@ class Candidate(models.Model):
     anonymized_hashed_name = models.CharField(_("Anonymized Hashed Name"), max_length=64, blank=True)
     anonymized_hashed_email = models.CharField(_("Anonymized Hashed Email"), max_length=64, blank=True)
     anonymized = models.BooleanField(default=False)
+    linkedin_url = models.URLField(verbose_name=_("LinkedIn link"), blank=True)
 
     # TODO Required by the reverse admin url resolver?
     app_label = "interview"
@@ -282,7 +283,7 @@ class Process(models.Model):
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"), on_delete=models.CASCADE)
     subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), on_delete=models.CASCADE)
 
-    start_date = models.DateField(verbose_name=_("Start date"), auto_now_add=True)
+    start_date = models.DateField(verbose_name=_("Process start date"), auto_now_add=True)
     end_date = models.DateField(verbose_name=_("End date"), null=True, blank=True)
     contract_type = models.ForeignKey(
         ContractType, null=True, blank=True, verbose_name=_("Contract type"), on_delete=models.SET_NULL
@@ -301,6 +302,15 @@ class Process(models.Model):
     offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.SET_NULL, verbose_name=_("Offer"))
 
     other_informations = models.TextField(verbose_name=_("Other informations"), blank=True)
+
+    creator = models.ForeignKey(
+        Consultant,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="process_creator",
+        verbose_name=_("Process creator"),
+    )
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         is_new = False if self.id else True

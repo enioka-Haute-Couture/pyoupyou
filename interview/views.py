@@ -396,6 +396,7 @@ def new_candidate(request, past_candidate_id=None):
                     Document.objects.create(document_type="CV", content=content, candidate=candidate)
                 process = process_form.save(commit=False)
                 process.candidate = candidate
+                process.creator = Consultant.objects.get(user=request.user)
                 process.save()
                 log_action(True, process, request.user, new_candidate)
 
