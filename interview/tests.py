@@ -26,6 +26,8 @@ from interview.views import process, minute_edit, minute, interview, close_proce
 from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
 
+from django.utils.translation import activate
+
 
 class InterviewTestCase(TestCase):
     def test_new_interview_state_equals_need_plannification(self):
@@ -454,79 +456,6 @@ class HomeViewTestCase(TestCase):
         self.assertNotEquals(p1.id, subsidiary_processes[0].id)
         self.assertNotEquals(p2.id, subsidiary_processes[0].id)
 
-    def test_dashboard_with_needs_attention(self):
-
-        # this is more of a unit test but now that it has been done I'll leave it there
-
-        # create a consultant
-        subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(company=subsidiary)
-        user = consultant.user
-
-        # to have need_attention property we need:
-        #   p.is_active ( == p.end_date is None => default in factory) &&
-        #   p.state in (
-        #               WAITING_ITW_MINUTE ||
-        #               Process.WAITING_INTERVIEW_PLANIFICATION ||
-        #               WAITING_INTERVIEWER_TO_BE_DESIGNED ||
-        #               WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
-        #               )
-
-        # creating one of each possibility
-        p1 = ProcessFactory(subsidiary=subsidiary)
-        itw1 = InterviewFactory(process=p1)
-        itw1.interviewers.add(consultant)
-        itw1.save()  # saving an itw updates process state, hence we set process state afterwards
-        p1.state = Process.WAITING_ITW_MINUTE
-        p1.save()
-
-        p2 = ProcessFactory(subsidiary=subsidiary)
-        itw2 = InterviewFactory(process=p2)
-        itw2.interviewers.add(consultant)
-        itw2.save()  # saving an itw updates process state, hence we set process state afterwards
-        p2.state = Process.WAITING_INTERVIEW_PLANIFICATION
-        p2.save()
-
-        p3 = ProcessFactory(subsidiary=subsidiary)
-        itw3 = InterviewFactory(process=p3)
-        itw3.interviewers.add(consultant)
-        itw3.save()  # saving an itw updates process state, hence we set process state afterwards
-        p3.state = Process.WAITING_INTERVIEWER_TO_BE_DESIGNED
-        p3.save()
-
-        p4 = ProcessFactory(subsidiary=subsidiary)
-        itw4 = InterviewFactory(process=p4)
-        itw4.interviewers.add(consultant)
-        itw4.save()  # saving an itw updates process state, hence we set process state afterwards
-        p4.state = Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
-        p4.save()
-
-        # log user in
-        self.client.force_login(user=user)
-
-        # access dashboard
-        response = self.client.get(self.url)
-
-        # retrieve the three tables displayed
-        actions_needed_processes_table = response.context["actions_needed_processes_table"]
-        related_processes_table = response.context["related_processes_table"]
-        subsidiary_processes_table = response.context["subsidiary_processes_table"]
-
-        processes_actions_needed = actions_needed_processes_table.data
-        for p in processes_actions_needed:
-            self.assertTrue(p.needs_attention)
-        self.assertEqual(len(processes_actions_needed), 4)
-
-        related_processes = related_processes_table.data
-        for p in related_processes:
-            self.assertTrue(p.needs_attention)
-        self.assertEqual(len(related_processes), 4)
-
-        subsidiary_processes = subsidiary_processes_table.data
-        for p in subsidiary_processes:
-            self.assertTrue(p.needs_attention)
-        self.assertEqual(len(subsidiary_processes), 4)
-
 
 class ProcessCreationViewTestCase(TestCase):
     def setUp(self):
@@ -761,6 +690,8 @@ class ProcessDetailsViewTestCase(TestCase):
         )
         self.assertEqual(self.url, f"/process/{self.process.id}{self.process.candidate.name_slug}/")
 
+        activate("en")
+
     def test_process_details_not_logged_in(self):
         response = self.client.get(self.url)
         self.assertRedirects(response, f"/admin/login/?next={self.url}")
@@ -788,13 +719,13 @@ class ProcessDetailsViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        # open process
-        self.assertContains(response, "Ce processus suit son cours")
-
         self.assertContains(
             response,
-            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}">{self.candidate.name} </a> [{self.subsidiary}]',
+            reverse(views.edit_candidate, kwargs={"process_id": self.process.id}),
         )
+
+        self.assertContains(response, self.candidate.name)
+        self.assertContains(response, self.subsidiary)
 
         # Informations de contact
         self.assertContains(response, self.candidate.email)
@@ -807,13 +738,7 @@ class ProcessDetailsViewTestCase(TestCase):
 
         self.assertContains(response, self.process.contract_type)
         self.assertContains(response, self.process.contract_duration)
-        # contract start date display
-        self.assertContains(
-            response,
-            (
-                f"{self.process.contract_start_date.day} {_(self.process.contract_start_date.strftime('%B'))} {self.process.contract_start_date:%Y}"
-            ),
-        )
+
         self.assertContains(response, f"{self.process.salary_expectation} k€")
 
         self.assertContains(response, self.process.other_informations)
@@ -823,7 +748,7 @@ class ProcessDetailsViewTestCase(TestCase):
         self.assertFalse(interviews)
 
         # assert that add itw button exists
-        self.assertContains(response, "Ajouter un entretien")
+        self.assertContains(response, "Add an interview")
 
         # close the process
         response = self.client.post(
@@ -836,7 +761,7 @@ class ProcessDetailsViewTestCase(TestCase):
         self.process = Process.objects.get(id=self.process.id)
 
         self.assertRedirects(response, self.process.get_absolute_url())
-        self.assertContains(response, f"Ce processus est terminé - {self.process.get_state_display()}")
+        self.assertContains(response, self.process.get_state_display())
         self.assertContains(response, self.process.closed_comment)
 
     def test_process_details_interviews_table(self):
@@ -903,6 +828,8 @@ class InterviewMinuteViewTestCase(TestCase):
         self.url_edit = reverse(views.minute_edit, kwargs={"interview_id": self.itw.id})
         self.assertEqual(self.url_edit, f"/interview/{self.itw.id}/minute/edit/")
 
+        activate("en")
+
     def test_interview_minute_not_logged_in(self):
         response = self.client.get(self.url_minute)
         self.assertRedirects(response, f"/admin/login/?next={self.url_minute}")
@@ -948,16 +875,13 @@ class InterviewMinuteViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        #  Compte rendu d'entretien pour <assert 3> pour <assert 2> pour la filiale <assert 1>
         self.assertContains(response, self.subsidiary)
-        self.assertContains(
-            response,
-            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}"> {self.candidate.name} </a>',
-        )
+        self.assertContains(response, reverse(views.edit_candidate, kwargs={"process_id": self.process.id}))
+        self.assertContains(response, self.candidate.name)
 
         self.assertContains(
             response,
-            f'<a href="{self.process.get_absolute_url()}">',
+            self.process.get_absolute_url(),
         )
 
         # Interviewers (only one tho)
@@ -984,13 +908,12 @@ class InterviewMinuteViewTestCase(TestCase):
 
         #  Compte rendu d'entretien pour <assert 3> pour <assert 2> pour la filiale <assert 1>
         self.assertContains(response, self.subsidiary)
+        self.assertContains(response, reverse(views.edit_candidate, kwargs={"process_id": self.process.id}))
+        self.assertContains(response, self.candidate.name)
+
         self.assertContains(
             response,
-            f'<a href="{reverse(views.edit_candidate, kwargs={"process_id": self.process.id})}"> {self.candidate.name} </a>',
-        )
-        self.assertContains(
-            response,
-            f'<a href="{self.process.get_absolute_url()}">',
+            self.process.get_absolute_url(),
         )
 
         # CR
@@ -1006,6 +929,6 @@ class InterviewMinuteViewTestCase(TestCase):
         self.assertContains(response, self.itw.kind_of_interview)
 
         # assert buttons are here
-        self.assertContains(response, "NON")
-        self.assertContains(response, "Brouillon")
+        self.assertContains(response, "NO")
+        self.assertContains(response, "DRAFT")
         self.assertContains(response, "GO")
