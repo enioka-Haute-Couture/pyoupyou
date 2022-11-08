@@ -23,7 +23,24 @@
                 nextCentury: 'Siècle suivant'
             }
         });
-    });
+        $('#id_interviewers-planned_date').datetimepicker({
+            locale: 'fr',
+            format: "DD/MM/YYYY",
+            tooltips: {
+                selectMonth: 'Sélection du mois',
+                prevMonth: 'Mois précédent',
+                nextMonth: 'Mois suivant',
+                selectYear: "Sélection de l'année",
+                prevYear: 'Année précédente',
+                nextYear: 'Année suivante',
+                selectDecade: 'Sélection de la décennie',
+                prevDecade: 'Décennie précédente',
+                nextDecade: 'Décennie suivante',
+                prevCentury: 'Siècle précédent',
+                nextCentury: 'Siècle suivant'
+            }
+         });
+      });
     </script>
 {% endblock %}
 
