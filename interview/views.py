@@ -80,6 +80,7 @@ def compare(candidate: Candidate, other: Candidate):
 
 
 class ProcessTable(tables.Table):
+    state = tables.Column(verbose_name=_("Process state"))
     needs_attention = tables.TemplateColumn(
         template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
     )
@@ -123,13 +124,6 @@ class ProcessTable(tables.Table):
         order_by = "start_date"
         empty_text = _("No data")
         row_attrs = {"class": lambda record: "danger" if record.needs_attention else None}
-
-
-class CurrentProcessTable(ProcessTable):
-    state = tables.Column(verbose_name=_("Process state"))
-
-    class Meta(ProcessTable.Meta):
-        pass
 
 
 class ProcessEndTable(ProcessTable):
@@ -350,7 +344,7 @@ def processes(request):
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     recently_closed_processes = Process.objects.for_table(request.user).filter(end_date__gte=a_week_ago)
 
-    open_processes_table = CurrentProcessTable(open_processes, prefix="o")
+    open_processes_table = ProcessTable(open_processes, prefix="o")
     recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix="c")
 
     config = RequestConfig(request)
