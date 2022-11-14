@@ -80,6 +80,7 @@ def compare(candidate: Candidate, other: Candidate):
 
 
 class ProcessTable(tables.Table):
+    state = tables.Column(verbose_name=_("Process state"))
     needs_attention = tables.TemplateColumn(
         template_name="interview/tables/needs_attention_cell.html", verbose_name="", orderable=False
     )
@@ -89,6 +90,8 @@ class ProcessTable(tables.Table):
     candidate = tables.Column(attrs={"td": {"style": "font-weight: bold"}}, order_by=("candidate__name",))
     contract_type = tables.Column(order_by=("contract_type__name",))
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
+
+    responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     def render_responsible(self, value):
         return format_html(

@@ -4,6 +4,7 @@
 - Add process creator, creation date and linkedin url on process page
 - Add view tests
 - Add interview planned date in process creation
+- Update more appropriate column titles for process table
 
 # v1.15.0 (2022-10-20)
 - All interviews: only display active interviewers in filter dropdown
