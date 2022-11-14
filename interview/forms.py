@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
@@ -98,9 +99,17 @@ class OfferForm(forms.ModelForm):
 
 
 class InterviewersForm(forms.ModelForm):
+    def clean(self):
+        cleaned_data = super().clean()
+        interviewers = cleaned_data.get("interviewers")
+        planned_date = cleaned_data.get("planned_date")
+
+        if not interviewers and planned_date:
+            raise ValidationError(_("Interviewers must be specified when setting planned date"))
+
     class Meta:
         model = Interview
-        fields = ["interviewers", "kind_of_interview", "prequalification"]
+        fields = ["interviewers", "planned_date", "kind_of_interview", "prequalification"]
         widgets = {"interviewers": MultipleConsultantWidget}
 
     def __init__(self, *args, **kwargs):
