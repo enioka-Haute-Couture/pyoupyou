@@ -1,5 +1,7 @@
 # v1.17.0 (xxxx-xx-xx)
 - Replace commonmark with markdown-it and remove django-markwhat dependency
+- Support python 3.10
+- Update some depdencies
 
 # v1.16.0 (2022-11-14)
 - More refined factories
