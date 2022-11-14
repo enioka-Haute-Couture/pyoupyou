@@ -90,6 +90,8 @@ class ProcessTable(tables.Table):
     contract_type = tables.Column(order_by=("contract_type__name",))
     current_rank = tables.Column(verbose_name=_("No itw"), orderable=False)
 
+    responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
+
     def render_responsible(self, value):
         return format_html(
             ", ".join(
@@ -125,7 +127,6 @@ class ProcessTable(tables.Table):
 
 class CurrentProcessTable(ProcessTable):
     state = tables.Column(verbose_name=_("Process state"))
-    responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     class Meta(ProcessTable.Meta):
         pass
