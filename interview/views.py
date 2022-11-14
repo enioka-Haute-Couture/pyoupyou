@@ -125,6 +125,7 @@ class ProcessTable(tables.Table):
 
 class CurrentProcessTable(ProcessTable):
     state = tables.Column(verbose_name=_("Process state"))
+    responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     class Meta(ProcessTable.Meta):
         pass
