@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ref', '0003_remove_consultant_productive'),
+        ("ref", "0003_remove_consultant_productive"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='consultant',
-            options={'ordering': ('user__trigramme',)},
+            name="consultant",
+            options={"ordering": ("user__trigramme",)},
         ),
     ]
