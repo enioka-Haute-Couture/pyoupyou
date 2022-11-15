@@ -25,7 +25,7 @@ from django.core.management import call_command
 from django.db import transaction
 from django.db.models import Q, Prefetch, F, Max
 from django.db.models.functions import Trunc
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -39,6 +39,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
+from rest_framework.decorators import api_view
 
 from interview.decorators import privilege_level_check
 from interview.filters import (
@@ -60,6 +61,7 @@ from interview.forms import (
     OfferForm,
     InterviewersForm,
 )
+from interview.serializers import CognitoWebHookSerializer
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
 from ref.models import Consultant, PyouPyouUser, Subsidiary
 
@@ -1587,3 +1589,24 @@ def interviews_list(request):
     }
 
     return render(request, "interview/list_interviews.html", context)
+
+
+@csrf_exempt
+@api_view(["POST"])
+def process_from_cognito_form(request, source_id, subsidiary_id):
+    data = request.data
+
+    data.update(
+        {
+            "sources": source_id,
+            "subsidiary": subsidiary_id,
+        }
+    )
+
+    serializer = CognitoWebHookSerializer(data=data)
+
+    serializer.is_valid(raise_exception=True)
+
+    serializer.create(serializer.validated_data)
+
+    return HttpResponse("Success")

@@ -1,3 +1,6 @@
+import json
+
+import factory
 import datetime
 import hashlib
 
@@ -8,6 +11,10 @@ from django.conf import settings
 from django.core import mail
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
+
+from interview import views
+from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory, OfferFactory, SourcesFactory
+from interview.models import Process, Document, Interview, Candidate
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from factory.faker import faker
@@ -30,6 +37,7 @@ from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant, PyouPyouUser
 from ref.models import Consultant, Subsidiary
 
+from django.conf import settings
 from django.utils.translation import activate
 from dateutil.relativedelta import relativedelta
 
@@ -1151,3 +1159,103 @@ class OfferFilterGivenSubsidiaryTestCase(TestCase):
 
             for o in table:
                 self.assertEqual(o["subsidiary"].id, sub.id)
+
+
+class ImportCognitoFormTestCase(TestCase):
+    def setUp(self):
+        self.source = SourcesFactory()
+        self.subsidiary = SubsidiaryFactory()
+        self.url = "/webhook/{prefix}/{sub_id}/{source_id}".format(
+            source_id=self.source.id, sub_id=self.subsidiary.id, prefix=settings.FORM_WEB_HOOK_PREFIX
+        )
+
+        self.consultant = ConsultantFactory(company=self.subsidiary)
+        self.user = self.consultant.user
+
+        OfferFactory(subsidiary=self.subsidiary)  # Id = 1
+
+        self.name = "toto"
+        self.email = "toto@mail.com"
+        self.phone = "0606060606"
+
+    def test_given_form_full(self):
+        self.client.force_login(self.user)
+        data = {
+            "Form": {
+                "Id": "1",
+                "InternalName": "Formulaire",
+                "Name": "Formulaire de candidature",
+            },
+            "$version": 8,
+            "$etag": "W/\"datetime'2022-11-04T13%3A56%3A25.06651Z'\"",
+            "Name": self.name,
+            "Email": self.email,
+            "Phone": self.phone,
+            "Linkedin": "https://www.linkedin.com/",
+            "Offer": "CDI",
+            "Offer_Value": 1,
+            "Motivation": "Je suis vraiment très très motivé.",
+            "Availability": "2022-12-01",
+            "Document": [
+                {
+                    "ContentType": "application/pdf",
+                    "Id": "F-abX23IJp9I4pYEFaAZL38u",
+                    "IsEncrypted": False,
+                    "Name": "doc1.pdf",
+                    "Size": 139130,
+                    "StorageUrl": None,
+                    "File": "https://www.orimi.com/pdf-test.pdf",
+                },
+                {
+                    "ContentType": "application/pdf",
+                    "Id": "F-abX23IJp9I4pYEFaAZL38u",
+                    "IsEncrypted": False,
+                    "Name": "doc2.pdf",
+                    "Size": 139130,
+                    "StorageUrl": None,
+                    "File": "http://www.ec-bievres.ac-versailles.fr/IMG/pdf/test_pdf.pdf",
+                },
+            ],
+        }
+        response = self.client.generic("POST", self.url, json.dumps(data), "application/json")
+
+        self.assertEqual(response.status_code, 200)
+
+        candidate = Candidate.objects.get(name=self.name)
+
+        self.assertIsNotNone(candidate)
+
+        documents = Document.objects.filter(candidate=candidate)
+        self.assertEqual(documents.count(), 2)
+
+    def test_given_form_least_data(self):
+        self.client.force_login(self.user)
+        data = {
+            "Content-Type": "application/json",
+            "Form": {
+                "Id": "1",
+                "InternalName": "Formulaire",
+                "Name": "Formulaire de candidature",
+            },
+            "$version": 8,
+            "$etag": "W/\"datetime'2022-11-07T12%3A06%3A52.5364118Z'\"",
+            "Name": "t",
+            "Email": "t@gmail.com",
+            "Phone": None,
+            "Linkedin": None,
+            "Offer_Value": None,
+            "Motivation": None,
+            "Availability": None,
+            "Document": [],
+        }
+
+        response = self.client.generic("POST", self.url, json.dumps(data), "application/json")
+
+        self.assertEqual(response.status_code, 200)
+
+        candidate = Candidate.objects.get(name="t")
+
+        self.assertIsNotNone(candidate)
+
+        documents = Document.objects.filter(candidate=candidate)
+        self.assertEqual(documents.count(), 0)
