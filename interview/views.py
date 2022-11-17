@@ -154,6 +154,13 @@ class ProcessEndTable(ProcessTable):
         order_by = "-end_date"
 
 
+class ProcessLightTable(ProcessTable):
+    class Meta(ProcessTable.Meta):
+        sequence = ("subsidiary", "offer", "state", "actions")
+        fields = sequence
+        exclude = ("needs_attention", "current_rank", "candidate", "responsible", "start_date", "contract_type")
+
+
 def get_state_color(record):
     if record.needs_attention:
         return "danger"
@@ -236,6 +243,9 @@ def process(request, process_id, slug_info=None):
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
+    others_process = (
+        Process.objects.filter(candidate=process.candidate).exclude(id=process_id).select_related("subsidiary", "offer")
+    )
 
     goal = None
     last_itw = interviews.last()
@@ -254,6 +264,7 @@ def process(request, process_id, slug_info=None):
         "close_form": close_form,
         "goal": goal,
         "subsidiaries": Subsidiary.objects.all(),
+        "others_process": ProcessLightTable(others_process),
     }
     return render(request, "interview/process_detail.html", context)
 
@@ -390,54 +401,89 @@ def reuse_candidate(request, candidate_id):
     return new_candidate(request, candidate_id)
 
 
+def new_candidate_POST_handler(
+    request,
+    candidate_form,
+    process_form,
+    interviewers_form,
+    past_candidate_id=None,
+):
+    duplicate_processes = None
+    duplicates = None
+
+    # reusing already existing candidate
+    if past_candidate_id:
+        candidate_form = ProcessCandidateForm(instance=Candidate.objects.get(id=past_candidate_id))
+        candidate_form.full_clean()  # already valid form
+
+    candidate = candidate_form.save(commit=False)
+
+    # check for duplicates unless it has already been processed (re-used or ignored)
+    if not ("new-candidate" in request.POST) and not past_candidate_id:
+        duplicates = candidate.find_duplicates()
+        duplicate_processes = Process.objects.distinct().filter(candidate__in=duplicates)
+
+    if not duplicates:
+        candidate.save()
+        log_action(True, candidate, request.user, new_candidate)
+
+        content = request.FILES.get("cv", None)
+        if content:
+            Document.objects.create(document_type="CV", content=content, candidate=candidate)
+
+        process = process_form.save(commit=False)
+        process.candidate = candidate
+        process.creator = Consultant.objects.get(user=request.user)
+        if request.user.consultant.limited_to_source:
+            process.sources = request.user.consultant.limited_to_source
+        process.save()
+        log_action(True, process, request.user, new_candidate)
+
+        if interviewers_form.cleaned_data["interviewers"]:
+            interview = interviewers_form.save(commit=False)
+            interview.process = process
+            interview.save()
+            log_action(True, interview, request.user, new_candidate)
+            interviewers_form.save_m2m()
+
+        return True, HttpResponseRedirect(process.get_absolute_url())
+
+    # we found duplicates
+    return False, duplicate_processes
+
+
 @privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def new_candidate(request, past_candidate_id=None):
     duplicate_processes = None
     candidate = None
+
     if request.method == "POST":
         candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
         process_form = ProcessForm(data=request.POST)
         interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
-        if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
-            candidate = candidate_form.save(commit=False)
-            duplicates = None
-            if past_candidate_id:
-                if not "summit" in request.POST:
-                    candidate = Candidate.objects.get(id=past_candidate_id)
-                    if not candidate.name:
-                        candidate.name = candidate_form.data["name"]
-                    if candidate_form.data["email"]:
-                        candidate.email = candidate_form.data["email"]
-                    if candidate_form.data["phone"]:
-                        candidate.phone = candidate_form.data["phone"]
-                    candidate_form = ProcessCandidateForm(instance=candidate)
-            elif not "new-candidate" in request.POST:
-                duplicates = candidate.find_duplicates()
-                duplicate_processes = Process.objects.distinct().filter(candidate__in=duplicates)
-            if (
-                not duplicates or candidate.id is not None or "new-candidate" in request.POST
-            ) and "summit" in request.POST:
-                candidate.save()
-                log_action(True, candidate, request.user, new_candidate)
-                content = request.FILES.get("cv", None)
-                if content:
-                    Document.objects.create(document_type="CV", content=content, candidate=candidate)
-                process = process_form.save(commit=False)
-                process.candidate = candidate
-                process.creator = Consultant.objects.get(user=request.user)
-                if request.user.consultant.limited_to_source:
-                    process.sources = request.user.consultant.limited_to_source
-                process.save()
-                log_action(True, process, request.user, new_candidate)
 
-                if interviewers_form.cleaned_data["interviewers"]:
-                    interview = interviewers_form.save(commit=False)
-                    interview.process = process
-                    interview.save()
-                    log_action(True, interview, request.user, new_candidate)
-                    interviewers_form.save_m2m()
+        #  clicked on "reuse this candidate"
+        if not "summit" in request.POST:
+            candidate = Candidate.objects.get(id=past_candidate_id)
+            if not candidate.name:
+                candidate.name = candidate_form.data["name"]
+            if candidate_form.data["email"]:
+                candidate.email = candidate_form.data["email"]
+            if candidate_form.data["phone"]:
+                candidate.phone = candidate_form.data["phone"]
+            candidate_form = ProcessCandidateForm(instance=candidate)
 
-                return HttpResponseRedirect(process.get_absolute_url())
+        # we want to try and save our candidate
+        elif candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
+            success, response = new_candidate_POST_handler(
+                request, candidate_form, process_form, interviewers_form, past_candidate_id=past_candidate_id
+            )
+
+            if success:
+                return response  # HttpRedirect(process.url)
+
+            # duplicates were found and it was not already handled
+            duplicate_processes = response
     else:
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
@@ -525,7 +571,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
     )
 
 
-@login_required
 @require_http_methods(["GET", "POST"])
 @privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def minute_edit(request, interview_id):
