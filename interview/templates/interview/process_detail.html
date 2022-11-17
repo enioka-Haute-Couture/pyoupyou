@@ -137,9 +137,11 @@
             <div class="panel-title">{% trans "Interviews for this process" %}</div>
         </div>
         {% render_table interviews_for_process_table %}
+        {%  if not user.consultant.to_source %}
         <div class="panel-footer clearfix">
             <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn btn-default pull-right"><i class="fa fa-plus" aria-hidden="true"></i> {% trans "Add an interview" %}</a>
         </div>
+        {% endif %}
     </div>
 
     <div id="close-process" class="modal fade" tabindex="-1" role="dialog">
@@ -162,6 +164,7 @@
     </div>
 
 
+    {%  if not user.consultant.to_source %}
     <div>
         {% if process.is_open %}
             <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>
@@ -169,5 +172,6 @@
             <a href="{% url 'process-reopen' process_id=process.id %}" class="btn btn-success"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reopen this process" %}</a>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}

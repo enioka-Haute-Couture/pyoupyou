@@ -105,11 +105,18 @@ class ConsultantManager(models.Manager):
         return consultant
 
 
+def is_not_external_check(user):
+    return user.consultant.to_source is None
+
+
 class Consultant(models.Model):
     """A consultant that can do recruitment meeting"""
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
+
+    # dst class written with string to avoid circular imports issues
+    to_source = models.ForeignKey("interview.Sources", null=True, blank=True, default=None, on_delete=models.SET_NULL)
 
     objects = ConsultantManager()
 

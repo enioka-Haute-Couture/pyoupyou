@@ -209,7 +209,10 @@ class Offer(models.Model):
 
 class ProcessManager(models.Manager):
     def for_user(self, user):
-        return super().get_queryset().filter(start_date__gte=user.date_joined)
+        q = super().get_queryset().filter(start_date__gte=user.date_joined)
+        if user.consultant.to_source:
+            q = q.filter(sources=user.consultant.to_source)
+        return q
 
     def for_table(self, user):
         qs = (
@@ -438,7 +441,10 @@ class InterviewKind(models.Model):
 
 class InterviewManager(models.Manager):
     def for_user(self, user):
-        return super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
+        q = super(InterviewManager, self).get_queryset().filter(process__start_date__gte=user.date_joined)
+        if user.consultant.to_source:
+            q = q.filter(process__sources=user.consultant.to_source)
+        return q
 
     def for_table(self, user):
         qs = (

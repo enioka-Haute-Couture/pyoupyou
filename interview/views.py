@@ -53,7 +53,7 @@ from interview.forms import (
     InterviewersForm,
 )
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer
-from ref.models import Consultant, PyouPyouUser, Subsidiary
+from ref.models import Consultant, PyouPyouUser, Subsidiary, is_not_external_check
 
 import datetime
 from django import template
@@ -241,6 +241,7 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
+@user_passes_test(is_not_external_check)
 def close_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -258,6 +259,7 @@ def close_process(request, process_id):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def reopen_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -316,6 +318,7 @@ def processes_for_source(request, source_id):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def processes_for_offer(request, offer_id):
     try:
         offer = Offer.objects.get(id=offer_id)
@@ -400,6 +403,8 @@ def new_candidate(request, past_candidate_id=None):
                 process = process_form.save(commit=False)
                 process.candidate = candidate
                 process.creator = Consultant.objects.get(user=request.user)
+                if request.user.consultant.to_source:
+                    process.sources = request.user.consultant.to_source
                 process.save()
                 log_action(True, process, request.user, new_candidate)
 
@@ -417,6 +422,8 @@ def new_candidate(request, past_candidate_id=None):
         interviewers_form = InterviewersForm(prefix="interviewers")
         process_form.fields["subsidiary"].initial = request.user.consultant.company.id
 
+    if request.user.consultant.to_source:
+        process_form.fields.pop("sources")
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
     return render(
@@ -438,6 +445,7 @@ def new_candidate(request, past_candidate_id=None):
 @require_http_methods(["GET", "POST"])
 @login_required
 @transaction.atomic
+@user_passes_test(is_not_external_check)
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -480,6 +488,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@user_passes_test(is_not_external_check)
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -528,6 +537,11 @@ def minute(request, interview_id, slug_info=None):
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
+    if request.user.consultant.to_source:
+        return HttpResponseRedirect(
+            reverse(processes_for_source, kwargs={"source_id": request.user.consultant.to_source.id})
+        )
+
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     c = request.user.consultant
     actions_needed_processes = (
@@ -568,6 +582,7 @@ def dashboard(request):
 
 @login_required
 @require_http_methods(["POST"])
+@user_passes_test(is_not_external_check)
 def create_source_ajax(request):
     form = SourceForm(request.POST, prefix="source")
     if form.is_valid():
@@ -582,6 +597,7 @@ def create_source_ajax(request):
 
 @login_required
 @require_http_methods(["POST"])
+@user_passes_test(is_not_external_check)
 def create_offer_ajax(request):
     form = OfferForm(request.POST, prefix="offer")
     if form.is_valid():
@@ -597,6 +613,7 @@ def create_offer_ajax(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(is_not_external_check)
 def create_account(request):
     data = json.loads(request.body)
     subsidiary = Subsidiary.objects.filter(code=data["company"]).first()
@@ -623,6 +640,7 @@ def create_account(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @user_passes_test(lambda u: u.is_superuser)
+@user_passes_test(is_not_external_check)
 def delete_account(request, trigramme):
     user = PyouPyouUser.objects.filter(trigramme=trigramme.lower()).first()
     if not user:
@@ -663,6 +681,9 @@ def edit_candidate(request, process_id):
 
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
+
+    if request.user.consultant.to_source:
+        process_form.fields.pop("sources")
 
     data = {
         "process": process,
@@ -965,6 +986,7 @@ def calculate_load(itws):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def interviewers_load(request, subsidiary_id=None):
     subsidiary = None
     if subsidiary_id:
@@ -1006,6 +1028,7 @@ def interviewers_load(request, subsidiary_id=None):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def search(request):
     q = request.GET.get("q", "")
 
@@ -1041,6 +1064,7 @@ RE_DESCRIPTION = re.compile(r"DESCRIPTION:(?P<description>(.|\n)*)LAST-MODIFIED"
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@user_passes_test(is_not_external_check)
 def import_seekube(request):
     if request.method == "GET":
         form = UploadSeekubeFileForm()
@@ -1092,6 +1116,7 @@ def import_seekube(request):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def gantt(request):
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = timezone.now().date()
@@ -1206,6 +1231,7 @@ class OffersTable(tables.Table):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def active_sources(request, subsidiary_id=None):
     subsidiary = None
     sources_qs = Sources.objects.filter(archived=False)
@@ -1255,6 +1281,7 @@ def active_sources(request, subsidiary_id=None):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def offers(request, subsidiary_id=None):
     subsidiary = None
     offers_qs = Offer.objects.filter(archived=False)
@@ -1304,6 +1331,7 @@ def offers(request, subsidiary_id=None):
 
 @login_required
 @require_http_methods(["GET"])
+@user_passes_test(is_not_external_check)
 def activity_summary(request):
     process_filter = ProcessSummaryFilter(request.GET, queryset=Process.objects.all())
     interview_filter = InterviewSummaryFilter(request.GET, queryset=Interview.objects.all())
