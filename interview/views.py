@@ -403,8 +403,8 @@ def new_candidate(request, past_candidate_id=None):
                 process = process_form.save(commit=False)
                 process.candidate = candidate
                 process.creator = Consultant.objects.get(user=request.user)
-                if request.user.consultant.to_source:
-                    process.sources = request.user.consultant.to_source
+                if request.user.consultant.limited_to_source:
+                    process.sources = request.user.consultant.limited_to_source
                 process.save()
                 log_action(True, process, request.user, new_candidate)
 
@@ -422,8 +422,14 @@ def new_candidate(request, past_candidate_id=None):
         interviewers_form = InterviewersForm(prefix="interviewers")
         process_form.fields["subsidiary"].initial = request.user.consultant.company.id
 
-    if request.user.consultant.to_source:
+    if request.user.consultant.limited_to_source:
         process_form.fields.pop("sources")
+
+        # restrict available interviewers to process creator
+        interviewers_form.fields["interviewers"].widget.queryset = interviewers_form.fields[
+            "interviewers"
+        ].queryset.filter(user=request.user)
+
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
     return render(
@@ -445,7 +451,6 @@ def new_candidate(request, past_candidate_id=None):
 @require_http_methods(["GET", "POST"])
 @login_required
 @transaction.atomic
-@user_passes_test(is_not_external_check)
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -471,13 +476,23 @@ def interview(request, process_id=None, interview_id=None, action=None):
         if action == "planning-request":
             interview_model.toggle_planning_request()
             return ret
+
+        if request.user.consultant.limited_to_source:
+            # set interviewer to be external consultant
+            tmp = request.POST.copy()
+            tmp["interviewers"] = request.user.consultant.id
+            request.POST = tmp
         form = InterviewForm(request.POST, instance=interview_model)
+
         if form.is_valid():
             form.save()
             log_action(False, interview_model, request.user, interview)
             return ret
     else:
         form = InterviewForm(instance=interview_model)
+
+    if request.user.consultant.limited_to_source:
+        form.fields.pop("interviewers", None)  # interviewer will always be user
 
     return render(
         request,
@@ -488,7 +503,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
-@user_passes_test(is_not_external_check)
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -537,9 +551,9 @@ def minute(request, interview_id, slug_info=None):
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
-    if request.user.consultant.to_source:
+    if request.user.consultant.limited_to_source:
         return HttpResponseRedirect(
-            reverse(processes_for_source, kwargs={"source_id": request.user.consultant.to_source.id})
+            reverse(processes_for_source, kwargs={"source_id": request.user.consultant.limited_to_source.id})
         )
 
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
@@ -682,7 +696,7 @@ def edit_candidate(request, process_id):
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
 
-    if request.user.consultant.to_source:
+    if request.user.consultant.limited_to_source:
         process_form.fields.pop("sources")
 
     data = {

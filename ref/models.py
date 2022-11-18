@@ -106,7 +106,7 @@ class ConsultantManager(models.Manager):
 
 
 def is_not_external_check(user):
-    return user.consultant.to_source is None
+    return user.consultant.limited_to_source is None
 
 
 class Consultant(models.Model):
@@ -116,7 +116,9 @@ class Consultant(models.Model):
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
 
     # dst class written with string to avoid circular imports issues
-    to_source = models.ForeignKey("interview.Sources", null=True, blank=True, default=None, on_delete=models.SET_NULL)
+    limited_to_source = models.ForeignKey(
+        "interview.Sources", null=True, blank=True, default=None, on_delete=models.DO_NOTHING
+    )
 
     objects = ConsultantManager()
 
