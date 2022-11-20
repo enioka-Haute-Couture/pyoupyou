@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "django_select2",
     "ref.apps.RefConfig",
     "interview.apps.InterviewConfig",
-    "django_markwhat",
     "django_filters",
 ]
 
