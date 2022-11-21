@@ -112,12 +112,20 @@ def is_not_external_check(user):
 class Consultant(models.Model):
     """A consultant that can do recruitment meeting"""
 
+    class PrivilegeLevel(models.IntegerChoices):
+        ALL = 1, _("User is an insider consultant")
+        EXTERNAL_WRITE = 2, _("User is an external consultant")
+        EXTERNAL_READONLY = 3, _("User is external and has only read rights")
+
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
 
     # dst class written with string to avoid circular imports issues
     limited_to_source = models.ForeignKey(
-        "interview.Sources", null=True, blank=True, default=None, on_delete=models.DO_NOTHING
+        "interview.Sources", null=True, blank=True, default=None, on_delete=models.SET_NULL
+    )
+    privilege = models.PositiveSmallIntegerField(
+        choices=PrivilegeLevel.choices, verbose_name=_("Authority level"), default=PrivilegeLevel.ALL
     )
 
     objects = ConsultantManager()

@@ -552,9 +552,7 @@ def minute(request, interview_id, slug_info=None):
 @require_http_methods(["GET"])
 def dashboard(request):
     if request.user.consultant.limited_to_source:
-        return HttpResponseRedirect(
-            reverse(processes_for_source, kwargs={"source_id": request.user.consultant.limited_to_source.id})
-        )
+        return processes_for_source(request, request.user.consultant.limited_to_source.id)
 
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     c = request.user.consultant
