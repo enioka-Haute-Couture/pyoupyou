@@ -891,9 +891,6 @@ class InterviewMinuteViewTestCase(TestCase):
         self.assertContains(response, self.itw.kind_of_interview)
         self.assertContains(response, self.itw.minute)
 
-        # Suggested interviewer
-        self.assertContains(response, self.itw.suggested_interviewer)
-
         # Next itw goel
         self.assertContains(response, self.itw.next_interview_goal)
 
@@ -918,12 +915,6 @@ class InterviewMinuteViewTestCase(TestCase):
 
         # CR
         self.assertContains(response, self.itw.minute)
-
-        # Suggested interviewer
-        self.assertContains(response, self.itw.suggested_interviewer)
-
-        # Suggested interviewer
-        self.assertContains(response, self.itw.suggested_interviewer)
 
         # Type d'entretien
         self.assertContains(response, self.itw.kind_of_interview)

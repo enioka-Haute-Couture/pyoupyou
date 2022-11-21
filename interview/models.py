@@ -495,14 +495,6 @@ class Interview(models.Model):
 
     minute = models.TextField(verbose_name=_("Minute"), blank=True)
     minute_format = models.CharField(max_length=3, choices=MINUTE_FORMAT, default=MINUTE_FORMAT[0][0])
-    suggested_interviewer = models.ForeignKey(
-        Consultant,
-        verbose_name=_("Suggested interviewer"),
-        related_name="suggested_interview_for",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-    )
     next_interview_goal = models.TextField(verbose_name=_("Next interview goal"), blank=True)
     prequalification = models.BooleanField(verbose_name=_("Prequalification"), default=False)
     kind_of_interview = models.ForeignKey(
