@@ -239,18 +239,6 @@ class InterviewFactory(factory.django.DjangoModelFactory):
     # default
     process = factory.SubFactory(ProcessFactory)
 
-    @factory.lazy_attribute
-    def suggested_interviewer(self):
-        all_itw_given_process = Interview.objects.filter(process=self.process)
-        q = (
-            Consultant.objects.filter(company=self.process.subsidiary)
-            .exclude(id__in=all_itw_given_process.values_list("interviewers", flat=True))
-            .distinct()
-        )
-        if q.count() == 0:
-            return None
-        return random.choice(q)
-
     minute = factory.Faker("text")
 
     # default

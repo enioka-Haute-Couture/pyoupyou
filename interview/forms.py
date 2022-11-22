@@ -145,8 +145,7 @@ class InterviewFormEditInterviewers(forms.ModelForm):
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["minute", "suggested_interviewer", "next_interview_goal", "kind_of_interview"]
-        widgets = {"suggested_interviewer": SingleConsultantWidget}
+        fields = ["minute", "next_interview_goal", "kind_of_interview"]
 
     helper = FormHelper()
     helper.form_tag = False
