@@ -105,16 +105,16 @@ class ConsultantManager(models.Manager):
         return consultant
 
 
-def is_not_external_check(user):
-    return user.consultant.limited_to_source is None
-
-
 class Consultant(models.Model):
     """A consultant that can do recruitment meeting"""
 
+    @property
+    def is_external(self):
+        return self.limited_to_source is not None
+
     class PrivilegeLevel(models.IntegerChoices):
         ALL = 1, _("User is an insider consultant")
-        EXTERNAL_WRITE = 2, _("User is an external consultant")
+        EXTERNAL_FULL = 2, _("User is an external consultant")
         EXTERNAL_READONLY = 3, _("User is external and has only read rights")
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

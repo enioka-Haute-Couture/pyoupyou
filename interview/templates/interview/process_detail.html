@@ -162,7 +162,7 @@
     </div>
 
 
-    {% if not user.consultant.limited_to_source %}
+    {% if user.consultant.privilege == Consultant.PrivilegeLevel.ALL %}
     <div>
         {% if process.is_open %}
             <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>

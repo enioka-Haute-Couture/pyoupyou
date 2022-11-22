@@ -937,7 +937,7 @@ class PrivilegeLevelTestCase(TestCase):
             years=2
         )  # make sure our consultant can see all the process we create
         self.consultant.limited_to_source = self.source
-        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_WRITE
+        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
         self.consultant.save()
 
         self.offer = OfferFactory(subsidiary=self.subsidiary)
