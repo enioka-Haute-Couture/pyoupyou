@@ -20,6 +20,7 @@ from interview.factory import (
     SourcesFactory,
     OfferFactory,
     InterviewKindFactory,
+    SourcesCategoryFactory,
 )
 from interview.models import Process, Document, Interview
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
@@ -27,6 +28,7 @@ from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant
 
 from django.utils.translation import activate
+from dateutil.relativedelta import relativedelta
 
 
 class InterviewTestCase(TestCase):
@@ -923,3 +925,65 @@ class InterviewMinuteViewTestCase(TestCase):
         self.assertContains(response, "NO")
         self.assertContains(response, "DRAFT")
         self.assertContains(response, "GO")
+
+
+class PrivilegeLevelTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.source = SourcesFactory(category=SourcesCategoryFactory())
+
+        self.consultant = Consultant.objects.create_consultant("TST", "test@mail.com", self.subsidiary, "test")
+        self.consultant.user.date_joined -= relativedelta(
+            years=2
+        )  # make sure our consultant can see all the process we create
+        self.consultant.limited_to_source = self.source
+        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_WRITE
+        self.consultant.save()
+
+        self.offer = OfferFactory(subsidiary=self.subsidiary)
+        # create 4 processes for given offer and our consultant's source
+        self.processes = []
+        for _ in range(4):
+            self.processes.append(ProcessFactory(subsidiary=self.subsidiary, offer=self.offer, sources=self.source))
+
+        self.other_source = SourcesFactory(category=SourcesCategoryFactory())
+        self.process_not_displayed = ProcessFactory(
+            subsidiary=self.subsidiary, offer=self.offer, sources=self.other_source
+        )
+
+        # log user in
+        self.client.force_login(self.consultant.user)
+
+    def test_dashboard_display(self):
+        response = self.client.get(reverse(views.dashboard))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "interview/single_table.html")
+
+        table = response.context["table"].data
+        self.assertEqual(len(table), 4)
+        for p in self.processes:
+            self.assertTrue(p in table)
+        self.assertTrue(self.process_not_displayed not in table)
+
+    def test_unauthorized_page(self):
+        response = self.client.get(reverse(views.activity_summary))
+        self.assertRedirects(response, f"/admin/login/?next={reverse(views.activity_summary)}")
+
+        other_source_view = reverse(views.processes_for_source, kwargs={"source_id": self.other_source.id})
+        response = self.client.get(other_source_view)
+        self.assertRedirects(response, f"/admin/login/?next={other_source_view}")
+
+    def test_source_not_set(self):
+        # remove limited_to_source_field
+        self.consultant.limited_to_source = None
+        self.consultant.save()
+
+        response = self.client.get(reverse(views.dashboard))
+        self.assertEqual(response.status_code, 200)
+
+        table = response.context["table"].data
+        self.assertEqual(len(table), 0)
+
+        other_source_view = reverse(views.processes_for_source, kwargs={"source_id": self.other_source.id})
+        response = self.client.get(other_source_view)
+        self.assertRedirects(response, f"/admin/login/?next={other_source_view}")
