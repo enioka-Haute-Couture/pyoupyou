@@ -1292,7 +1292,8 @@ class OffersTable(tables.Table):
 @user_passes_test(lambda u: not u.consultant.is_external)
 def active_sources(request, subsidiary_id=None):
     subsidiary = None
-    sources_qs = Sources.objects.filter(archived=False)
+    sources_qs = Sources.objects.all()
+
     if subsidiary_id:
         try:
             subsidiary = Subsidiary.objects.get(id=subsidiary_id)
@@ -1301,6 +1302,7 @@ def active_sources(request, subsidiary_id=None):
             pass
 
     data = []
+    not_archived_data = []
     filtered_process = Process.objects.all()
     if subsidiary:
         filtered_process = filtered_process.filter(subsidiary=subsidiary)
@@ -1312,28 +1314,36 @@ def active_sources(request, subsidiary_id=None):
         last_state_change = filtered_process.filter(sources=s).aggregate(Max("last_state_change"))
         distinct_offers = Offer.objects.filter(process__in=filtered_process.filter(sources=s)).distinct().count()
 
-        data.append(
-            {
-                "name": s.name,
-                "source_category": s.category.name,
-                "last_active_process_days": last_state_change,
-                "total_processes_count": total_processes_count,
-                "active_processes_count": active_processes_count,
-                "total_hired": total_hired,
-                "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
-                "last_state_change": last_state_change["last_state_change__max"],
-                "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
-                "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
-                "offers": distinct_offers,
-            }
-        )
+        row = {
+            "name": s.name,
+            "source_category": s.category.name,
+            "last_active_process_days": last_state_change,
+            "total_processes_count": total_processes_count,
+            "active_processes_count": active_processes_count,
+            "total_hired": total_hired,
+            "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
+            "last_state_change": last_state_change["last_state_change__max"],
+            "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
+            "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
+            "offers": distinct_offers,
+        }
 
-    sources_table = ActiveSourcesTable(data, order_by="-last_active_process_days")
+        data.append(row)
+        if not s.archived:
+            not_archived_data.append(row)
+
+    sources_table = ActiveSourcesTable(not_archived_data, order_by="-last_active_process_days")
+    all_sources_table = ActiveSourcesTable(data, order_by="-last_active_process_days")
     RequestConfig(request, paginate={"per_page": 100}).configure(sources_table)
     return render(
         request,
         "interview/active-sources.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "active_sources": sources_table,
+            "sources": all_sources_table,
+        },
     )
 
 

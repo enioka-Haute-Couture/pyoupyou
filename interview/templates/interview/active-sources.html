@@ -7,6 +7,14 @@
 
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
+<script>
+    function table_to_render() {
+        // finds the div where the table should be and render the correct table
+        document.getElementById("id-table").innerHTML = `{% render_table  active_sources %}`
+        if (document.getElementById('show-archived-button').checked)
+            document.getElementById("id-table").innerHTML = `{% render_table  sources %}`
+    }
+</script>
 {% endblock %}
 
 {% block content %}
@@ -30,12 +38,17 @@
     <div class="panel panel-primary">
         <div class="panel-heading">
             {% if subsidiary %}
-            <div class="panel-title">{% trans "Active sources: "%}{{subsidiary}}</div>
+            <div class="panel-title" style="display: inline-block">{% trans "Active sources: "%}{{subsidiary}}</div>
             {% else %}
-            <div class="panel-title">{% trans "Active sources" %}</div>
+            <div class="panel-title" style="display: inline-block">{% trans "Active sources" %}</div>
             {% endif %}
+            <div class="panel-title pull-right" style="display: inline-block">
+                <input type="checkbox" id="show-archived-button" style="display: inline-block;" onchange="table_to_render()">
+                <label class="panel-title" for="show-archived" style="display: inline-block; font-weight: normal"> {% trans "Show archived" %}</label>
+            </div>
         </div>
-        {% render_table  active_sources %}
+        <div id="id-table"></div>
+        <script>table_to_render()</script>
     </div>
 </div>
 {% endblock %}
