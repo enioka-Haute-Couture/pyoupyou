@@ -24,8 +24,9 @@ from interview.factory import (
 )
 from interview.models import Process, Document, Interview
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
+from pyoupyou.middleware import ExternalCheckMiddleware
 from ref.factory import SubsidiaryFactory, ConsultantFactory
-from ref.models import Consultant
+from ref.models import Consultant, PyouPyouUser
 
 from django.utils.translation import activate
 from dateutil.relativedelta import relativedelta
@@ -979,11 +980,51 @@ class PrivilegeLevelTestCase(TestCase):
         self.consultant.save()
 
         response = self.client.get(reverse(views.dashboard))
+        self.assertEqual(response.status_code, 403)
+
+
+class MiddlewareTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUser.objects.create_user("tst")
+        # set privilege level but not limited_to_source
+        self.consultant = ConsultantFactory(company=self.subsidiary, user=self.user)
+
+        self.url = reverse(views.dashboard)
+        self.client.force_login(self.user)
+
+    def test_access_all_privilege(self):
+        # limited_to_source = None; privilege = 1;
+        response = self.client.get(self.url)
+
         self.assertEqual(response.status_code, 200)
 
-        table = response.context["table"].data
-        self.assertEqual(len(table), 0)
+    def test_access_external_no_source(self):
+        # limited_to_source = None; privilege =  2 || 3;
+        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
+        self.consultant.save()
 
-        other_source_view = reverse(views.processes_for_source, kwargs={"source_id": self.other_source.id})
-        response = self.client.get(other_source_view)
-        self.assertRedirects(response, f"/admin/login/?next={other_source_view}")
+        response = self.client.get(self.url)
+
+        # assert 403 (Forbidden) response code is returned
+        self.assertEqual(response.status_code, 403)
+        self.assertInHTML(needle="Please contact your system administrator", haystack=str(response.content))
+
+        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_READONLY
+        self.consultant.save()
+
+        response = self.client.get(self.url)
+
+        # assert 403 (Forbidden) response code is returned
+        self.assertEqual(response.status_code, 403)
+        self.assertInHTML(needle="Please contact your system administrator", haystack=str(response.content))
+
+    def test_access_external_and_source(self):
+        # limited_to_source != None; privilege = 2 || 3;
+        self.consultant.limited_to_source = SourcesFactory(category=SourcesCategoryFactory())
+        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
+        self.consultant.save()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
