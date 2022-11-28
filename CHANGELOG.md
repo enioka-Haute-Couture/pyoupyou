@@ -8,6 +8,7 @@
 - Update search, allowing user to search old candidate but not the detail
 - Add upload a file on interview
 - Add next interview goal on minute
+- Add possibility to display archived sources on active-sources page
 
 # v1.16.0 (2022-11-14)
 - More refined factories

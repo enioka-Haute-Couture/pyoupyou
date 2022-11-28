@@ -1265,6 +1265,7 @@ class ActiveSourcesTable(tables.Table):
         order_by = "name"
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
+        row_attrs = {"bgcolor": lambda record: "#e0e0e0" if Sources.objects.get(id=record["id"]).archived else None}
 
 
 class OffersTable(tables.Table):
@@ -1326,6 +1327,7 @@ def active_sources(request, subsidiary_id=None):
             "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
             "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
             "offers": distinct_offers,
+            "id": s.id,
         }
 
         data.append(row)
