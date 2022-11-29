@@ -333,8 +333,8 @@ msgid "Active sources"
 msgstr "Sources actives"
 
 #: interview/templates/interview/active-sources.html:47
-msgid "Show archived"
-msgstr "Montrer les sources archivées"
+msgid "Archived"
+msgstr "Archivées"
 
 #: interview/templates/interview/base.html:45
 #: interview/templates/interview/list_processes.html:15

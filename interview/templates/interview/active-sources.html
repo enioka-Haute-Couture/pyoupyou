@@ -7,48 +7,26 @@
 
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
-<script>
-    function table_to_render() {
-        // finds the div where the table should be and render the correct table
-        document.getElementById("id-table").innerHTML = `{% render_table  active_sources %}`
-        if (document.getElementById('show-archived-button').checked)
-            document.getElementById("id-table").innerHTML = `{% render_table  sources %}`
-    }
-</script>
 {% endblock %}
 
 {% block content %}
 
 <div class="container">
-    <div class="panel">
-        <div class="btn-group">
-            <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {% trans "Filter" %} <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="{% url 'active-sources' %}"> {% trans "All" %} </a></li>
-                    {% for s in subsidiaries %}
-                    <li><a href="{% url 'active-sources-subsidiary' s.id  %}"> {{ s }} </a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+    <div class="filters">
+        <form class="form-inline" style="position: relative" method="get">
+            {{ filter.form|crispy }}
+            <input class="btn btn-default" type="submit" value="Filter" />
+        </form>
     </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             {% if subsidiary %}
-            <div class="panel-title" style="display: inline-block">{% trans "Active sources: "%}{{subsidiary}}</div>
+            <div class="panel-title" >{% trans "Active sources: "%} {{subsidiary}}</div>
             {% else %}
-            <div class="panel-title" style="display: inline-block">{% trans "Active sources" %}</div>
+            <div class="panel-title" >{% trans "Active sources" %}</div>
             {% endif %}
-            <div class="panel-title pull-right" style="display: inline-block">
-                <input type="checkbox" id="show-archived-button" style="display: inline-block;" onchange="table_to_render()">
-                <label class="panel-title" for="show-archived" style="display: inline-block; font-weight: normal"> {% trans "Show archived" %}</label>
-            </div>
         </div>
-        <div id="id-table"></div>
-        <script>table_to_render()</script>
+        {% render_table sources %}
     </div>
 </div>
 {% endblock %}

@@ -66,7 +66,6 @@ urlpatterns = [
         name="interviewers-load-subdidiary",
     ),
     url(r"^reports/active-sources/$", views.active_sources, name="active-sources"),
-    url(r"^reports/active-sources/(?P<subsidiary_id>\d+)$", views.active_sources, name="active-sources-subsidiary"),
     url(r"^reports/offers/$", views.offers, name="offers"),
     url(r"^reports/offers/(?P<subsidiary_id>\d+)$", views.offers, name="offers-subsidiary"),
     url(r"^reports/activity-summary/$", views.activity_summary, name="activity_summary"),
