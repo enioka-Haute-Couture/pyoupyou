@@ -1,5 +1,6 @@
 {% load static %}
 {% load i18n %}
+{% load crispy_forms_tags %}
 
 <!doctype html>
 <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
@@ -82,6 +83,16 @@
                     </li>
                </ul>
             </div><!--/.nav-collapse -->
+            {% if subsidiaries_filter %}
+                <div class="filters">
+                    <div class="form ">
+                        <form class="form-inline" style="position: relative" method="get">
+                            {{ subsidiaries_filter.form|crispy }}
+                            <input class="btn btn-default" type="submit" value="Filter" />
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
         </div>
 
         {% block content %} {% endblock %}
