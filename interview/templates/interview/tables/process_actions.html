@@ -1,7 +1,7 @@
 {% load i18n %}
 <a class="btn btn-info btn-xs"
     {% if record.start_date < user.date_joined.date  %}
-        title="{% trans "You do not have the rights to access this link" %}"
+        title="{% trans "You do not have the rights to access this process" %}"
         style="background-color: #5e5e5e; border-color: #4c4c4c"
         disabled
     {% else %}

@@ -314,7 +314,7 @@ msgid "All"
 msgstr "Toutes"
 
 #: interview/templates/interview/active-sources.html:33
-msgid "Active sources: "
+msgid "Active souprocess: "
 msgstr "Sources actives"
 
 #: interview/templates/interview/active-sources.html:35
@@ -615,8 +615,8 @@ msgid "Not Sent"
 msgstr "J'ai envoyé une demande d'entretien"
 
 #: interview/templates/interview/tables/process_actions.html:4
-msgid "You do not have the rights to access this link"
-msgstr "Vous n'avez pas le droit d'accéder à ce lien."
+msgid "You do not have the rights to access this process"
+msgstr "Vous n'avez pas le droit d'accéder à ce processus."
 
 #: interview/views.py:83
 msgid "Process state"
