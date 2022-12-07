@@ -3,7 +3,8 @@
 - Support python 3.10
 - Update some depdencies
 - Remove suggested interviewer for interview
-- Add filtering by source
+- Add limited_to_source field to restrict access for external consultants
+- Add privilege field to consultant to implement access filtering
 
 # v1.16.0 (2022-11-14)
 - More refined factories
