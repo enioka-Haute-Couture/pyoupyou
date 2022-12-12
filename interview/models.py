@@ -619,6 +619,28 @@ class Interview(models.Model):
             )
 
 
+def document_minute_path(instance, filename):
+    interview = instance.interview
+    filename = filename.encode()
+    extension = filename.split(b".")[-1]
+    filename = str(slugify(interview.process.candidate)).encode() + ".".encode() + extension
+
+    return "{}/{}_{}/{}".format("CompteRendu", interview.process, interview.rank, filename.decode())
+
+
+class DocumentInterview(models.Model):
+
+    created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
+    interview = models.ForeignKey(Interview, verbose_name=_("Interview"), on_delete=models.CASCADE)
+    content = models.FileField(upload_to=document_minute_path, verbose_name=_("Content file"))
+    name = models.CharField(max_length=255, verbose_name=_("Name"), blank=True)
+
+    def __str__(self):
+        return ("{candidate} - {interview}").format(
+            candidate=self.interview.process.candidate, interview=self.interview
+        )
+
+
 @receiver(m2m_changed, sender=Interview.interviewers.through)
 def interview_m2m_changed(sender, **kwargs):
     if kwargs["action"] == "post_add":
