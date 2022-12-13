@@ -1347,7 +1347,7 @@ def active_sources(request):
         order_by="-last_active_process_days",
     )
 
-    # if no sorting by 'archived' is made
+    # if no filtering by 'archived' is applied
     if not sources_filter.data.get("archived"):
         # change table rendering to gray out rows that are archived
         all_sources_table.attrs.update({"class": "table table-condensed"})
