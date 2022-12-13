@@ -40,6 +40,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
 
+from interview.decorators import privilege_level_check
 from interview.filters import (
     ProcessFilter,
     ProcessSummaryFilter,
@@ -381,13 +382,13 @@ def processes(request):
     return render(request, "interview/list_processes.html", context)
 
 
-@login_required
 @require_http_methods(["POST"])
+@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def reuse_candidate(request, candidate_id):
     return new_candidate(request, candidate_id)
 
 
-@login_required
+@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def new_candidate(request, past_candidate_id=None):
     duplicate_processes = None
     candidate = None
@@ -468,8 +469,8 @@ def new_candidate(request, past_candidate_id=None):
 
 
 @require_http_methods(["GET", "POST"])
-@login_required
 @transaction.atomic
+@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -524,6 +525,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 @login_required
 @require_http_methods(["GET", "POST"])
+@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -718,8 +720,8 @@ def delete_account(request, trigramme):
     return JsonResponse({"user": user.__str__()})
 
 
-@login_required
 @require_http_methods(["GET", "POST"])
+@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
 def edit_candidate(request, process_id):
     try:
         process = Process.objects.for_user(request.user).select_related("candidate").get(id=process_id)
