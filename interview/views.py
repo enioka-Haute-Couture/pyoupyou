@@ -40,7 +40,13 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
 
-from interview.filters import ProcessFilter, ProcessSummaryFilter, InterviewSummaryFilter, InterviewListFilter
+from interview.filters import (
+    ProcessFilter,
+    ProcessSummaryFilter,
+    InterviewSummaryFilter,
+    InterviewListFilter,
+    ActiveSourcesFilter,
+)
 from interview.forms import (
     ProcessCandidateForm,
     InterviewMinuteForm,
@@ -1290,9 +1296,16 @@ class OffersTable(tables.Table):
 @login_required
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
-def active_sources(request, subsidiary_id=None):
+def active_sources(request):
     subsidiary = None
-    sources_qs = Sources.objects.filter(archived=False)
+
+    request_get = request.GET.copy()
+    request_get.setdefault("archived", "False")
+
+    sources_filter = ActiveSourcesFilter(request_get, queryset=Sources.objects.all())
+    sources_qs = sources_filter.qs
+
+    subsidiary_id = sources_filter.data.get("subsidiary")
     if subsidiary_id:
         try:
             subsidiary = Subsidiary.objects.get(id=subsidiary_id)
@@ -1312,28 +1325,46 @@ def active_sources(request, subsidiary_id=None):
         last_state_change = filtered_process.filter(sources=s).aggregate(Max("last_state_change"))
         distinct_offers = Offer.objects.filter(process__in=filtered_process.filter(sources=s)).distinct().count()
 
-        data.append(
-            {
-                "name": s.name,
-                "source_category": s.category.name,
-                "last_active_process_days": last_state_change,
-                "total_processes_count": total_processes_count,
-                "active_processes_count": active_processes_count,
-                "total_hired": total_hired,
-                "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
-                "last_state_change": last_state_change["last_state_change__max"],
-                "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
-                "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
-                "offers": distinct_offers,
-            }
+        row = {
+            "name": s.name,
+            "source_category": s.category.name,
+            "last_active_process_days": last_state_change,
+            "total_processes_count": total_processes_count,
+            "active_processes_count": active_processes_count,
+            "total_hired": total_hired,
+            "ratio": 100 * total_hired / total_processes_count if total_processes_count > 0 else None,
+            "last_state_change": last_state_change["last_state_change__max"],
+            "url": reverse(viewname="process-list-source", kwargs={"source_id": s.id}),
+            "admin_url": reverse(viewname="admin:interview_sources_change", kwargs={"object_id": s.id}),
+            "offers": distinct_offers,
+            "id": s.id,
+        }
+
+        data.append(row)
+
+    all_sources_table = ActiveSourcesTable(
+        data,
+        order_by="-last_active_process_days",
+    )
+
+    # if no filtering by 'archived' is applied
+    if not sources_filter.data.get("archived"):
+        # change table rendering to gray out rows that are archived
+        all_sources_table.attrs.update({"class": "table table-condensed"})
+        all_sources_table.row_attrs.update(
+            {"bgcolor": lambda record: "#e0e0e0" if Sources.objects.get(id=record["id"]).archived else None}
         )
 
-    sources_table = ActiveSourcesTable(data, order_by="-last_active_process_days")
-    RequestConfig(request, paginate={"per_page": 100}).configure(sources_table)
+    RequestConfig(request, paginate={"per_page": 100}).configure(all_sources_table)
     return render(
         request,
         "interview/active-sources.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "active_sources": sources_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "sources": all_sources_table,
+            "filter": sources_filter,
+        },
     )
 
 

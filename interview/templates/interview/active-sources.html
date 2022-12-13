@@ -12,30 +12,21 @@
 {% block content %}
 
 <div class="container">
-    <div class="panel">
-        <div class="btn-group">
-            <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {% trans "Filter" %} <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="{% url 'active-sources' %}"> {% trans "All" %} </a></li>
-                    {% for s in subsidiaries %}
-                    <li><a href="{% url 'active-sources-subsidiary' s.id  %}"> {{ s }} </a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+    <div class="filters">
+        <form class="form-inline" style="position: relative" method="get">
+            {{ filter.form|crispy }}
+            <input class="btn btn-default" type="submit" value="Filter" />
+        </form>
     </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             {% if subsidiary %}
-            <div class="panel-title">{% trans "Active sources: "%}{{subsidiary}}</div>
+            <div class="panel-title" >{% trans "Active sources: "%} {{subsidiary}}</div>
             {% else %}
-            <div class="panel-title">{% trans "Active sources" %}</div>
+            <div class="panel-title" >{% trans "Active sources" %}</div>
             {% endif %}
         </div>
-        {% render_table  active_sources %}
+        {% render_table sources %}
     </div>
 </div>
 {% endblock %}
