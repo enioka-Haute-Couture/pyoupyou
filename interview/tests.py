@@ -23,11 +23,12 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
-from interview.models import Process, Document, Interview
+from interview.models import Process, Document, Interview, Offer
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from pyoupyou.middleware import ExternalCheckMiddleware
 from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant, PyouPyouUser
+from ref.models import Consultant, Subsidiary
 
 from django.utils.translation import activate
 from dateutil.relativedelta import relativedelta
@@ -1105,3 +1106,48 @@ class InterviewGoalTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertEqual(response.context["goal"], "only goal set")
+
+
+class OfferFilterGivenSubsidiaryTestCase(TestCase):
+    def setUp(self):
+        for i in range(3):
+            SubsidiaryFactory()
+
+        self.subsidiary = Subsidiary.objects.first()
+
+        self.consultant = ConsultantFactory(company=self.subsidiary)
+
+        # create basic data
+        for sub in Subsidiary.objects.all():
+            for i in range(3):
+                offer = OfferFactory(subsidiary=sub)
+
+                for i in range(5):
+                    ProcessFactory(subsidiary=sub, offer=offer)
+
+        ProcessFactory(subsidiary=self.subsidiary, offer=Offer.objects.exclude(subsidiary=self.subsidiary).first())
+
+        self.client.force_login(self.consultant.user)
+
+    def test_all_offers(self):
+        response = self.client.get(reverse(views.offers))
+
+        self.assertEqual(response.status_code, 200)
+
+        table = response.context["offers"].data
+
+        self.assertEqual(len(table), 9)
+
+    def test_offers_given_subsidiary(self):
+        for sub in Subsidiary.objects.all():
+            url = reverse(views.offers, kwargs={"subsidiary_id": sub.id})
+            response = self.client.get(url)
+
+            self.assertEqual(response.status_code, 200)
+
+            table = response.context["offers"].data
+
+            self.assertEqual(len(table), 3)
+
+            for o in table:
+                self.assertEqual(o["subsidiary"].id, sub.id)

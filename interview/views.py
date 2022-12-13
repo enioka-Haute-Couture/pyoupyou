@@ -1377,7 +1377,7 @@ def offers(request, subsidiary_id=None):
     if subsidiary_id:
         try:
             subsidiary = Subsidiary.objects.get(id=subsidiary_id)
-            offers_qs = offers_qs.filter(process__subsidiary=subsidiary).distinct()
+            offers_qs = offers_qs.filter(subsidiary=subsidiary).distinct()
         except Subsidiary.DoesNotExist:
             pass
 
