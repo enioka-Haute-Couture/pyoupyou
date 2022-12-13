@@ -3,6 +3,10 @@
 {% load admin_urls %}
 {% load i18n %}
 {% load static %}
+{% load commonmark %}
+{% load bleach_tags %}
+
+
 
 {% block more_css %}
     <script type="application/javascript">
@@ -34,6 +38,10 @@
     <div class="lead">
         Interview pour le processus concernant <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.display_name }} </a> pour {{ process.subsidiary.name }}
     </div>
+    {% if goal %}
+        <p><strong>{% trans "Next goal from previous interview" %}</strong></p>
+        <p>{{ goal | bleach | commonmark}}</p>
+    {% endif %}
     {% crispy form %}
 </div>
 {% endblock %}

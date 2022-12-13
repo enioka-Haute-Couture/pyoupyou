@@ -7,6 +7,7 @@
 - Add privilege field to consultant to implement access filtering
 - Update search, allowing user to search old candidate but not the detail
 - Add upload a file on interview
+- Add next interview goal on minute
 
 # v1.16.0 (2022-11-14)
 - More refined factories

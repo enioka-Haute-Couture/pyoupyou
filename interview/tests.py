@@ -2,6 +2,7 @@ import datetime
 import hashlib
 
 import dateutil.relativedelta
+import factory
 import pytz
 from django.conf import settings
 from django.core import mail
@@ -1028,3 +1029,79 @@ class MiddlewareTestCase(TestCase):
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
+
+
+class InterviewGoalTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = ConsultantFactory(company=self.subsidiary)
+        self.user = self.consultant.user
+
+        self.offer = OfferFactory(subsidiary=self.subsidiary)
+        self.process = ProcessFactory(subsidiary=self.subsidiary, offer=self.offer)
+        self.interviews = []
+
+        for i in range(5):
+            self.interviews.append(InterviewFactory(process=self.process, goal="", next_interview_goal=""))
+
+    def test_no_goal_set(self):
+        self.client.force_login(self.user)
+
+        for itw in self.interviews:
+            url = reverse(views.minute, kwargs={"interview_id": itw.id, "slug_info": self.process.candidate.name_slug})
+
+            response = self.client.get(url)
+
+            self.assertEqual(response.status_code, 200)
+
+            self.assertEqual(response.context["goal"], "")
+
+    def test_goal_set_on_all_interviews(self):
+        # set next interview goal for all interviews except last one
+        for i in range(len(self.interviews) - 1):
+            itw = self.interviews[i]
+            itw.next_interview_goal = f"goal for {itw.rank + 1}"
+            itw.save()
+
+        # manually set goal for the first one as no previous itw exist
+        self.interviews[0].goal = f"goal for {self.interviews[0].rank}"
+        self.interviews[0].save()
+
+        self.client.force_login(self.user)
+
+        for itw in self.interviews:
+            url = reverse(views.minute, kwargs={"interview_id": itw.id, "slug_info": self.process.candidate.name_slug})
+
+            response = self.client.get(url)
+
+            self.assertEqual(response.status_code, 200)
+
+            self.assertEqual(response.context["goal"], f"goal for {itw.rank}")
+
+    def test_goal_set_on_first_itw_only(self):
+        self.interviews[0].next_interview_goal = "only goal set"
+        self.interviews[0].save()
+
+        url = reverse(
+            views.minute, kwargs={"interview_id": self.interviews[-1].id, "slug_info": self.process.candidate.name_slug}
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context["goal"], "")
+
+        url = reverse(
+            views.minute, kwargs={"interview_id": self.interviews[1].id, "slug_info": self.process.candidate.name_slug}
+        )
+
+        self.client.force_login(self.user)
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.context["goal"], "only goal set")

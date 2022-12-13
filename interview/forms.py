@@ -4,9 +4,11 @@ from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as __
+
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, Column
+from crispy_forms.layout import Layout, Div, Submit, Column, Field
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Consultant, Interview, Candidate, Process, Sources, Offer
@@ -134,8 +136,11 @@ class InterviewFormPlan(forms.ModelForm):
 class InterviewFormEditInterviewers(forms.ModelForm):
     class Meta:
         model = Interview
-        fields = ["interviewers", "kind_of_interview", "prequalification"]
-        widgets = {"interviewers": MultipleConsultantWidget}
+        fields = ["interviewers", "kind_of_interview", "goal", "prequalification"]
+        widgets = {
+            "interviewers": MultipleConsultantWidget,
+            "goal": forms.Textarea(attrs={"placeholder": _("Add a goal only if it differs")}),
+        }
 
     helper = FormHelper()
     helper.form_method = "POST"

@@ -228,6 +228,14 @@ def process(request, process_id, slug_info=None):
     RequestConfig(request).configure(interviews_for_process_table)
     close_form = CloseForm(instance=process)
 
+    goal = None
+    last_itw = interviews.last()
+    if process.state not in Process.CLOSED_STATE_VALUES and len(interviews) > 0:
+        if last_itw.next_interview_goal:
+            goal = last_itw.next_interview_goal
+        elif last_itw.goal:
+            goal = interview.goal
+
     documents = process.candidate.document_set.all()
     context = {
         "process": process,
@@ -235,6 +243,7 @@ def process(request, process_id, slug_info=None):
         "interviews_for_process_table": interviews_for_process_table,
         "interviews": interviews,
         "close_form": close_form,
+        "goal": goal,
         "subsidiaries": Subsidiary.objects.all(),
     }
     return render(request, "interview/process_detail.html", context)
@@ -475,6 +484,8 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
     InterviewForm = InterviewFormEditInterviewers if action == "edit" else InterviewFormPlan
     process = Process.objects.for_user(request.user).get(id=process_id)
+    last_interview = Interview.objects.filter(process=process).exclude(pk=interview_id).last()
+    goal = last_interview.next_interview_goal if last_interview else ""
     if request.method == "POST":
         ret = HttpResponseRedirect(process.get_absolute_url())
         if action == "planning-request":
@@ -501,7 +512,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     return render(
         request,
         "interview/interview.html",
-        {"form": form, "process": process, "subsidiaries": Subsidiary.objects.all()},
+        {"form": form, "process": process, "subsidiaries": Subsidiary.objects.all(), "goal": goal},
     )
 
 
@@ -548,6 +559,8 @@ def minute_edit(request, interview_id):
     )
 
 
+@login_required
+@require_http_methods(["POST"])
 def delete_document_minute_ajax(request):
     document_id = request.POST.get("document_id")
     try:
@@ -567,10 +580,19 @@ def minute(request, interview_id, slug_info=None):
     except Interview.DoesNotExist:
         return HttpResponseNotFound()
 
+    try:
+        if interview.goal:
+            goal = interview.goal
+        else:
+            goal = Interview.objects.filter(process=interview.process).get(rank=interview.rank - 1).next_interview_goal
+    except Interview.DoesNotExist:  # first itw case
+        goal = ""
+
     context = {
         "interview": interview,
         "process": interview.process,
         "subsidiaries": Subsidiary.objects.all(),
+        "goal": goal,
         "document": interview.documentinterview_set.all(),
     }
     return render(request, "interview/interview_minute.html", context)

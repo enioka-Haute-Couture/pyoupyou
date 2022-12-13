@@ -73,6 +73,12 @@
                             <dd>{{ process.start_date }}</dd>
                         </p>
                     {% endif %}
+                    {% if goal %}
+                        <p>
+                            <dt>{% trans "Current goal" %}</dt>
+                            <dd>{{ goal }}</dd>
+                        </p>
+                    {% endif %}
                         <p>
                         <dt>{% trans "Documents" %}</dt>
                         <dd>
