@@ -290,7 +290,8 @@ def close_process(request, process_id):
 
     form = CloseForm(request.POST, instance=process)
     if form.is_valid():
-        form.instance.end_date = timezone.now()
+        if form.instance.state != Process.JOB_OFFER:
+            form.instance.end_date = timezone.now()
         form.save()
         log_action(False, process, request.user, close_process)
     # TODO manage errors

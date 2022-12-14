@@ -20,6 +20,7 @@
 - Add goal to new interview mail notification
 - Fix a bug where non-unique subsidiary codes could be created by its factory
 - Fix a bug where an interviewer was unable to see linked processes older than him
+- Fix a bug where processes with a pending proposition where considered to be closed
 
 # v1.16.0 (2022-11-14)
 - More refined factories
