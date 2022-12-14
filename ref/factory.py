@@ -7,6 +7,9 @@ from ref.models import Subsidiary, PyouPyouUser
 
 test_tz = pytz.timezone("Europe/Paris")
 
+from functools import reduce
+from itertools import combinations
+
 
 class PyouPyouUserFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -22,12 +25,23 @@ class PyouPyouUserFactory(factory.django.DjangoModelFactory):
     password = factory.Faker("password")
 
 
+def compute_subsidiary_code(name):
+    concat = lambda a, b: a + b
+    all_codes = Subsidiary.objects.values_list("code", flat=True)
+    for c in combinations(name, 3):
+        code = reduce(concat, c).upper()
+        if code.isalpha() and code not in all_codes:
+            return code
+
+    return ""  # will break at insertion as no combination is available
+
+
 class SubsidiaryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "ref.Subsidiary"
 
     name = factory.Faker("company")
-    code = factory.LazyAttribute(lambda n: n.name[0:3].upper())
+    code = factory.LazyAttribute(lambda n: compute_subsidiary_code(n.name))
 
 
 class ConsultantFactory(factory.django.DjangoModelFactory):
