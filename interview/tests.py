@@ -1292,7 +1292,6 @@ class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
         # create a process older that consultant
         older_process.start_date = self.consultant.user.date_joined - relativedelta(months=1)
         older_process.responsible.add(self.consultant)
-        older_process.save()
 
         response = self.client.get(reverse("process-list"))
         self.assertEqual(response.status_code, 200)
