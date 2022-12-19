@@ -1261,3 +1261,43 @@ class ImportCognitoFormTestCase(TestCase):
 
         documents = Document.objects.filter(candidate=candidate)
         self.assertEqual(documents.count(), 0)
+
+
+class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = ConsultantFactory(company=self.subsidiary)
+
+        self.client.force_login(self.consultant.user)
+
+    def test_general_behaviour(self):
+        # create some processes and assert that they are correctly displayed
+        processes = []
+        for i in range(5):
+            tmp = ProcessFactory()
+            tmp.responsible.add(self.consultant)
+            tmp.save()
+            processes.append(tmp)
+
+        response = self.client.get(reverse("process-list"))
+        self.assertEqual(response.status_code, 200)
+
+        open_processes = response.context["open_processes_table"].data
+        self.assertEqual(len(open_processes), 5)
+        for process in processes:
+            self.assertTrue(process in open_processes)
+
+    def test_linked_process_created_before_user_joined_is_displayed(self):
+        older_process = ProcessFactory()
+        # create a process older that consultant
+        older_process.start_date = self.consultant.user.date_joined - relativedelta(months=1)
+        older_process.responsible.add(self.consultant)
+        older_process.save()
+
+        response = self.client.get(reverse("process-list"))
+        self.assertEqual(response.status_code, 200)
+
+        # assert process is displayed in list even if it's outisde consultant's scope of view
+        open_processes = response.context["open_processes_table"].data
+        self.assertEqual(len(open_processes), 1)
+        self.assertTrue(older_process in open_processes)
