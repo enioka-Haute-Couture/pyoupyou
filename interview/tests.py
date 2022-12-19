@@ -88,7 +88,7 @@ class AccessRestrictionDateTestCase(TestCase):
         self.p.start_date = datetime.datetime(2016, 10, 10, tzinfo=datetime.timezone.utc)
         self.p.save()
         self.i = InterviewFactory(process=self.p)
-        self.i.interviewers.set([self.consultantOld, self.consultantNew])
+        self.i.interviewers.set([self.consultantOld])
         # self.i.save()
 
     def test_view_process(self):
