@@ -49,6 +49,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "pyoupyou.middleware.ExternalCheckMiddleware",
+    "pyoupyou.middleware.LastVisitedDateMiddleware",
 ]
 
 ROOT_URLCONF = "pyoupyou.urls"

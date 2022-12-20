@@ -20,6 +20,14 @@
         <h5> {% trans "This process is closed" %} - {{ process.get_state_display }} </h5>
         <span>{{ process.closed_comment }}</span>
     {% endif %}
+    {% if entries %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="panel-title">What happened since your last time here</div>
+            </div>
+            {% render_table entries %}
+        </div>
+    {% endif %}
         <div class="row">
             <div class="col-md-6">
                 {% if process.candidate.phone or process.candidate.email or process.candidate.linkedin_url %}

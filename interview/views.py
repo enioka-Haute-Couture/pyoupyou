@@ -6,6 +6,7 @@ import re
 from collections import defaultdict
 import json
 
+import pytz
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.auth.views import redirect_to_login
@@ -222,6 +223,15 @@ class InterviewDetailTable(InterviewTable):
         order_by = "-planned_date"
 
 
+class LogTable(tables.Table):
+    entry = tables.Column(orderable=False)
+    author = tables.Column(orderable=False)
+
+    class Meta:
+        template_name = "interview/_tables.html"
+        attrs = {"class": "table table-striped table-condensed"}
+
+
 @login_required
 @require_http_methods(["GET"])
 def process(request, process_id, slug_info=None):
@@ -256,6 +266,25 @@ def process(request, process_id, slug_info=None):
             goal = interview.goal
 
     documents = process.candidate.document_set.all()
+
+    logs = (
+        LogEntry.objects.filter(
+            action_time__gt=datetime.datetime.fromtimestamp(
+                request.session[request.path], tz=pytz.timezone("Europe/Paris")
+            )
+        )
+        .filter(
+            Q(content_type_id=get_content_type_for_model(Process))
+            | Q(content_type_id=get_content_type_for_model(Interview))
+        )
+        .filter(object_id__in=[process_id] + [itw.id for itw in interviews])
+    )
+    entries = []
+    for entry in logs:
+        entries.append({"entry": f"{entry.change_message}", "author": f"{entry.user.consultant}"})
+    entries_table = LogTable(entries)
+    RequestConfig(request).configure(entries_table)
+
     context = {
         "process": process,
         "documents": documents,
@@ -265,7 +294,9 @@ def process(request, process_id, slug_info=None):
         "goal": goal,
         "subsidiaries": Subsidiary.objects.all(),
         "others_process": ProcessLightTable(others_process),
+        "entries": entries_table if entries else None,
     }
+
     return render(request, "interview/process_detail.html", context)
 
 
