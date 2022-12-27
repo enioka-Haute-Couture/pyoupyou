@@ -52,3 +52,5 @@ MAIL_FROM = "pyoupyou@enioka.com"
 
 SEEKUBE_SOURCE_ID = 5
 SECRET_ANON_SALT = "dev-salt"
+
+FORM_WEB_HOOK_PREFIX = "dev"

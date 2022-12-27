@@ -10,6 +10,7 @@
 - Add next interview goal on minute
 - Add possibility to display archived sources on active-sources page
 - Update the way active offers are filtered to match only given subsidiary
+- Add webhook to add new process from cognito form
 
 # v1.16.0 (2022-11-14)
 - More refined factories

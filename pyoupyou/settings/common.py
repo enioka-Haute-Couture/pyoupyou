@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "ref.apps.RefConfig",
     "interview.apps.InterviewConfig",
     "django_filters",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
