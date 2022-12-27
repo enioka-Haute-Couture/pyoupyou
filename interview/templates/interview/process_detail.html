@@ -137,6 +137,20 @@
         </div>
     </div>
     {% endif %}
+    {% if others_process.data %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="bs-callout">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div class="panel-title">{% trans 'Others process' %}</div>
+                    </div>
+                    {% render_table others_process %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <div class="panel panel-primary">
         <div class="panel-heading">

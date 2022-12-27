@@ -678,11 +678,13 @@ class ProcessCreationViewTestCase(TestCase):
             follow=True,
         )
 
-        process_for_candidate = Process.objects.filter(candidate__name=candidate_name).count()
-        self.assertEqual(process_for_candidate, 2)
+        process_for_candidate = Process.objects.filter(candidate__name=candidate_name)
+        self.assertEqual(process_for_candidate.count(), 2)
         p = Process.objects.filter(candidate__name=candidate_name).last()
         self.assertIsNotNone(p)
         self.assertRedirects(response, p.get_absolute_url())
+
+        self.assertEqual(process_for_candidate[0].candidate.id, process_for_candidate[1].candidate.id)
 
 
 class ProcessDetailsViewTestCase(TestCase):

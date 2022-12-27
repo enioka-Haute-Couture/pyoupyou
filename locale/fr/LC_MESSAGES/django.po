@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 14:41+0100\n"
+"POT-Creation-Date: 2022-11-22 10:14+0100\n"
 "PO-Revision-Date: 2022-02-11 11:15+0100\n"
 "Last-Translator: Sebastien Renard <renard@kde.org>\n"
 "Language-Team: French <kde-francophone@kde.org>\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Interviewers must be specified when setting planned date"
 msgstr "Les interviewers doivent être spécifiés si la date prévue est mise"
 
-#: interview/forms.py:130 interview/forms.py:142 interview/forms.py:166
+#: interview/forms.py:130 interview/forms.py:142 interview/forms.py:162
 #: interview/templates/interview/candidate.html:14
 #: interview/templates/interview/new_candidate.html:94
 #: interview/templates/interview/new_candidate.html:109
@@ -37,12 +37,12 @@ msgstr "Ajoutez un objectif uniquement s'il diffère de l'objectif mis par l'ent
 msgid "Waiting candidate feedback after a job offer"
 msgstr "Proposition en cours, attente du retour du candidat"
 
-#: interview/forms.py:193 interview/templates/interview/base.html:55
+#: interview/forms.py:189 interview/templates/interview/base.html:55
 msgid "Import"
 msgstr "Importer"
 
-#: interview/models.py:28 interview/models.py:76 interview/models.py:636
-#: interview/views.py:1229 interview/views.py:1249 ref/models.py:13
+#: interview/models.py:28 interview/models.py:76 interview/views.py:1205
+#: interview/views.py:1225 ref/models.py:13
 msgid "Name"
 msgstr "Nom"
 
@@ -72,11 +72,11 @@ msgid "anonymized"
 msgstr "anonymisé"
 
 #: interview/models.py:173 interview/models.py:191 interview/models.py:286
-#: interview/views.py:187
+#: interview/views.py:186
 msgid "Candidate"
 msgstr "Candidat"
 
-#: interview/models.py:190 interview/models.py:633
+#: interview/models.py:190
 msgid "Creation date"
 msgstr "Date de création"
 
@@ -84,7 +84,7 @@ msgstr "Date de création"
 msgid "Kind of document"
 msgstr "Type de document"
 
-#: interview/models.py:193 interview/models.py:635
+#: interview/models.py:193
 msgid "Content file"
 msgstr "Contenu du fichier"
 
@@ -92,8 +92,8 @@ msgstr "Contenu du fichier"
 msgid "Still valid"
 msgstr "Est toujours valide"
 
-#: interview/models.py:203 interview/models.py:287 interview/views.py:958
-#: interview/views.py:1250 ref/models.py:21 ref/models.py:121
+#: interview/models.py:203 interview/models.py:287 interview/views.py:930
+#: interview/views.py:1226 ref/models.py:21 ref/models.py:121
 msgid "Subsidiary"
 msgstr "Entité"
 
@@ -185,7 +185,7 @@ msgstr "Créateur du processus"
 
 #: interview/models.py:362
 #: interview/templates/interview/interview_minute.html:10
-#: interview/templates/interview/interview_minute_form.html:45
+#: interview/templates/interview/interview_minute_form.html:9
 msgid "for subsidiary"
 msgstr "pour la filiale"
 
@@ -227,17 +227,17 @@ msgid "PLANNED"
 msgstr "Planifié"
 
 #: interview/models.py:478
-#: interview/templates/interview/interview_minute_form.html:66
+#: interview/templates/interview/interview_minute_form.html:15
 msgid "GO"
 msgstr "GO"
 
 #: interview/models.py:479
-#: interview/templates/interview/interview_minute_form.html:68
+#: interview/templates/interview/interview_minute_form.html:17
 msgid "NO"
 msgstr "NON"
 
 #: interview/models.py:480
-#: interview/templates/interview/interview_minute_form.html:67
+#: interview/templates/interview/interview_minute_form.html:16
 msgid "DRAFT"
 msgstr "Brouillon"
 
@@ -253,13 +253,13 @@ msgstr "état"
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:499 interview/views.py:162
+#: interview/models.py:499 interview/views.py:161
 msgid "Planned date"
 msgstr "Date prévue"
 
 #: interview/models.py:502
 #: interview/templates/interview/interview_minute.html:18
-#: interview/views.py:165
+#: interview/views.py:164
 msgid "Minute"
 msgstr "Compte-rendu"
 
@@ -277,16 +277,16 @@ msgstr "Objectif de l'entretien"
 msgid "Prequalification"
 msgstr "Pré-qualification"
 
-#: interview/models.py:507 interview/views.py:172
+#: interview/models.py:515 interview/views.py:171
 msgid "Kind of interview"
 msgstr "Type d'entretien"
 
-#: interview/models.py:607
+#: interview/models.py:615
 #, python-brace-format
 msgid "New interview for {process}"
 msgstr "Nouvel entretien pour {process}"
 
-#: interview/models.py:611
+#: interview/models.py:619
 #, python-brace-format
 msgid "Interview planned: {process}"
 msgstr "Entretien planifié : {process}"
@@ -342,7 +342,7 @@ msgid "Ongoing processes"
 msgstr "Processus en cours"
 
 #: interview/templates/interview/base.html:46
-#: interview/templates/interview/summary.html:76 interview/views.py:289
+#: interview/templates/interview/summary.html:76 interview/views.py:288
 msgid "Closed processes"
 msgstr "Processus terminés"
 
@@ -354,7 +354,7 @@ msgstr "Nouveau candidat"
 msgid "More"
 msgstr "Plus"
 
-#: interview/templates/interview/base.html:52 interview/views.py:962
+#: interview/templates/interview/base.html:52 interview/views.py:934
 msgid "Load"
 msgstr "Charge"
 
@@ -366,13 +366,13 @@ msgstr "Tous les entretiens"
 msgid "Arrival planning"
 msgstr "Suivi des arrivées"
 
-#: interview/templates/interview/base.html:56 interview/views.py:1255
+#: interview/templates/interview/base.html:56 interview/views.py:1231
 msgid "Sources"
 msgstr "Sources"
 
 #: interview/templates/interview/base.html:57
 #: interview/templates/interview/offers.html:35
-#: interview/templates/interview/summary.html:114 interview/views.py:1235
+#: interview/templates/interview/summary.html:114 interview/views.py:1211
 msgid "Offers"
 msgstr "Offres"
 
@@ -414,22 +414,22 @@ msgid "Next goal from previous interview"
 msgstr "Prochain objectif défini par l'entretien précédent"
 
 #: interview/templates/interview/interview_minute.html:10
-#: interview/templates/interview/interview_minute_form.html:45
+#: interview/templates/interview/interview_minute_form.html:9
 msgid "Interview minute"
 msgstr "Compte rendu d'entretien"
 
 #: interview/templates/interview/interview_minute.html:10
-#: interview/templates/interview/interview_minute_form.html:45
+#: interview/templates/interview/interview_minute_form.html:9
 msgid "for process"
 msgstr "pour le processus"
 
 #: interview/templates/interview/interview_minute.html:10
-#: interview/templates/interview/interview_minute_form.html:45
+#: interview/templates/interview/interview_minute_form.html:9
 msgid "concerning"
 msgstr "pour"
 
 #: interview/templates/interview/interview_minute.html:12
-#: interview/views.py:960
+#: interview/views.py:932
 msgid "Interviewer"
 msgstr "Interviewer"
 
@@ -467,7 +467,7 @@ msgid "This candidate ressembles to those other candidates:"
 msgstr "Ce candidate ressemble à ces autre candidats :"
 
 #: interview/templates/interview/new_candidate.html:60
-#: interview/templates/interview/tables/process_actions.html:10
+#: interview/templates/interview/tables/process_actions.html:3
 msgid "Show"
 msgstr "Détails"
 
@@ -565,6 +565,11 @@ msgstr "Date de démarrage"
 msgid "Salary expectation"
 msgstr "Salaire demandé (k€)"
 
+#: interview/templates/interview/process_detail.html:126
+#| msgid "for process"
+msgid "Others process"
+msgstr "Autre process"
+
 #: interview/templates/interview/process_detail.html:137
 msgid "Interviews for this process"
 msgstr "Entretiens de ce processus"
@@ -603,7 +608,7 @@ msgstr "Période"
 
 #: interview/templates/interview/summary.html:66
 #: interview/templates/interview/tables/source_name.html:3
-#: interview/views.py:1232 interview/views.py:1252
+#: interview/views.py:1208 interview/views.py:1228
 msgid "Processes"
 msgstr "Processus"
 
@@ -652,64 +657,64 @@ msgstr "Vous n'avez pas le droit d'accéder à ce processus."
 msgid "Process state"
 msgstr "Status du processus"
 
-#: interview/views.py:93 interview/views.py:189
+#: interview/views.py:92 interview/views.py:188
 msgid "No itw"
 msgstr "No itw"
 
-#: interview/views.py:95
+#: interview/views.py:94
 msgid "Responsible"
 msgstr "Responsable(s)"
 
-#: interview/views.py:126 interview/views.py:181
+#: interview/views.py:125 interview/views.py:180
 msgid "No data"
 msgstr "Pas de donnée"
 
-#: interview/views.py:159
+#: interview/views.py:158
 msgid "interviewers"
 msgstr "responsables d'entretiens"
 
-#: interview/views.py:963
+#: interview/views.py:935
 msgid "Past month"
 msgstr "Dans le mois passé"
 
-#: interview/views.py:964
+#: interview/views.py:936
 msgid "Past week"
 msgstr "Dans la semaine passée"
 
-#: interview/views.py:965
+#: interview/views.py:937
 msgid "Planned"
 msgstr "À venir"
 
-#: interview/views.py:966
+#: interview/views.py:938
 msgid "To plan"
 msgstr "À planifier"
 
-#: interview/views.py:1083
+#: interview/views.py:1059
 #, python-brace-format
 msgid "Search result for \"{q}\""
 msgstr "Résultats de recherche pour \"{q}\""
 
-#: interview/views.py:1148
+#: interview/views.py:1124
 msgid "Processing seekube ics failed"
 msgstr "Erreur lors du traitement du fichier ics seekube"
 
-#: interview/views.py:1230
+#: interview/views.py:1206
 msgid "Type"
 msgstr "Type"
 
-#: interview/views.py:1231 interview/views.py:1251
+#: interview/views.py:1207 interview/views.py:1227
 msgid "Active processes"
 msgstr "processus actif"
 
-#: interview/views.py:1233 interview/views.py:1253
+#: interview/views.py:1209 interview/views.py:1229
 msgid "Hired"
 msgstr "Embauché"
 
-#: interview/views.py:1234 interview/views.py:1254
+#: interview/views.py:1210 interview/views.py:1230
 msgid "Ratio"
 msgstr "Ratio"
 
-#: interview/views.py:1236 interview/views.py:1256
+#: interview/views.py:1212 interview/views.py:1232
 msgid "Last change"
 msgstr "Dernier changement"
 
