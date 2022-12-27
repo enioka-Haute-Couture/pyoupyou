@@ -33,7 +33,10 @@ class LastVisitedDateMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request.session.setdefault(request.path, request.user.last_login.timestamp())
+        try:
+            request.session.setdefault(request.path, request.user.last_login.timestamp())
+        except AttributeError:
+            request.session.setdefault(request.path, datetime.datetime.now().timestamp())
 
         response = self.get_response(request)
 

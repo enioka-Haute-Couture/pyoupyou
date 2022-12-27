@@ -8,6 +8,7 @@ import dateutil.relativedelta
 import factory
 import pytz
 from django.conf import settings
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
@@ -32,7 +33,7 @@ from interview.factory import (
 )
 from interview.models import Process, Document, Interview, Offer
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
-from pyoupyou.middleware import ExternalCheckMiddleware
+from pyoupyou.middleware import ExternalCheckMiddleware, LastVisitedDateMiddleware
 from ref.factory import SubsidiaryFactory, ConsultantFactory
 from ref.models import Consultant, PyouPyouUser
 from ref.models import Consultant, Subsidiary
@@ -95,6 +96,11 @@ class AccessRestrictionDateTestCase(TestCase):
         request = self.factory.get(
             reverse("process-details", kwargs={"process_id": self.p.id, "slug_info": f"_{self.p.candidate.name_slug}"})
         )
+        middleware = SessionMiddleware(request)
+        middleware.process_request(request)
+        request.session.save()
+        last_visit = LastVisitedDateMiddleware(lambda x: x)
+        last_visit(request)
 
         request.user = self.consultantOld.user
         response = process(request, self.p.id)

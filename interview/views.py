@@ -281,7 +281,7 @@ def process(request, process_id, slug_info=None):
     )
     entries = []
     for entry in logs:
-        entries.append({"entry": f"{entry.change_message}", "author": f"{entry.user.consultant}"})
+        entries.append({"entry": entry.change_message, "author": entry.user.consultant})
     entries_table = LogTable(entries)
     RequestConfig(request).configure(entries_table)
 
