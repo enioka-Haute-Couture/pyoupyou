@@ -226,10 +226,12 @@ class InterviewDetailTable(InterviewTable):
 class LogTable(tables.Table):
     entry = tables.Column(orderable=False)
     author = tables.Column(orderable=False)
+    action_time = tables.Column(orderable=False)
 
     class Meta:
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
+        order_by = ("-action_time",)
 
 
 @login_required
@@ -281,7 +283,9 @@ def process(request, process_id, slug_info=None):
     )
     entries = []
     for entry in logs:
-        entries.append({"entry": entry.change_message, "author": entry.user.consultant})
+        entries.append(
+            {"action_time": entry.action_time, "entry": entry.change_message, "author": entry.user.consultant}
+        )
     entries_table = LogTable(entries)
     RequestConfig(request).configure(entries_table)
 
