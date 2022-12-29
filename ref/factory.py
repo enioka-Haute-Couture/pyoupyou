@@ -7,8 +7,7 @@ from ref.models import Subsidiary, PyouPyouUser
 
 test_tz = pytz.timezone("Europe/Paris")
 
-from functools import reduce
-from itertools import combinations
+from itertools import permutations
 
 
 class PyouPyouUserFactory(factory.django.DjangoModelFactory):
@@ -26,13 +25,10 @@ class PyouPyouUserFactory(factory.django.DjangoModelFactory):
 
 
 def compute_subsidiary_code(name):
-    concat = lambda a, b: a + b
     all_codes = Subsidiary.objects.values_list("code", flat=True)
-    for c in combinations(name, 3):
-        code = reduce(concat, c).upper()
-        if code.isalpha() and code not in all_codes:
-            return code
-
+    for c in ["".join(perm).upper() for perm in permutations(name, 3)]:
+        if c.isalpha() and c not in all_codes:
+            return c
     return ""  # will break at insertion as no combination is available
 
 
