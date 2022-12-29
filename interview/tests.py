@@ -1150,8 +1150,8 @@ class OfferFilterGivenSubsidiaryTestCase(TestCase):
 
     def test_offers_given_subsidiary(self):
         for sub in Subsidiary.objects.all():
-            url = reverse(views.offers, kwargs={"subsidiary_id": sub.id})
-            response = self.client.get(url)
+            url = reverse(views.offers)
+            response = self.client.get(url, data={"subsidiary": sub.id})
 
             self.assertEqual(response.status_code, 200)
 

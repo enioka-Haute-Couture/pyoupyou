@@ -11,21 +11,6 @@
 
 {% block content %}
 <div class="container">
-    <div class="panel">
-        <div class="btn-group">
-            <div class="btn-group">
-                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    {% trans "Filter" %} <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a href="{% url 'interviewers-load' %}"> {% trans "All" %} </a></li>
-                    {% for s in subsidiaries %}
-                    <li><a href="{% url 'interviewers-load-subdidiary' s.id  %}"> {{ s }} </a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-    </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
             {% if subsidiary %}

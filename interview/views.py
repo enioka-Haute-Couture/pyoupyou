@@ -48,6 +48,7 @@ from interview.filters import (
     InterviewSummaryFilter,
     InterviewListFilter,
     ActiveSourcesFilter,
+    OfferFilter,
 )
 from interview.forms import (
     ProcessCandidateForm,
@@ -63,12 +64,23 @@ from interview.forms import (
 )
 from interview.serializers import CognitoWebHookSerializer
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
+from ref.filters import SubsidiaryFilter
 from ref.models import Consultant, PyouPyouUser, Subsidiary
 
 import datetime
 from django import template
 
 register = template.Library()
+
+
+def get_global_filter(request):
+    """
+    returns a SubsidiaryFilter based on current session's filter
+    to access subsidiary: f.form.cleaned_data["subsidiary"]
+    """
+    f = SubsidiaryFilter(request.session, queryset=Subsidiary.objects.all())
+    f.is_valid()
+    return f
 
 
 def log_action(added, object, user, view):
@@ -307,7 +319,11 @@ def reopen_process(request, process_id):
 @login_required
 @require_http_methods(["GET"])
 def closed_processes(request):
-    closed_processes = Process.objects.for_table(request.user).filter(end_date__isnull=False)
+    subsidiary_filter = get_global_filter(request)
+
+    closed_processes = subsidiary_filter.filter_queryset(
+        Process.objects.for_table(request.user).filter(end_date__isnull=False)
+    )
 
     closed_processes_table = ProcessEndTable(closed_processes, prefix="c")
 
@@ -318,6 +334,7 @@ def closed_processes(request):
         "title": _("Closed processes"),
         "table": closed_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -329,12 +346,13 @@ def processes_for_source(request, source_id):
     if request.user.consultant.is_external and request.user.consultant.limited_to_source.id != source_id:
         return redirect_to_login(next=request.path)
 
+    subsidiary_filter = get_global_filter(request)
     try:
         source = Sources.objects.get(id=source_id)
     except Sources.DoesNotExist:
         return HttpResponseNotFound()
 
-    processes = Process.objects.for_table(request.user).filter(sources_id=source_id)
+    processes = subsidiary_filter.filter_queryset(Process.objects.for_table(request.user).filter(sources_id=source_id))
     processes_table = ProcessEndTable(processes, prefix="c")
 
     config = RequestConfig(request)
@@ -344,6 +362,7 @@ def processes_for_source(request, source_id):
         "title": source.name + " (" + source.category.name + ")",
         "table": processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -353,12 +372,13 @@ def processes_for_source(request, source_id):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
 def processes_for_offer(request, offer_id):
+    subsidiary_filter = get_global_filter(request)
     try:
         offer = Offer.objects.get(id=offer_id)
     except Offer.DoesNotExist:
         return HttpResponseNotFound()
 
-    processes = Process.objects.for_table(request.user).filter(offer_id=offer_id)
+    processes = subsidiary_filter.filter_queryset(Process.objects.for_table(request.user).filter(offer_id=offer_id))
     processes_table = ProcessEndTable(processes, prefix="c")
 
     config = RequestConfig(request)
@@ -368,6 +388,7 @@ def processes_for_offer(request, offer_id):
         "title": offer.name + " (" + offer.subsidiary.name + ")",
         "table": processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -376,9 +397,15 @@ def processes_for_offer(request, offer_id):
 @login_required
 @require_http_methods(["GET"])
 def processes(request):
-    open_processes = Process.objects.for_table(request.user).filter(end_date__isnull=True)
+    subsidiary_filter = get_global_filter(request)
+
+    open_processes = subsidiary_filter.filter_queryset(
+        Process.objects.for_table(request.user).filter(end_date__isnull=True)
+    )
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
-    recently_closed_processes = Process.objects.for_table(request.user).filter(end_date__gte=a_week_ago)
+    recently_closed_processes = subsidiary_filter.filter_queryset(
+        Process.objects.for_table(request.user).filter(end_date__gte=a_week_ago)
+    )
 
     open_processes_table = ProcessTable(open_processes, prefix="o")
     recently_closed_processes_table = ProcessEndTable(recently_closed_processes, prefix="c")
@@ -391,6 +418,7 @@ def processes(request):
         "open_processes_table": open_processes_table,
         "recently_closed_processes_table": recently_closed_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
     return render(request, "interview/list_processes.html", context)
 
@@ -659,15 +687,17 @@ def dashboard(request):
     if request.user.consultant.limited_to_source:  # if None, dashboard will be empty anyways
         return processes_for_source(request, request.user.consultant.limited_to_source.id)
 
+    subsidiary_filter = get_global_filter(request)
+
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     c = request.user.consultant
-    actions_needed_processes = (
+    actions_needed_processes = subsidiary_filter.filter_queryset(
         Process.objects.for_table(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
     )
 
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix="a")
 
-    related_processes = (
+    related_processes = subsidiary_filter.filter_queryset(
         Process.objects.for_table(request.user)
         .filter(interview__interviewers__user=request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
@@ -675,7 +705,7 @@ def dashboard(request):
     )
     related_processes_table = ProcessTable(related_processes, prefix="r")
 
-    subsidiary_processes = (
+    subsidiary_processes = subsidiary_filter.filter_queryset(
         Process.objects.for_table(request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
         .filter(subsidiary=c.company)
@@ -692,6 +722,7 @@ def dashboard(request):
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/dashboard.html", context)
@@ -1104,16 +1135,12 @@ def calculate_load(itws):
 @login_required
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
-def interviewers_load(request, subsidiary_id=None):
-    subsidiary = None
-    if subsidiary_id:
-        try:
-            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
-        except Subsidiary.DoesNotExist:
-            subsidiary = None
+def interviewers_load(request):
+    subsidiary_filter = get_global_filter(request)
+    subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
 
     if subsidiary:
-        consultants_qs = Consultant.objects.filter(company=subsidiary_id)
+        consultants_qs = Consultant.objects.filter(company=subsidiary)
     else:
         consultants_qs = Consultant.objects.all()
     data = []
@@ -1139,7 +1166,12 @@ def interviewers_load(request, subsidiary_id=None):
     return render(
         request,
         "interview/interviewers-load.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "load_table": load_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "load_table": load_table,
+            "subsidiaries_filter": subsidiary_filter,
+        },
     )
 
 
@@ -1358,7 +1390,6 @@ def active_sources(request):
     if subsidiary_id:
         try:
             subsidiary = Subsidiary.objects.get(id=subsidiary_id)
-            sources_qs = sources_qs.filter(process__subsidiary=subsidiary).distinct()
         except Subsidiary.DoesNotExist:
             pass
 
@@ -1420,13 +1451,16 @@ def active_sources(request):
 @login_required
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
-def offers(request, subsidiary_id=None):
+def offers(request):
     subsidiary = None
-    offers_qs = Offer.objects.filter(archived=False)
+
+    offer_filter = OfferFilter(request.GET, queryset=Offer.objects.all())
+    offers_qs = offer_filter.qs.filter(archived=False)
+
+    subsidiary_id = offer_filter.data.get("subsidiary")
     if subsidiary_id:
         try:
             subsidiary = Subsidiary.objects.get(id=subsidiary_id)
-            offers_qs = offers_qs.filter(subsidiary=subsidiary).distinct()
         except Subsidiary.DoesNotExist:
             pass
 
@@ -1463,7 +1497,12 @@ def offers(request, subsidiary_id=None):
     return render(
         request,
         "interview/offers.html",
-        {"subsidiary": subsidiary, "subsidiaries": Subsidiary.objects.all(), "offers": offers_table},
+        {
+            "subsidiary": subsidiary,
+            "subsidiaries": Subsidiary.objects.all(),
+            "offers": offers_table,
+            "filter": offer_filter,
+        },
     )
 
 

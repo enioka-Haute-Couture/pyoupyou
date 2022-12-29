@@ -37,3 +37,9 @@ class ActiveSourcesFilter(django_filters.FilterSet):
     archived = django_filters.ChoiceFilter(
         choices=((True, _("Yes")), (False, _("No"))), label=_("Archived"), empty_label=_("All")
     )
+
+
+class OfferFilter(django_filters.FilterSet):
+    subsidiary = django_filters.ModelChoiceFilter(
+        queryset=Subsidiary.objects.all(), field_name="subsidiary", label=_("Subsidiary"), empty_label=_("All")
+    )
