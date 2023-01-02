@@ -619,6 +619,14 @@ class Interview(models.Model):
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
 
+    def get_goal(self):
+        if self.goal:
+            return self.goal
+        try:
+            return Interview.objects.filter(process=self.process).get(rank=self.rank - 1).next_interview_goal
+        except Interview.DoesNotExist:
+            return None
+
 
 def document_minute_path(instance, filename):
     interview = instance.interview

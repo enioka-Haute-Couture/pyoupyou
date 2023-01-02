@@ -44,6 +44,14 @@
     <div class="lead">
         {% trans "Interview minute" %} <a href="{{ process.get_absolute_url }}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.display_name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
+    {% if interview.get_goal %}
+    <div>
+        <span style="font-weight: bold">
+            {% trans "Interview goal" %}:
+        </span>
+        {{ interview.get_goal }}
+    </div>
+    {% endif %}
     <form method="post" id="itw-minute" enctype="multipart/form-data">
         {% crispy form %}
         {% if documents %}
