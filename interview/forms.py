@@ -11,6 +11,7 @@ from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Interview, Candidate, Process, Sources, Offer
 from ref.models import PyouPyouUser
+from interview.widgets import UploadFilesWidget
 
 
 class MultiplePyouPyouUserWidget(ModelSelect2MultipleWidget):
@@ -37,7 +38,7 @@ class ProcessCandidateForm(forms.ModelForm):
         helper = FormHelper()
         exclude = ("anonymized", "anonymized_hashed_name", "anonymized_hashed_email")
 
-    cv = forms.FileField(label="CV (pour une candidature)", required=False)
+    cv = forms.FileField(label="CV (pour une candidature)", required=False, widget=UploadFilesWidget())
 
     helper = FormHelper()
     helper.form_tag = False
