@@ -687,17 +687,15 @@ def dashboard(request):
     if request.user.consultant.limited_to_source:  # if None, dashboard will be empty anyways
         return processes_for_source(request, request.user.consultant.limited_to_source.id)
 
-    subsidiary_filter = get_global_filter(request)
-
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
     c = request.user.consultant
-    actions_needed_processes = subsidiary_filter.filter_queryset(
+    actions_needed_processes = (
         Process.objects.for_table(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
     )
 
     actions_needed_processes_table = ProcessTable(actions_needed_processes, prefix="a")
 
-    related_processes = subsidiary_filter.filter_queryset(
+    related_processes = (
         Process.objects.for_table(request.user)
         .filter(interview__interviewers__user=request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
@@ -705,11 +703,12 @@ def dashboard(request):
     )
     related_processes_table = ProcessTable(related_processes, prefix="r")
 
-    subsidiary_processes = subsidiary_filter.filter_queryset(
+    subsidiary_processes = (
         Process.objects.for_table(request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
         .filter(subsidiary=c.company)
     )
+
     subsidiary_processes_table = ProcessTable(subsidiary_processes, prefix="s")
 
     config = RequestConfig(request)
@@ -722,7 +721,6 @@ def dashboard(request):
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/dashboard.html", context)
