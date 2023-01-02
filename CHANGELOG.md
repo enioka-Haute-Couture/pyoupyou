@@ -12,6 +12,8 @@
 - Update the way active offers are filtered to match only given subsidiary
 - Add webhook to add new process from cognito form
 - Add others process on process detail for a candidate
+- Add global subsidiary filter
+- Add goal to new interview mail notification
 - Fix a bug where non-unique subsidiary codes could be created by its factory
 
 # v1.16.0 (2022-11-14)
