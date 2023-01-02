@@ -516,9 +516,9 @@ def new_candidate_POST_handler(
         candidate.save()
         log_action(True, candidate, request.user, new_candidate)
 
-        content = request.FILES.get("cv", None)
-        if content:
-            Document.objects.create(document_type="CV", content=content, candidate=candidate)
+        content = request.FILES.getlist("cv", [])
+        for file in content:
+            Document.objects.create(document_type="CV", content=file, candidate=candidate)
 
         process = process_form.save(commit=False)
         process.candidate = candidate
@@ -924,6 +924,7 @@ def edit_candidate(request, process_id):
         "source_form": source_form,
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
+        "documents": Document.objects.filter(candidate=candidate),
     }
     return render(request, "interview/new_candidate.html", data)
 

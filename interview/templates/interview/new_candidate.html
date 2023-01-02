@@ -72,6 +72,16 @@
         {% endif %}
 
         {% crispy candidate_form %}
+        {% if documents %}
+            <ul>
+                {% for d in documents %}
+                    <li>
+                        <a href="{{ d.content.url }}" > {{ d.content.name }} </a>
+                        <a class="btn btn-danger document-delete-button" id="{{ d.id }}"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Delete this document" %}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
         {% crispy process_form %}
         {% if interviewers_form %}
         {% crispy interviewers_form %}
