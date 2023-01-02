@@ -265,7 +265,7 @@ def process(request, process_id, slug_info=None):
         if last_itw.next_interview_goal:
             goal = last_itw.next_interview_goal
         elif last_itw.goal:
-            goal = interview.goal
+            goal = last_itw.goal
 
     documents = process.candidate.document_set.all()
     context = {
