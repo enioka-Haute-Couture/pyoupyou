@@ -48,7 +48,6 @@ from interview.filters import (
     InterviewSummaryFilter,
     InterviewListFilter,
     ActiveSourcesFilter,
-    OfferFilter,
 )
 from interview.forms import (
     ProcessCandidateForm,
@@ -277,6 +276,7 @@ def process(request, process_id, slug_info=None):
         "goal": goal,
         "subsidiaries": Subsidiary.objects.all(),
         "others_process": ProcessLightTable(others_process),
+        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/process_detail.html", context)
 
@@ -540,6 +540,7 @@ def new_candidate(request, past_candidate_id=None):
             "duplicates": duplicate_processes,
             "candidate": candidate,
             "subsidiaries": Subsidiary.objects.all(),
+            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -595,7 +596,13 @@ def interview(request, process_id=None, interview_id=None, action=None):
     return render(
         request,
         "interview/interview.html",
-        {"form": form, "process": process, "subsidiaries": Subsidiary.objects.all(), "goal": goal},
+        {
+            "form": form,
+            "process": process,
+            "subsidiaries": Subsidiary.objects.all(),
+            "goal": goal,
+            "subsidiaries_filter": get_global_filter(request),
+        },
     )
 
 
@@ -638,6 +645,7 @@ def minute_edit(request, interview_id):
             "interview": interview,
             "subsidiaries": Subsidiary.objects.all(),
             "documents": DocumentInterview.objects.filter(interview=interview),
+            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -677,6 +685,7 @@ def minute(request, interview_id, slug_info=None):
         "subsidiaries": Subsidiary.objects.all(),
         "goal": goal,
         "document": interview.documentinterview_set.all(),
+        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/interview_minute.html", context)
 
@@ -838,6 +847,7 @@ def edit_candidate(request, process_id):
         "source_form": source_form,
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/new_candidate.html", data)
 
@@ -1191,6 +1201,7 @@ def search(request):
         "table": search_result,
         "search_query": q,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": get_global_filter(request),
     }
 
     return render(request, "interview/single_table.html", context)
@@ -1264,6 +1275,7 @@ def gantt(request):
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = timezone.now().date()
     processes = Process.objects.filter(state__in=state_filter).select_related("contract_type", "candidate")
+    processes = get_global_filter(request).filter_queryset(processes)
     filter = ProcessFilter(request.GET, queryset=processes)
 
     processes_dict = []
@@ -1322,7 +1334,12 @@ def gantt(request):
 
     grant_chart = plot(fig, output_type="div", config=config)
 
-    context = {"gantt": grant_chart, "filter": filter, "subsidiaries": Subsidiary.objects.all()}
+    context = {
+        "gantt": grant_chart,
+        "filter": filter,
+        "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": get_global_filter(request),
+    }
 
     return render(request, "interview/gantt.html", context)
 
@@ -1376,12 +1393,16 @@ class OffersTable(tables.Table):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
 def active_sources(request):
-    subsidiary = None
+    subsidiary_filter = get_global_filter(request)
+    subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary")
 
     request_get = request.GET.copy()
     request_get.setdefault("archived", "False")
 
-    sources_filter = ActiveSourcesFilter(request_get, queryset=Sources.objects.all())
+    sources_filter = ActiveSourcesFilter(
+        request_get,
+        queryset=Sources.objects.all() if subsidiary is None else Sources.objects.filter(name=subsidiary.name),
+    )
     sources_qs = sources_filter.qs
 
     subsidiary_id = sources_filter.data.get("subsidiary")
@@ -1442,6 +1463,7 @@ def active_sources(request):
             "subsidiaries": Subsidiary.objects.all(),
             "sources": all_sources_table,
             "filter": sources_filter,
+            "subsidiaries_filter": subsidiary_filter,
         },
     )
 
@@ -1450,17 +1472,11 @@ def active_sources(request):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
 def offers(request):
-    subsidiary = None
+    subsidiary_filter = get_global_filter(request)
+    subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary")
 
-    offer_filter = OfferFilter(request.GET, queryset=Offer.objects.all())
-    offers_qs = offer_filter.qs.filter(archived=False)
-
-    subsidiary_id = offer_filter.data.get("subsidiary")
-    if subsidiary_id:
-        try:
-            subsidiary = Subsidiary.objects.get(id=subsidiary_id)
-        except Subsidiary.DoesNotExist:
-            pass
+    offers = Offer.objects.all() if subsidiary is None else Offer.objects.filter(subsidiary=subsidiary)
+    offers_qs = offers.filter(archived=False)
 
     data = []
     filtered_process = Process.objects.all()
@@ -1499,7 +1515,7 @@ def offers(request):
             "subsidiary": subsidiary,
             "subsidiaries": Subsidiary.objects.all(),
             "offers": offers_table,
-            "filter": offer_filter,
+            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -1508,8 +1524,16 @@ def offers(request):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
 def activity_summary(request):
-    process_filter = ProcessSummaryFilter(request.GET, queryset=Process.objects.all())
-    interview_filter = InterviewSummaryFilter(request.GET, queryset=Interview.objects.all())
+    subsidiary_filter = get_global_filter(request)
+    process_filter = ProcessSummaryFilter(
+        request.GET, queryset=subsidiary_filter.filter_queryset(Process.objects.all())
+    )
+    interview_filter = InterviewSummaryFilter(
+        request.GET,
+        queryset=Interview.objects.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
+        if subsidiary_filter.form.cleaned_data["subsidiary"]
+        else Interview.objects.all(),
+    )
 
     # Processes started in the timespan
     new_processes_total = process_filter.qs.count()
@@ -1558,7 +1582,7 @@ def activity_summary(request):
             start_date = process_filter.form.cleaned_data["last_state_change"].start
         if process_filter.form.cleaned_data["last_state_change"].stop:
             end_date = process_filter.form.cleaned_data["last_state_change"].stop
-    subsidiary = process_filter.form.cleaned_data["subsidiary"]
+    subsidiary = subsidiary_filter.form.cleaned_data["subsidiary"]
 
     source_data = (
         interview_filter.qs.filter(planned_date__isnull=False)
@@ -1627,6 +1651,7 @@ def activity_summary(request):
             "end": end_date,
             "plot_div": chart if chart else "",
             "subsidiaries": Subsidiary.objects.all(),
+            "subsidiaries_filter": subsidiary_filter,
         },
     )
 
@@ -1635,9 +1660,12 @@ def activity_summary(request):
 @require_http_methods(["GET"])
 def interviews_list(request):
     a_month_ago = timezone.now() - datetime.timedelta(days=30)
-    interview_filter = InterviewListFilter(
-        request.GET, queryset=Interview.objects.for_table(request.user).order_by("planned_date")
-    )
+
+    subsidiary_filter = get_global_filter(request)
+    itw_qs = Interview.objects.for_table(request.user)
+    if subsidiary_filter.form.cleaned_data["subsidiary"]:
+        itw_qs = itw_qs.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
+    interview_filter = InterviewListFilter(request.GET, queryset=itw_qs.order_by("planned_date"))
 
     # By default (if no filter data was sent in request), filter for
     #   - interviews of user's susidiary.
@@ -1668,6 +1696,7 @@ def interviews_list(request):
         "interviews_table": interviews_table,
         "filter": interview_filter,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/list_interviews.html", context)
