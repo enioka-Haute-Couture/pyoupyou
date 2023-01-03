@@ -38,7 +38,6 @@ class ProcessCandidateForm(forms.ModelForm):
         helper = FormHelper()
         exclude = ("anonymized", "anonymized_hashed_name", "anonymized_hashed_email")
 
-    # cv = forms.FileField(label="CV (pour une candidature)", required=False)
     cv = forms.FileField(label="CV (pour une candidature)", required=False, widget=UploadFilesWidget())
 
     helper = FormHelper()

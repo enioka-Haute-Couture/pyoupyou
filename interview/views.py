@@ -924,6 +924,7 @@ def edit_candidate(request, process_id):
         "source_form": source_form,
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
+        "documents": Document.objects.filter(candidate=candidate),
     }
     return render(request, "interview/new_candidate.html", data)
 
