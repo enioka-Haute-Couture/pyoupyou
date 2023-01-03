@@ -8,6 +8,7 @@ import dateutil.relativedelta
 import factory
 import pytz
 from django.conf import settings
+from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
@@ -95,6 +96,9 @@ class AccessRestrictionDateTestCase(TestCase):
         request = self.factory.get(
             reverse("process-details", kwargs={"process_id": self.p.id, "slug_info": f"_{self.p.candidate.name_slug}"})
         )
+        middleware = SessionMiddleware(request)
+        middleware.process_request(request)
+        request.session.save()
 
         request.user = self.consultantOld.user
         response = process(request, self.p.id)
@@ -138,6 +142,9 @@ class AccessRestrictionDateTestCase(TestCase):
 
     def test_view_interview_minute_form(self):
         request = self.factory.get(reverse("interview-minute-edit", kwargs={"interview_id": self.i.id}))
+        middleware = SessionMiddleware(request)
+        middleware.process_request(request)
+        request.session.save()
 
         request.user = self.consultantOld.user
         response = minute_edit(request, self.i.id)
@@ -157,6 +164,9 @@ class AccessRestrictionDateTestCase(TestCase):
                 },
             )
         )
+        middleware = SessionMiddleware(request)
+        middleware.process_request(request)
+        request.session.save()
 
         request.user = self.consultantOld.user
         response = minute(request, self.i.id)
@@ -181,6 +191,9 @@ class AccessRestrictionUserTestCase(TestCase):
 
     def test_only_assigned_user_can_edit_minute(self):
         request = self.factory.get(reverse("interview-minute-edit", kwargs={"interview_id": self.i.id}))
+        middleware = SessionMiddleware(request)
+        middleware.process_request(request)
+        request.session.save()
 
         request.user = self.consultantItw.user
         response = minute_edit(request, self.i.id)

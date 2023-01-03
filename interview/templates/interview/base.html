@@ -82,17 +82,12 @@
                         </ul>
                     </li>
                </ul>
+                {% if subsidiaries_filter %}
+                    <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();' style="float: right">
+                        {{ subsidiaries_filter.form|crispy }}
+                    </form>
+                {% endif %}
             </div><!--/.nav-collapse -->
-            {% if subsidiaries_filter %}
-                <div class="filters">
-                    <div class="form ">
-                        <form class="form-inline" style="position: relative" method="get">
-                            {{ subsidiaries_filter.form|crispy }}
-                            <input class="btn btn-default" type="submit" value="Filter" />
-                        </form>
-                    </div>
-                </div>
-            {% endif %}
         </div>
 
         {% block content %} {% endblock %}
