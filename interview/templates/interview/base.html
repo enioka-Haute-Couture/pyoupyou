@@ -81,14 +81,12 @@
                             <li><a href="{% url 'calendar_full' %}"> {% trans "All" %} </a></li>
                         </ul>
                     </li>
-                    {% if subsidiaries_filter %}
-                        <li>
-                            <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();'>
-                                {{ subsidiaries_filter.form|crispy }}
-                            </form>
-                        </li>
-                    {% endif %}
                </ul>
+                {% if subsidiaries_filter %}
+                    <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();' style="float: right">
+                        {{ subsidiaries_filter.form|crispy }}
+                    </form>
+                {% endif %}
             </div><!--/.nav-collapse -->
         </div>
 
