@@ -1,8 +1,8 @@
 {% load i18n %}
 {% autoescape off %}
 {% blocktrans with candidate=interview.process.candidate itws=interview.interviewers_str planned_date=interview.planned_date %}Interview for {{ candidate }} was planned with {{ itws }} ({{ planned_date }}){% endblocktrans %}
-{% if interview.goal %}
-Interview goal: {{ interview.goal }}
+{% if interview.get_goal %}
+Interview goal: {{ interview.get_goal }}
 {% endif %}
 {% endautoescape %}
 
