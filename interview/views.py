@@ -276,7 +276,6 @@ def process(request, process_id, slug_info=None):
         "goal": goal,
         "subsidiaries": Subsidiary.objects.all(),
         "others_process": ProcessLightTable(others_process),
-        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/process_detail.html", context)
 
@@ -334,7 +333,6 @@ def closed_processes(request):
         "title": _("Closed processes"),
         "table": closed_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -362,7 +360,6 @@ def processes_for_source(request, source_id):
         "title": source.name + " (" + source.category.name + ")",
         "table": processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -388,7 +385,6 @@ def processes_for_offer(request, offer_id):
         "title": offer.name + " (" + offer.subsidiary.name + ")",
         "table": processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/single_table.html", context)
@@ -418,7 +414,6 @@ def processes(request):
         "open_processes_table": open_processes_table,
         "recently_closed_processes_table": recently_closed_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
     return render(request, "interview/list_processes.html", context)
 
@@ -540,7 +535,6 @@ def new_candidate(request, past_candidate_id=None):
             "duplicates": duplicate_processes,
             "candidate": candidate,
             "subsidiaries": Subsidiary.objects.all(),
-            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -601,7 +595,6 @@ def interview(request, process_id=None, interview_id=None, action=None):
             "process": process,
             "subsidiaries": Subsidiary.objects.all(),
             "goal": goal,
-            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -645,7 +638,6 @@ def minute_edit(request, interview_id):
             "interview": interview,
             "subsidiaries": Subsidiary.objects.all(),
             "documents": DocumentInterview.objects.filter(interview=interview),
-            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -685,7 +677,6 @@ def minute(request, interview_id, slug_info=None):
         "subsidiaries": Subsidiary.objects.all(),
         "goal": goal,
         "document": interview.documentinterview_set.all(),
-        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/interview_minute.html", context)
 
@@ -730,7 +721,6 @@ def dashboard(request):
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": get_global_filter(request),
     }
 
     return render(request, "interview/dashboard.html", context)
@@ -848,7 +838,6 @@ def edit_candidate(request, process_id):
         "source_form": source_form,
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": get_global_filter(request),
     }
     return render(request, "interview/new_candidate.html", data)
 
@@ -1179,7 +1168,6 @@ def interviewers_load(request):
             "subsidiary": subsidiary,
             "subsidiaries": Subsidiary.objects.all(),
             "load_table": load_table,
-            "subsidiaries_filter": subsidiary_filter,
         },
     )
 
@@ -1202,7 +1190,6 @@ def search(request):
         "table": search_result,
         "search_query": q,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": get_global_filter(request),
     }
 
     return render(request, "interview/single_table.html", context)
@@ -1272,7 +1259,6 @@ def import_seekube(request):
         {
             "form": form,
             "subsidiaries": Subsidiary.objects.all(),
-            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -1347,7 +1333,6 @@ def gantt(request):
         "gantt": grant_chart,
         "filter": filter,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": get_global_filter(request),
     }
 
     return render(request, "interview/gantt.html", context)
@@ -1472,7 +1457,6 @@ def active_sources(request):
             "subsidiaries": Subsidiary.objects.all(),
             "sources": all_sources_table,
             "filter": sources_filter,
-            "subsidiaries_filter": subsidiary_filter,
         },
     )
 
@@ -1524,7 +1508,6 @@ def offers(request):
             "subsidiary": subsidiary,
             "subsidiaries": Subsidiary.objects.all(),
             "offers": offers_table,
-            "subsidiaries_filter": get_global_filter(request),
         },
     )
 
@@ -1660,7 +1643,6 @@ def activity_summary(request):
             "end": end_date,
             "plot_div": chart if chart else "",
             "subsidiaries": Subsidiary.objects.all(),
-            "subsidiaries_filter": subsidiary_filter,
         },
     )
 
@@ -1705,7 +1687,6 @@ def interviews_list(request):
         "interviews_table": interviews_table,
         "filter": interview_filter,
         "subsidiaries": Subsidiary.objects.all(),
-        "subsidiaries_filter": subsidiary_filter,
     }
 
     return render(request, "interview/list_interviews.html", context)
