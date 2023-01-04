@@ -1174,7 +1174,6 @@ def interviewers_load(request):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
 def search(request):
     q = request.GET.get("q", "")
 
