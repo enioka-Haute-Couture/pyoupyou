@@ -730,6 +730,7 @@ def dashboard(request):
         "related_processes_table": related_processes_table,
         "subsidiary_processes_table": subsidiary_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subsidiaries_filter": get_global_filter(request),
     }
 
     return render(request, "interview/dashboard.html", context)
@@ -1265,7 +1266,15 @@ def import_seekube(request):
                 print(e)
                 form.add_error(None, _("Processing seekube ics failed"))
 
-    return render(request, "interview/seekube_import.html", {"form": form, "subsidiaries": Subsidiary.objects.all()})
+    return render(
+        request,
+        "interview/seekube_import.html",
+        {
+            "form": form,
+            "subsidiaries": Subsidiary.objects.all(),
+            "subsidiaries_filter": get_global_filter(request),
+        },
+    )
 
 
 @login_required

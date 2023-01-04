@@ -1,8 +1,8 @@
 {% load i18n %}
 {% autoescape off %}
 {% blocktrans with itws=interview.interviewers_str candidate=interview.process.candidate%}{{ itws }} was assigned as {{  candidate }} interviewer(s).{% endblocktrans %}
-{% if interview.goal %}
-Interview goal: {{ interview.goal }}
+{% if interview.get_goal %}
+Interview goal: {{ interview.get_goal }}
 {% endif %}
 {% endautoescape %}
 {{ url }}
