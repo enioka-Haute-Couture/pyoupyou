@@ -1,7 +1,7 @@
-# v1.17.0 (xxxx-xx-xx)
+# v1.17.0 (2023-01-04)
 - Replace commonmark with markdown-it and remove django-markwhat dependency
 - Support python 3.10
-- Update some depdencies
+- Update dependencies
 - Remove suggested interviewer for interview
 - Add limited_to_source field to restrict access for external consultants
 - Add privilege field to consultant to implement access filtering

@@ -3,12 +3,13 @@ line-length = 120
 
 [tool.poetry]
 name = "pyoupyou"
-version = "1.14.0"
+version = "1.17.0"
 description = "ATS"
 authors = [
     "Benjamin Port <benjamin.port@enioka.com>",
     "Arnaud Chirat <arnaud.chirat@enioka.com>",
-    "Thomas Cordival <thomas.cordival@enioka.com"
+    "Thomas Cordival <thomas.cordival@enioka.com>",
+    "Arnaud Baradat <arnaud.baradat@enioka.com>",
 ]
 readme = "README.md"
 
