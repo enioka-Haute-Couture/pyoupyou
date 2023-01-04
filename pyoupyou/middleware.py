@@ -1,6 +1,7 @@
 from django.contrib.auth.middleware import RemoteUserMiddleware
 from django.http import HttpResponseForbidden
 
+from interview.views import get_global_filter
 from ref.models import Consultant
 
 
@@ -48,4 +49,5 @@ class GlobalSubsidiaryFilterMiddleware:
         get_req.setdefault("subsidiary", request.session["subsidiary"])
         request.GET = get_req
 
+        request.subsidiaries_filter = get_global_filter(request)
         return self.get_response(request)

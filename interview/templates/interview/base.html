@@ -82,11 +82,9 @@
                         </ul>
                     </li>
                </ul>
-                {% if subsidiaries_filter %}
-                    <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();' style="float: right">
-                        {{ subsidiaries_filter.form|crispy }}
-                    </form>
-                {% endif %}
+                <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();' style="float: right">
+                    {{ request.subsidiaries_filter.form|crispy }}
+                </form>
             </div><!--/.nav-collapse -->
         </div>
 
