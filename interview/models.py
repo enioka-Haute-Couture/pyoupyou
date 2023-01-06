@@ -19,7 +19,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 
 from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
-from ref.models import Consultant, Subsidiary
+from ref.models import Consultant, Subsidiary, PyouPyouUser
 
 CharField.register_lookup(Lower)
 
@@ -209,16 +209,13 @@ class Offer(models.Model):
 
 class ProcessManager(models.Manager):
     def for_user(self, user):
-        processes_where_user_is_interviewer = (
-            Interview.objects.all().filter(interviewers__in=[user.consultant]).values_list("process", flat=True)
-        )
         q = (
             super()
             .get_queryset()
             .filter(
                 Q(start_date__gte=user.date_joined)
                 | Q(responsible__in=[user.consultant])
-                | Q(id__in=processes_where_user_is_interviewer)
+                | Q(interview__interviewers__user=user)
             )
             .distinct()
         )
@@ -444,7 +441,7 @@ class Process(models.Model):
             )
 
     def get_all_interviewers_for_process(self):
-        return Interview.objects.filter(process=self).values_list("interviewers", flat=True)
+        return PyouPyouUser.objects.filter(consultant__interview__process=self)
 
 
 class InterviewKind(models.Model):
