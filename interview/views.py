@@ -246,8 +246,7 @@ def process(request, process_id, slug_info=None):
     except Process.DoesNotExist:
         return HttpResponseNotFound()
     interviews = (
-        Interview.objects.for_user(request.user)
-        .filter(process=process)
+        Interview.objects.filter(process=process)
         .select_related("process__candidate")
         .prefetch_related("interviewers__user")
     )
