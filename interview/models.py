@@ -209,10 +209,17 @@ class Offer(models.Model):
 
 class ProcessManager(models.Manager):
     def for_user(self, user):
+        processes_where_user_is_interviewer = (
+            Interview.objects.all().filter(interviewers__in=[user.consultant]).values_list("process", flat=True)
+        )
         q = (
             super()
             .get_queryset()
-            .filter(Q(start_date__gte=user.date_joined) | Q(responsible__in=[user.consultant]))
+            .filter(
+                Q(start_date__gte=user.date_joined)
+                | Q(responsible__in=[user.consultant])
+                | Q(id__in=processes_where_user_is_interviewer)
+            )
             .distinct()
         )
         if user.consultant.is_external:
@@ -435,6 +442,9 @@ class Process(models.Model):
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
+
+    def get_all_interviewers_for_process(self):
+        return Interview.objects.filter(process=self).values_list("interviewers", flat=True)
 
 
 class InterviewKind(models.Model):
