@@ -1,5 +1,6 @@
 from django.contrib.auth.middleware import RemoteUserMiddleware
 from django.http import HttpResponseForbidden
+from django.urls import resolve
 
 from interview.views import get_global_filter
 from ref.models import Consultant
@@ -43,11 +44,13 @@ class GlobalSubsidiaryFilterMiddleware:
                 subsidiary_id = ""
             request.session["subsidiary"] = subsidiary_id
 
-        # update current request.GET to match global filter
-        # this is useful to automatically apply the filter on views that previously had a filter
-        get_req = request.GET.copy()
-        get_req.setdefault("subsidiary", request.session["subsidiary"])
-        request.GET = get_req
+        # altering request.GET makes django-admin inaccessible
+        if resolve(request.path_info).namespace not in ("admin",):
+            # update current request.GET to match global filter
+            # this is useful to automatically apply the filter on views that previously had a filter
+            get_req = request.GET.copy()
+            get_req.setdefault("subsidiary", request.session["subsidiary"])
+            request.GET = get_req
 
         request.subsidiaries_filter = get_global_filter(request)
         return self.get_response(request)
