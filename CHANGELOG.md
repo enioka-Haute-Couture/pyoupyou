@@ -1,3 +1,6 @@
+# V1.17.1 (xxxx-xx-xx)
+- Fix a bug where older linked process would be hidden to consultant after completing an interview's minute
+
 # v1.17.0 (2023-01-04)
 - Replace commonmark with markdown-it and remove django-markwhat dependency
 - Support python 3.10
