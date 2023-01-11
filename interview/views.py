@@ -1394,7 +1394,9 @@ def active_sources(request):
 
     sources_filter = ActiveSourcesFilter(
         request_get,
-        queryset=Sources.objects.all() if subsidiary is None else Sources.objects.filter(name=subsidiary.name),
+        queryset=Sources.objects.all()
+        if subsidiary is None
+        else Sources.objects.filter(process__subsidiary=subsidiary).distinct(),
     )
     sources_qs = sources_filter.qs
 
