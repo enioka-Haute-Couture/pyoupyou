@@ -1677,7 +1677,16 @@ def interviews_list(request):
     if interview_filter.data.get("interviewer", None):
         interviews_not_planned = interviews_not_planned.filter(interviewers=interview_filter.data["interviewer"])
 
-    interviews_table = InterviewDetailTable(list(interview_filter.qs) + list(interviews_not_planned), prefix="i")
+    # Only display planned interviews in the interviews list page iff the user has selected an end date
+    state_filter = interview_filter.data.get("state", "")
+    itw_filter_qs = interview_filter.qs
+    if interview_filter.data.get("last_state_change_before", "") and state_filter not in ["PR", "NP"]:
+        itw_filter_qs = itw_filter_qs.exclude(
+            Q(state=Interview.WAITING_PLANIFICATION) | Q(state=Interview.WAITING_PLANIFICATION_RESPONSE)
+        )
+        interviews_not_planned = []
+
+    interviews_table = InterviewDetailTable(list(itw_filter_qs) + list(interviews_not_planned), prefix="i")
 
     config = RequestConfig(request)
     config.configure(interviews_table)
