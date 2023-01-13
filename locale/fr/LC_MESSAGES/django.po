@@ -598,10 +598,6 @@ msgstr "Terminer ce processus"
 msgid "Reopen this process"
 msgstr "Ouvrir ce processus à nouveau"
 
-#: interview/templates/interview/seekube_import.html:9
-msgid "Import seekube ics"
-msgstr "Importer un fichier ics seekube"
-
 #: interview/templates/interview/select_or_create_source.html:5
 msgid "Add sources"
 msgstr "Ajouter des sources"
@@ -701,10 +697,6 @@ msgstr "À planifier"
 #, python-brace-format
 msgid "Search result for \"{q}\""
 msgstr "Résultats de recherche pour \"{q}\""
-
-#: interview/views.py:1255
-msgid "Processing seekube ics failed"
-msgstr "Erreur lors du traitement du fichier ics seekube"
 
 #: interview/views.py:1337
 msgid "Type"
