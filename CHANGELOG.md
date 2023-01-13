@@ -1,3 +1,6 @@
+# v1.18.0 (xxx-xx-xx)
+- Remove seekube ics import
+
 # V1.17.1 (2023-01-09)
 - Fix a bug where older linked process would be hidden to consultant after completing an interview's minute
 - Fix a bug where global subsidiary filter would break django admin
