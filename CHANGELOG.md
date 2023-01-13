@@ -1,3 +1,6 @@
+# v1.18.0 (xxxx-xx-xx)
+- Fix a bug where processes with a pending proposition where considered to be closed
+
 # V1.17.1 (2023-01-09)
 - Fix a bug where older linked process would be hidden to consultant after completing an interview's minute
 - Fix a bug where global subsidiary filter would break django admin
@@ -20,7 +23,6 @@
 - Add goal to new interview mail notification
 - Fix a bug where non-unique subsidiary codes could be created by its factory
 - Fix a bug where an interviewer was unable to see linked processes older than him
-- Fix a bug where processes with a pending proposition where considered to be closed
 
 # v1.16.0 (2022-11-14)
 - More refined factories
