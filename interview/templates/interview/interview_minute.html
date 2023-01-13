@@ -9,6 +9,12 @@
     <div class="lead">
         {% trans "Interview minute" %} <a href="{{ process.get_absolute_url }}"> {% trans "for process" %}</a> {% trans "concerning" %} <a href="{% url 'candidate' process.pk %}"> {{ process.candidate.display_name }} </a> {% trans "for subsidiary" %} {{ process.subsidiary.name }}
     </div>
+    {% if interview.prequalification %}
+        <span style="padding: 5px;background-color:#e7cbf5;" class="img-rounded">
+            <span class="glyphicon glyphicon-info-sign"></span>
+            <strong>{% trans "Prequalification" %}</strong>
+        </span>
+    {% endif %}
     <h3>{% trans "Interviewer" %}</h3>
     <ul>
         {% for interviewer in interview.interviewers.all %}

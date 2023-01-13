@@ -172,14 +172,6 @@ class ProcessLightTable(ProcessTable):
         exclude = ("needs_attention", "current_rank", "candidate", "responsible", "start_date", "contract_type")
 
 
-def get_state_color(record):
-    if record.needs_attention:
-        return "danger"
-    elif record.prequalification:
-        return "info"
-    return None
-
-
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
     interviewers = tables.TemplateColumn(
@@ -206,7 +198,10 @@ class InterviewTable(tables.Table):
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
-        row_attrs = {"class": get_state_color}
+        row_attrs = {
+            "class": lambda record: "danger" if record.needs_attention else None,
+            "style": lambda record: "background-color: #e7cbf5;" if record.prequalification else None,
+        }
 
 
 class InterviewDetailTable(InterviewTable):
