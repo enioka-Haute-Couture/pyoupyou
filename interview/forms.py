@@ -9,19 +9,20 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, Column, Field
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
-from interview.models import Consultant, Interview, Candidate, Process, Sources, Offer
+from interview.models import Interview, Candidate, Process, Sources, Offer
+from ref.models import PyouPyouUser
 
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
-    model = Consultant
-    queryset = Consultant.objects.filter(user__is_active=True)
-    search_fields = ["user__trigramme__icontains", "user__full_name__icontains"]
+    model = PyouPyouUser
+    queryset = PyouPyouUser.objects.filter(is_active=True)
+    search_fields = ["trigramme__icontains", "full_name__icontains"]
 
 
 class SingleConsultantWidget(ModelSelect2Widget):
-    model = Consultant
-    queryset = Consultant.objects.filter(user__is_active=True)
-    search_fields = ["user__trigramme__icontains", "user__full_name__icontains"]
+    model = PyouPyouUser
+    queryset = PyouPyouUser.objects.filter(is_active=True)
+    search_fields = ["trigramme__icontains", "full_name__icontains"]
 
 
 class SourcesWidget(ModelSelect2Widget):

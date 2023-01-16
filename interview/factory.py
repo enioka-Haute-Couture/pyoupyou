@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 from interview.models import Interview, Sources, SourcesCategory, ContractType, InterviewKind, Process
 from ref.factory import SubsidiaryFactory
-from ref.models import Subsidiary, Consultant
+from ref.models import Subsidiary, PyouPyouUser
 
 
 test_tz = pytz.timezone("Europe/Paris")
@@ -49,12 +49,12 @@ def negative_end_process(process, itw, next_planned_date):
 
 def get_available_consultants_for_itw(subsidiary, all_itw_given_process):
     # retrieve available consultants that have not yet been involved in the process
-    possible_interviewer = Consultant.objects.filter(company=subsidiary).exclude(
+    possible_interviewer = PyouPyouUser.objects.filter(company=subsidiary).exclude(
         id__in=list(all_itw_given_process.values_list("interviewers", flat=True))
     )
     # if all consultants were already involved in the process, choose one at random
     if not possible_interviewer:
-        possible_interviewer = Consultant.objects.filter(company=subsidiary)
+        possible_interviewer = PyouPyouUser.objects.filter(company=subsidiary)
 
     return possible_interviewer
 

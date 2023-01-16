@@ -19,7 +19,7 @@
     </div>
     <div class="panel panel-primary">
         <div class="panel-heading">
-            <div class="panel-title">{% blocktrans with subsidiary=user.consultant.company %} {{subsidiary}} processes{% endblocktrans %}</div>
+            <div class="panel-title">{% blocktrans with subsidiary=user.company %} {{subsidiary}} processes{% endblocktrans %}</div>
         </div>
         {% render_table subsidiary_processes_table  %}
     </div>
