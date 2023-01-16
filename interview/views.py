@@ -281,7 +281,12 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def close_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -299,7 +304,12 @@ def close_process(request, process_id):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def reopen_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
