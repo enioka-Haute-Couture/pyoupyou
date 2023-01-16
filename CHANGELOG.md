@@ -1,4 +1,4 @@
-# V1.17.2 (xxxx-xx-xx)
+# V1.17.2 (2023-01-16)
 - Fix a bug where global subsidiary filter would yield no result on active source page
 - Current filtering of page is now kept when using global subsidiary filter
 - Add another privilege level to allow external consultants to close a process
