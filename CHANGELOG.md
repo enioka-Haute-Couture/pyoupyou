@@ -2,6 +2,11 @@
 - Add prequalification info on interview minute
 - Update prequalification color in process details
 
+# V1.17.2 (2023-01-16)
+- Fix a bug where global subsidiary filter would yield no result on active source page
+- Current filtering of page is now kept when using global subsidiary filter
+- Add another privilege level to allow external consultants to close a process
+
 # V1.17.1 (2023-01-09)
 - Fix a bug where older linked process would be hidden to consultant after completing an interview's minute
 - Fix a bug where global subsidiary filter would break django admin
