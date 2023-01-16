@@ -281,7 +281,12 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def close_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -299,7 +304,12 @@ def close_process(request, process_id):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def reopen_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -418,7 +428,13 @@ def processes(request):
 
 
 @require_http_methods(["POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def reuse_candidate(request, candidate_id):
     return new_candidate(request, candidate_id)
 
@@ -474,7 +490,13 @@ def new_candidate_POST_handler(
     return False, duplicate_processes
 
 
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def new_candidate(request, past_candidate_id=None):
     duplicate_processes = None
     candidate = None
@@ -540,7 +562,13 @@ def new_candidate(request, past_candidate_id=None):
 
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -599,7 +627,13 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -796,7 +830,13 @@ def delete_account(request, trigramme):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def edit_candidate(request, process_id):
     try:
         process = Process.objects.for_user(request.user).select_related("candidate").get(id=process_id)
