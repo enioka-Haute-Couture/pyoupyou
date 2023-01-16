@@ -1,6 +1,6 @@
 import django_filters
 
-from interview.models import Process
+from interview.models import Process, Interview
 from ref.models import Subsidiary, Consultant
 from django.utils.translation import ugettext_lazy as _
 
@@ -24,6 +24,7 @@ class InterviewListFilter(django_filters.FilterSet):
     interviewer = django_filters.ModelChoiceFilter(
         queryset=Consultant.objects.filter(user__is_active=True).select_related("user"), field_name="interviewers"
     )
+    state = django_filters.ChoiceFilter(choices=Interview.ITW_STATE, field_name="state", empty_label=_("All states"))
 
 
 class ActiveSourcesFilter(django_filters.FilterSet):
