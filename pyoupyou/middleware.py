@@ -3,7 +3,7 @@ from django.http import HttpResponseForbidden
 from django.urls import resolve
 
 from interview.views import get_global_filter
-from ref.models import Consultant
+from ref.models import PyouPyouUser
 
 
 class ProxyRemoteUserMiddleware(RemoteUserMiddleware):
@@ -18,8 +18,8 @@ class ExternalCheckMiddleware:
     def __call__(self, request):
         if (
             request.user.is_authenticated
-            and request.user.consultant.privilege != Consultant.PrivilegeLevel.ALL
-            and request.user.consultant.limited_to_source is None
+            and request.user.privilege != PyouPyouUser.PrivilegeLevel.ALL
+            and request.user.limited_to_source is None
         ):
             return HttpResponseForbidden(content=self.forbidden_content)
 

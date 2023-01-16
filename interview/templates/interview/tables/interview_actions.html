@@ -1,5 +1,5 @@
 {% load i18n %}
-<a class="btn btn-info btn-xs row-action" href="{% if user.consultant in record.interviewers.all and not record.minute%}
+<a class="btn btn-info btn-xs row-action" href="{% if user in record.interviewers.all and not record.minute%}
                                                 {% url 'interview-minute-edit' interview_id=record.pk %}
                                                 {% else %}
                                                 {{ record.get_absolute_url }}

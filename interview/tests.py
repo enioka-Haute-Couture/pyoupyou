@@ -30,9 +30,8 @@ from interview.factory import (
 from interview.models import Process, Document, Interview, Offer
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from pyoupyou.middleware import ExternalCheckMiddleware
-from ref.factory import SubsidiaryFactory, ConsultantFactory
-from ref.models import Consultant, PyouPyouUser
-from ref.models import Consultant, Subsidiary
+from ref.factory import SubsidiaryFactory, PyouPyouUserFactory
+from ref.models import PyouPyouUser, Subsidiary
 
 from django.conf import settings
 from django.utils.translation import activate
@@ -70,14 +69,14 @@ class AccessRestrictionDateTestCase(TestCase):
         self.factory = RequestFactory()
 
         sub = SubsidiaryFactory()
-        self.consultantOld = Consultant.objects.create_consultant("OLD", "old@mail.com", sub, "OLD")
+        self.consultantOld = PyouPyouUser.objects.create_user("OLD", "old@mail.com", "OLD", company=sub)
         sub.responsible = self.consultantOld
         sub.responsible.save()
-        userOld = self.consultantOld.user
+        userOld = self.consultantOld
         userOld.date_joined = datetime.datetime(2016, 1, 1, tzinfo=datetime.timezone.utc)
         userOld.save()
-        self.consultantNew = Consultant.objects.create_consultant("NEW", "new@mail.com", sub, "NEW")
-        userNew = self.consultantNew.user
+        self.consultantNew = PyouPyouUser.objects.create_user("NEW", "new@mail.com", "NEW", company=sub)
+        userNew = self.consultantNew
         userNew.date_joined = datetime.datetime(2017, 11, 1, tzinfo=datetime.timezone.utc)
         userNew.save()
 
@@ -96,25 +95,25 @@ class AccessRestrictionDateTestCase(TestCase):
         middleware.process_request(request)
         request.session.save()
 
-        request.user = self.consultantOld.user
+        request.user = self.consultantOld
         response = process(request, self.p.id)
         self.assertEqual(response.status_code, 200)
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = process(request, self.p.id)
         self.assertEqual(response.status_code, 404)
 
     def test_view_close_process(self):
         request = self.factory.post(reverse("process-close", kwargs={"process_id": self.p.id}))
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = close_process(request, self.p.id)
         self.assertEqual(response.status_code, 404)
 
     def test_view_reopen_process(self):
         request = self.factory.get(reverse("process-reopen", kwargs={"process_id": self.p.id}))
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = reopen_process(request, self.p.id)
         self.assertEqual(response.status_code, 404)
 
@@ -123,7 +122,7 @@ class AccessRestrictionDateTestCase(TestCase):
             reverse("interview-plan", kwargs={"process_id": self.p.id, "interview_id": self.i.id})
         )
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = interview(request, self.p.id, self.i.id, "plan")
         self.assertEqual(response.status_code, 404)
 
@@ -132,7 +131,7 @@ class AccessRestrictionDateTestCase(TestCase):
             reverse("interview-edit", kwargs={"process_id": self.p.id, "interview_id": self.i.id})
         )
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = interview(request, self.p.id, self.i.id, "edit")
         self.assertEqual(response.status_code, 404)
 
@@ -142,11 +141,11 @@ class AccessRestrictionDateTestCase(TestCase):
         middleware.process_request(request)
         request.session.save()
 
-        request.user = self.consultantOld.user
+        request.user = self.consultantOld
         response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 200)
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 404)
 
@@ -164,11 +163,11 @@ class AccessRestrictionDateTestCase(TestCase):
         middleware.process_request(request)
         request.session.save()
 
-        request.user = self.consultantOld.user
+        request.user = self.consultantOld
         response = minute(request, self.i.id)
         self.assertEqual(response.status_code, 200)
 
-        request.user = self.consultantNew.user
+        request.user = self.consultantNew
         response = minute(request, self.i.id)
         self.assertEqual(response.status_code, 404)
 
@@ -178,8 +177,8 @@ class AccessRestrictionUserTestCase(TestCase):
         self.factory = RequestFactory()
 
         sub = SubsidiaryFactory()
-        self.consultantItw = Consultant.objects.create_consultant("ITW", "itw@mail.com", sub, "ITW")
-        self.consultantRestricted = Consultant.objects.create_consultant("RES", "res@mail.com", sub, "RES")
+        self.consultantItw = PyouPyouUser.objects.create_user("ITW", "itw@mail.com", "ITW", company=sub)
+        self.consultantRestricted = PyouPyouUser.objects.create_user("RES", "res@mail.com", "RES", company=sub)
 
         self.p = ProcessFactory()
         self.i = InterviewFactory(process=self.p)
@@ -191,11 +190,11 @@ class AccessRestrictionUserTestCase(TestCase):
         middleware.process_request(request)
         request.session.save()
 
-        request.user = self.consultantItw.user
+        request.user = self.consultantItw
         response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 200)
 
-        request.user = self.consultantRestricted.user
+        request.user = self.consultantRestricted
         response = minute_edit(request, self.i.id)
         self.assertEqual(response.status_code, 404)
 
@@ -203,10 +202,10 @@ class AccessRestrictionUserTestCase(TestCase):
 class StatusAndNotificationTestCase(TestCase):
     def test_status_and_notification(self):
         subsidiary = SubsidiaryFactory()
-        subsidiaryResponsible = ConsultantFactory(company=subsidiary)
+        subsidiaryResponsible = PyouPyouUserFactory(company=subsidiary)
         subsidiary.responsible = subsidiaryResponsible
         subsidiary.save()
-        interviewer = ConsultantFactory(company=subsidiary)
+        interviewer = PyouPyouUserFactory(company=subsidiary)
 
         # When we create a process
         # Process state will be: WAITING_INTERVIEWER_TO_BE_DESIGNED
@@ -216,7 +215,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email])
         mail.outbox = []
 
         # When we create an interview
@@ -231,7 +230,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email, interviewer.email])
         mail.outbox = []
 
         # After interview planification
@@ -247,7 +246,7 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email, interviewer.email])
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
@@ -272,7 +271,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(i1.state, Interview.GO)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email])
         mail.outbox = []
 
         # After we go for a job offer
@@ -285,7 +284,7 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(Process.objects.get(id=p.id).state, Process.JOB_OFFER)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email])
         mail.outbox = []
 
         # After we hired the candidate or we didn't hired him (can be our offer is refused by the candidate for example)
@@ -297,12 +296,12 @@ class StatusAndNotificationTestCase(TestCase):
 
         self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
         self.assertEqual(list(p.responsible.all()), [])
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email])
         mail.outbox = []
 
     def test_informed_user_notification(self):
         subsidiary = SubsidiaryFactory()
-        subsidiaryResponsible = ConsultantFactory(company=subsidiary)
+        subsidiaryResponsible = PyouPyouUserFactory(company=subsidiary)
         subsidiary.responsible = subsidiaryResponsible
         subsidiary.save()
 
@@ -311,11 +310,11 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
         self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
         self.assertEqual(len(mail.outbox), 1)
-        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.email])
         mail.outbox = []
 
-        interviewer = ConsultantFactory(company=subsidiary)
-        u1 = ConsultantFactory(
+        interviewer = PyouPyouUserFactory(company=subsidiary)
+        u1 = PyouPyouUserFactory(
             company=p.subsidiary
         )  # create another consultant that will be subscribed to subsidiary emails
         subsidiary.informed.add(u1)
@@ -330,17 +329,19 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         # assert u1 is also in the recipients
         self.assertCountEqual(
-            mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email, u1.user.email]
+            mail.outbox[0].to,
+            [subsidiaryResponsible.email, interviewer.email, u1.email],
+            "DEBUG::EMAIL: {},{}".format(mail.outbox[0].to, [subsidiaryResponsible.email, interviewer.email, u1.email]),
         )
         mail.outbox = []
 
     def test_process_subscription_notification(self):
         subsidiary = SubsidiaryFactory()
         p = ProcessFactory(subsidiary=subsidiary)
-        u1 = ConsultantFactory(company=p.subsidiary)
-        u2 = ConsultantFactory(company=p.subsidiary)
+        u1 = PyouPyouUserFactory(company=p.subsidiary)
+        u2 = PyouPyouUserFactory(company=p.subsidiary)
 
-        p.subscribers.add(u1.user)
+        p.subscribers.add(u1)
 
         # change processs status to trigger mail notification
         p.state = Process.HIRED
@@ -349,13 +350,13 @@ class StatusAndNotificationTestCase(TestCase):
         # assert only one email was sent
         self.assertEqual(len(mail.outbox), 1)
         # assert it was sent to subscribed user
-        self.assertEqual(mail.outbox[0].to, [u1.user.email])
+        self.assertEqual(mail.outbox[0].to, [u1.email])
         # reset outbox
         mail.outbox = []
 
         # change subscribers
-        p.subscribers.remove(u1.user)
-        p.subscribers.add(u2.user)
+        p.subscribers.remove(u1)
+        p.subscribers.add(u2)
         p.save()
 
         # change processs status to trigger mail notification
@@ -365,7 +366,7 @@ class StatusAndNotificationTestCase(TestCase):
         # assert only one email was sent
         self.assertEqual(len(mail.outbox), 1)
         # assert it was sent to subscribed user
-        self.assertEqual(mail.outbox[0].to, [u2.user.email])
+        self.assertEqual(mail.outbox[0].to, [u2.email])
         mail.outbox = []
 
 
@@ -374,9 +375,9 @@ class AnonymizesCandidateTestCase(TestCase):
         self.factory = RequestFactory()
 
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = Consultant.objects.create_consultant("ITW", "itw@mail.com", self.subsidiary, "ITW")
+        self.consultant = PyouPyouUser.objects.create_user("ITW", "itw@mail.com", "ITW", company=self.subsidiary)
 
-        self.subsidiary.responsible = ConsultantFactory(company=self.subsidiary)
+        self.subsidiary.responsible = PyouPyouUserFactory(company=self.subsidiary)
         self.subsidiary.save()
 
         self.p = ProcessFactory(subsidiary=self.subsidiary)
@@ -539,7 +540,7 @@ class AnonymizesCandidateTestCase(TestCase):
         anonymized_candidate = Candidate.objects.first()
         self.assertTrue(anonymized_candidate.anonymized)
 
-        self.user = self.consultant.user
+        self.user = self.consultant
         self.client.force_login(user=self.user)
 
         response = self.client.post(
@@ -569,7 +570,7 @@ class AnonymizesCandidateTestCase(TestCase):
             self.assertEquals(interview_i.minute, "")
 
     def test_duplicate_reuse_candidate_prevent_merge_empty_form_value(self):
-        self.user = self.consultant.user
+        self.user = self.consultant
         self.client.force_login(user=self.user)
 
         form_data_set = [
@@ -643,11 +644,10 @@ class HomeViewTestCase(TestCase):
     def test_dashboard_logged_in(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(company=subsidiary)
-        user = consultant.user
+        consultant = PyouPyouUserFactory(company=subsidiary)
 
         # log user in
-        self.client.force_login(user=user)
+        self.client.force_login(user=consultant)
 
         # access dashboard
         response = self.client.get(self.url)
@@ -664,11 +664,10 @@ class HomeViewTestCase(TestCase):
     def test_dashboard_no_data(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(company=subsidiary)
-        user = consultant.user
+        consultant = PyouPyouUserFactory(company=subsidiary)
 
         # log user in
-        self.client.force_login(user=user)
+        self.client.force_login(user=consultant)
 
         # access dashboard
         response = self.client.get(self.url)
@@ -690,8 +689,7 @@ class HomeViewTestCase(TestCase):
     def test_dashboard_with_data(self):
         # create a consultant
         subsidiary = SubsidiaryFactory()
-        consultant = ConsultantFactory(subsidiary=subsidiary.id)
-        user = consultant.user
+        consultant = PyouPyouUserFactory(subsidiary=subsidiary.id)
 
         # create 1 process in actions_needed_processes_table & in related_process_table
         p1 = ProcessFactory()
@@ -712,7 +710,7 @@ class HomeViewTestCase(TestCase):
         ProcessFactory(subsidiary=subsidiary)
 
         # log user in
-        self.client.force_login(user=user)
+        self.client.force_login(user=consultant)
 
         # access dashboard
         response = self.client.get(self.url)
@@ -748,8 +746,7 @@ class ProcessCreationViewTestCase(TestCase):
 
         # create a consultant
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(company=self.subsidiary)
-        self.user = self.consultant.user
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
         self.fake = faker.Faker()
 
@@ -761,7 +758,7 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_process_creation_logged_in(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process creation view
         response = self.client.get(self.url)
@@ -775,7 +772,7 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_assert_all_needed_forms_are_displayed(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access dashboard
         response = self.client.get(self.url)
@@ -798,7 +795,7 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_form_submit_with_least_data(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         candidate_name = self.fake.name()
         response = self.client.post(
@@ -821,7 +818,7 @@ class ProcessCreationViewTestCase(TestCase):
 
     def test_form_submit_with_full_data(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         candidate_name = self.fake.name()
         candidate_mail = f"{slugify(candidate_name)}@mail.com"
@@ -866,9 +863,100 @@ class ProcessCreationViewTestCase(TestCase):
             p.get_absolute_url(),
         )
 
+    def test_correct_display_of_existing_candidate(self):
+        # log user in
+        self.client.force_login(user=self.consultant)
+
+        # create a new candidate
+        candidate_name = self.fake.name()
+        process_sub = self.subsidiary
+        offer = OfferFactory()
+        response = self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        # assert the candidate was correctly created
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response,
+            p.get_absolute_url(),
+        )
+
+        # same call
+        response = self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.context["duplicates"])
+
+    def test_form_submit_reusing_candidate(self):
+        # log user in
+        self.client.force_login(user=self.consultant)
+
+        # create a new candidate
+        candidate_name = self.fake.name()
+        process_sub = self.subsidiary
+        offer = OfferFactory()
+        response = self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        # assert the candidate was correctly created
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(response, p.get_absolute_url())
+
+        new_offer = OfferFactory()
+
+        response = self.client.post(
+            path=reverse(views.reuse_candidate, kwargs={"candidate_id": p.candidate.id}),
+            data={
+                "name": candidate_name,
+                "subsidiary": process_sub.id,
+                "offer": new_offer.id,
+                "email": "",
+                "phone": "",
+                "reuse-candidate": "",
+            },
+            follow=True,
+        )
+
+        process_for_candidate = Process.objects.filter(candidate__name=candidate_name)
+        self.assertEqual(process_for_candidate.count(), 2)
+        p = Process.objects.filter(candidate__name=candidate_name).last()
+        self.assertIsNotNone(p)
+        self.assertRedirects(response, p.get_absolute_url())
+
+        self.assertEqual(process_for_candidate[0].candidate.id, process_for_candidate[1].candidate.id)
+
     def test_edit_existing_candidate(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # create a new candidate
         candidate_name = self.fake.name()
@@ -924,104 +1012,12 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertTrue(candidate_name, response_edit_candidate.context["process"].candidate.name)
         self.assertEqual(empty_linkedin_url, response_edit_candidate.context["process"].candidate.linkedin_url)
 
-    def test_correct_display_of_existing_candidate(self):
-        # log user in
-        self.client.force_login(user=self.user)
-
-        # create a new candidate
-        candidate_name = self.fake.name()
-        process_sub = self.subsidiary
-        offer = OfferFactory()
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
-        )
-
-        # assert the candidate was correctly created
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            p.get_absolute_url(),
-        )
-
-        # same call
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-            },
-            follow=True,
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(response.context["duplicates"])
-
-    def test_form_submit_reusing_candidate(self):
-        # log user in
-        self.client.force_login(user=self.user)
-
-        # create a new candidate
-        candidate_name = self.fake.name()
-        process_sub = self.subsidiary
-        offer = OfferFactory()
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
-        )
-
-        # assert the candidate was correctly created
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(response, p.get_absolute_url())
-
-        new_offer = OfferFactory()
-
-        response = self.client.post(
-            path=reverse(views.reuse_candidate, kwargs={"candidate_id": p.candidate.id}),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": new_offer.id,
-                "email": "",
-                "phone": "",
-                "reuse-candidate": "",
-            },
-            follow=True,
-        )
-
-        process_for_candidate = Process.objects.filter(candidate__name=candidate_name)
-        self.assertEqual(process_for_candidate.count(), 2)
-        p = Process.objects.filter(candidate__name=candidate_name).last()
-        self.assertIsNotNone(p)
-        self.assertRedirects(response, p.get_absolute_url())
-
-        self.assertEqual(process_for_candidate[0].candidate.id, process_for_candidate[1].candidate.id)
-
 
 class ProcessDetailsViewTestCase(TestCase):
     def setUp(self):
         # create a process
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(company=self.subsidiary)
-        self.user = self.consultant.user
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
         self.process = ProcessFactory(
             subsidiary=self.subsidiary,
             contract_type=ContractTypeFactory(),
@@ -1042,7 +1038,7 @@ class ProcessDetailsViewTestCase(TestCase):
 
     def test_process_details_logged_in(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process details
         response = self.client.get(self.url)
@@ -1056,7 +1052,7 @@ class ProcessDetailsViewTestCase(TestCase):
 
     def test_process_details_info_display(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process details
         response = self.client.get(self.url)
@@ -1113,7 +1109,7 @@ class ProcessDetailsViewTestCase(TestCase):
         self.setUp()
 
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # add an interview
         itw1 = InterviewFactory(process=self.process, kind_of_interview=InterviewKindFactory())
@@ -1147,8 +1143,7 @@ class ProcessDetailsViewTestCase(TestCase):
 class InterviewMinuteViewTestCase(TestCase):
     def setUp(self):
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(company=self.subsidiary)
-        self.user = self.consultant.user
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
         self.process = ProcessFactory(
             subsidiary=self.subsidiary,
             contract_type=ContractTypeFactory(),
@@ -1184,7 +1179,7 @@ class InterviewMinuteViewTestCase(TestCase):
 
     def test_interview_minute_logged_in(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process creation view
         response = self.client.get(self.url_minute)
@@ -1198,7 +1193,7 @@ class InterviewMinuteViewTestCase(TestCase):
 
     def test_interview_minute_edit_logged_in(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process creation view
         response = self.client.get(self.url_edit)
@@ -1212,7 +1207,7 @@ class InterviewMinuteViewTestCase(TestCase):
 
     def test_interview_minute_display(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process creation view
         response = self.client.get(self.url_minute)
@@ -1240,7 +1235,7 @@ class InterviewMinuteViewTestCase(TestCase):
 
     def test_interview_minute_edit_display(self):
         # log user in
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.consultant)
 
         # access process creation view
         response = self.client.get(self.url_edit)
@@ -1274,12 +1269,12 @@ class PrivilegeLevelTestCase(TestCase):
         self.subsidiary = SubsidiaryFactory()
         self.source = SourcesFactory(category=SourcesCategoryFactory())
 
-        self.consultant = Consultant.objects.create_consultant("TST", "test@mail.com", self.subsidiary, "test")
-        self.consultant.user.date_joined -= relativedelta(
+        self.consultant = PyouPyouUser.objects.create_user("TST", "test@mail.com", "test", company=self.subsidiary)
+        self.consultant.date_joined -= relativedelta(
             years=2
         )  # make sure our consultant can see all the process we create
         self.consultant.limited_to_source = self.source
-        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
+        self.consultant.privilege = PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL
         self.consultant.save()
 
         self.offer = OfferFactory(subsidiary=self.subsidiary)
@@ -1294,7 +1289,7 @@ class PrivilegeLevelTestCase(TestCase):
         )
 
         # log user in
-        self.client.force_login(self.consultant.user)
+        self.client.force_login(self.consultant)
 
     def test_dashboard_display(self):
         response = self.client.get(reverse(views.dashboard))
@@ -1324,19 +1319,18 @@ class PrivilegeLevelTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_ical_feed(self):
-        response = self.client.get(reverse("calendar_full", kwargs={"token": self.consultant.user.token}))
+        response = self.client.get(reverse("calendar_full", kwargs={"token": self.consultant.token}))
         self.assertEqual(response.status_code, 401)
 
 
 class MiddlewareTestCase(TestCase):
     def setUp(self):
         self.subsidiary = SubsidiaryFactory()
-        self.user = PyouPyouUser.objects.create_user("tst")
         # set privilege level but not limited_to_source
-        self.consultant = ConsultantFactory(company=self.subsidiary, user=self.user)
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
         self.url = reverse(views.dashboard)
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
 
     def test_access_all_privilege(self):
         # limited_to_source = None; privilege = 1;
@@ -1346,7 +1340,7 @@ class MiddlewareTestCase(TestCase):
 
     def test_access_external_no_source(self):
         # limited_to_source = None; privilege =  2 || 3;
-        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
+        self.consultant.privilege = PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL
         self.consultant.save()
 
         response = self.client.get(self.url)
@@ -1355,7 +1349,7 @@ class MiddlewareTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertInHTML(needle="Please contact your system administrator", haystack=str(response.content))
 
-        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_READONLY
+        self.consultant.privilege = PyouPyouUser.PrivilegeLevel.EXTERNAL_READONLY
         self.consultant.save()
 
         response = self.client.get(self.url)
@@ -1367,7 +1361,7 @@ class MiddlewareTestCase(TestCase):
     def test_access_external_and_source(self):
         # limited_to_source != None; privilege = 2 || 3;
         self.consultant.limited_to_source = SourcesFactory(category=SourcesCategoryFactory())
-        self.consultant.privilege = Consultant.PrivilegeLevel.EXTERNAL_FULL
+        self.consultant.privilege = PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL
         self.consultant.save()
 
         response = self.client.get(self.url)
@@ -1378,8 +1372,7 @@ class MiddlewareTestCase(TestCase):
 class InterviewGoalTestCase(TestCase):
     def setUp(self):
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(company=self.subsidiary)
-        self.user = self.consultant.user
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
         self.offer = OfferFactory(subsidiary=self.subsidiary)
         self.process = ProcessFactory(subsidiary=self.subsidiary, offer=self.offer)
@@ -1389,7 +1382,7 @@ class InterviewGoalTestCase(TestCase):
             self.interviews.append(InterviewFactory(process=self.process, goal="", next_interview_goal=""))
 
     def test_no_goal_set(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
 
         for itw in self.interviews:
             url = reverse(views.minute, kwargs={"interview_id": itw.id, "slug_info": self.process.candidate.name_slug})
@@ -1411,7 +1404,7 @@ class InterviewGoalTestCase(TestCase):
         self.interviews[0].goal = f"goal for {self.interviews[0].rank}"
         self.interviews[0].save()
 
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
 
         for itw in self.interviews:
             url = reverse(views.minute, kwargs={"interview_id": itw.id, "slug_info": self.process.candidate.name_slug})
@@ -1430,7 +1423,7 @@ class InterviewGoalTestCase(TestCase):
             views.minute, kwargs={"interview_id": self.interviews[-1].id, "slug_info": self.process.candidate.name_slug}
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
 
         response = self.client.get(url)
 
@@ -1442,7 +1435,7 @@ class InterviewGoalTestCase(TestCase):
             views.minute, kwargs={"interview_id": self.interviews[1].id, "slug_info": self.process.candidate.name_slug}
         )
 
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
 
         response = self.client.get(url)
 
@@ -1458,19 +1451,19 @@ class OfferFilterGivenSubsidiaryTestCase(TestCase):
 
         self.subsidiary = Subsidiary.objects.first()
 
-        self.consultant = ConsultantFactory(company=self.subsidiary)
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
         # create basic data
         for sub in Subsidiary.objects.all():
             for i in range(3):
                 offer = OfferFactory(subsidiary=sub)
 
-                for i in range(5):
+                for j in range(5):
                     ProcessFactory(subsidiary=sub, offer=offer)
 
         ProcessFactory(subsidiary=self.subsidiary, offer=Offer.objects.exclude(subsidiary=self.subsidiary).first())
 
-        self.client.force_login(self.consultant.user)
+        self.client.force_login(self.consultant)
 
     def test_all_offers(self):
         response = self.client.get(reverse(views.offers))
@@ -1504,8 +1497,7 @@ class ImportCognitoFormTestCase(TestCase):
             source_id=self.source.id, sub_id=self.subsidiary.id, prefix=settings.FORM_WEB_HOOK_PREFIX
         )
 
-        self.consultant = ConsultantFactory(company=self.subsidiary)
-        self.user = self.consultant.user
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
         OfferFactory(subsidiary=self.subsidiary)  # Id = 1
 
@@ -1514,7 +1506,7 @@ class ImportCognitoFormTestCase(TestCase):
         self.phone = "0606060606"
 
     def test_given_form_full(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
         data = {
             "Form": {
                 "Id": "1",
@@ -1564,7 +1556,7 @@ class ImportCognitoFormTestCase(TestCase):
         self.assertEqual(documents.count(), 2)
 
     def test_given_form_least_data(self):
-        self.client.force_login(self.user)
+        self.client.force_login(self.consultant)
         data = {
             "Content-Type": "application/json",
             "Form": {
@@ -1599,9 +1591,9 @@ class ImportCognitoFormTestCase(TestCase):
 class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
     def setUp(self):
         self.subsidiary = SubsidiaryFactory()
-        self.consultant = ConsultantFactory(company=self.subsidiary)
+        self.consultant = PyouPyouUserFactory(company=self.subsidiary)
 
-        self.client.force_login(self.consultant.user)
+        self.client.force_login(self.consultant)
 
     def test_general_behaviour(self):
         # create some processes and assert that they are correctly displayed
@@ -1623,7 +1615,7 @@ class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
     def test_linked_process_created_before_user_joined_is_displayed(self):
         older_process = ProcessFactory()
         # create a process older that consultant
-        older_process.start_date = self.consultant.user.date_joined - relativedelta(months=1)
+        older_process.start_date = self.consultant.date_joined - relativedelta(months=1)
         older_process.responsible.add(self.consultant)
 
         response = self.client.get(reverse("process-list"))
