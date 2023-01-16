@@ -1,5 +1,15 @@
 # v1.18.0 (xxxx-xx-xx)
 - Add State filter for all interviews view
+- Update interviews list page: only display planned interviews if user has selected an end date in filter
+- Fix a bug where processes with a pending proposition where considered to be closed
+- Add prequalification info on interview minute
+- Update prequalification color in process details
+- Remove seekube ics import
+
+# V1.17.2 (2023-01-16)
+- Fix a bug where global subsidiary filter would yield no result on active source page
+- Current filtering of page is now kept when using global subsidiary filter
+- Add another privilege level to allow external consultants to close a process
 
 # V1.17.1 (2023-01-09)
 - Fix a bug where older linked process would be hidden to consultant after completing an interview's minute

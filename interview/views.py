@@ -2,7 +2,6 @@
 import datetime
 import calendar
 import io
-import re
 from collections import defaultdict
 import json
 
@@ -172,14 +171,6 @@ class ProcessLightTable(ProcessTable):
         exclude = ("needs_attention", "current_rank", "candidate", "responsible", "start_date", "contract_type")
 
 
-def get_state_color(record):
-    if record.needs_attention:
-        return "danger"
-    elif record.prequalification:
-        return "info"
-    return None
-
-
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
     interviewers = tables.TemplateColumn(
@@ -206,7 +197,10 @@ class InterviewTable(tables.Table):
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
-        row_attrs = {"class": get_state_color}
+        row_attrs = {
+            "class": lambda record: "danger" if record.needs_attention else None,
+            "style": lambda record: "background-color: #e7cbf5;" if record.prequalification else None,
+        }
 
 
 class InterviewDetailTable(InterviewTable):
@@ -281,7 +275,12 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def close_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -290,7 +289,8 @@ def close_process(request, process_id):
 
     form = CloseForm(request.POST, instance=process)
     if form.is_valid():
-        form.instance.end_date = timezone.now()
+        if form.instance.state != Process.JOB_OFFER:
+            form.instance.end_date = timezone.now()
         form.save()
         log_action(False, process, request.user, close_process)
     # TODO manage errors
@@ -299,7 +299,12 @@ def close_process(request, process_id):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def reopen_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -418,7 +423,13 @@ def processes(request):
 
 
 @require_http_methods(["POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def reuse_candidate(request, candidate_id):
     return new_candidate(request, candidate_id)
 
@@ -474,7 +485,13 @@ def new_candidate_POST_handler(
     return False, duplicate_processes
 
 
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def new_candidate(request, past_candidate_id=None):
     duplicate_processes = None
     candidate = None
@@ -540,7 +557,13 @@ def new_candidate(request, past_candidate_id=None):
 
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -599,7 +622,13 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -796,7 +825,13 @@ def delete_account(request, trigramme):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def edit_candidate(request, process_id):
     try:
         process = Process.objects.for_user(request.user).select_related("candidate").get(id=process_id)
@@ -1194,74 +1229,6 @@ def search(request):
     return render(request, "interview/single_table.html", context)
 
 
-RE_NAME = re.compile(r"SUMMARY:(?P<name>.*) - Entretien")
-RE_SOURCE = re.compile(r"https:\/\/app\.seekube\.com\/jobdating-(?P<source>.*)\/recruiter\/jobdating\/interview\?")
-RE_DATE = re.compile(r"DTSTART:(?P<date>.*)")
-RE_CV_URL = re.compile(r"(Lien CV Candidat : )(?P<url>.*)\\nPour modifier ou supprimer")
-RE_EMAIL = re.compile(r"Email : (?P<email>.*) \\nLien Profil Candidat")
-RE_PHONE = re.compile(r"Téléphone : (?P<phone>\d+)")
-RE_DESCRIPTION = re.compile(r"DESCRIPTION:(?P<description>(.|\n)*)LAST-MODIFIED")
-
-
-@login_required
-@require_http_methods(["GET", "POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
-def import_seekube(request):
-    if request.method == "GET":
-        form = UploadSeekubeFileForm()
-
-    else:
-        form = UploadSeekubeFileForm(data=request.POST, files=request.FILES)
-
-        if form.is_valid():
-            try:
-                file = request.FILES.get("file")
-                content = file.read().decode("utf-8")
-                description = RE_DESCRIPTION.search(content, re.MULTILINE).group("description")
-                description = "".join([l.lstrip() for l in description.splitlines()])
-                print(description)
-                extracted_name = RE_NAME.search(content).group("name")
-                extracted_source = RE_SOURCE.search(description).group("source")
-                print(extracted_source)
-                extracted_cv_url = RE_CV_URL.search(description).group("url")
-                print(extracted_cv_url)
-                extracted_date = RE_DATE.search(content).group("date").replace("Z", "+0000").strip()
-                extracted_date = datetime.datetime.strptime(extracted_date, "%Y%m%dT%H%M%S%z")
-                print(extracted_date)
-                extracted_phone = RE_PHONE.search(description).group("phone")
-                print(extracted_phone)
-                extracted_email = RE_EMAIL.search(description).group("email")
-                print(extracted_email)
-                candidate = Candidate.objects.create(name=extracted_name, email=extracted_email, phone=extracted_phone)
-                source, created = Sources.objects.get_or_create(
-                    name=extracted_source, category=SourcesCategory.objects.get(id=settings.SEEKUBE_SOURCE_ID)
-                )
-                process = Process.objects.create(
-                    candidate=candidate, subsidiary=request.user.consultant.company, sources=source
-                )
-                itw = Interview.objects.create(process=process, planned_date=extracted_date)
-                itw.interviewers.add(request.user.consultant)
-                cv_content = requests.get(extracted_cv_url).content
-                ext = "." + extracted_cv_url.split(".")[-1]
-                file_tmp = NamedTemporaryFile(delete=True, suffix=ext)
-                file_tmp.write(cv_content)
-                file_tmp.flush()
-                Document.objects.create(document_type="CV", content=File(file_tmp), candidate=candidate)
-                return HttpResponseRedirect(process.get_absolute_url())
-            except Exception as e:
-                print(e)
-                form.add_error(None, _("Processing seekube ics failed"))
-
-    return render(
-        request,
-        "interview/seekube_import.html",
-        {
-            "form": form,
-            "subsidiaries": Subsidiary.objects.all(),
-        },
-    )
-
-
 @login_required
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
@@ -1394,7 +1361,9 @@ def active_sources(request):
 
     sources_filter = ActiveSourcesFilter(
         request_get,
-        queryset=Sources.objects.all() if subsidiary is None else Sources.objects.filter(name=subsidiary.name),
+        queryset=Sources.objects.all()
+        if subsidiary is None
+        else Sources.objects.filter(process__subsidiary=subsidiary).distinct(),
     )
     sources_qs = sources_filter.qs
 
@@ -1677,7 +1646,16 @@ def interviews_list(request):
     if interview_filter.data.get("interviewer", None):
         interviews_not_planned = interviews_not_planned.filter(interviewers=interview_filter.data["interviewer"])
 
-    interviews_table = InterviewDetailTable(list(interview_filter.qs) + list(interviews_not_planned), prefix="i")
+    # Only display planned interviews in the interviews list page iff the user has selected an end date
+    state_filter = interview_filter.data.get("state", "")
+    itw_filter_qs = interview_filter.qs
+    if interview_filter.data.get("last_state_change_before", "") and state_filter not in ["PR", "NP"]:
+        itw_filter_qs = itw_filter_qs.exclude(
+            Q(state=Interview.WAITING_PLANIFICATION) | Q(state=Interview.WAITING_PLANIFICATION_RESPONSE)
+        )
+        interviews_not_planned = []
+
+    interviews_table = InterviewDetailTable(list(itw_filter_qs) + list(interviews_not_planned), prefix="i")
 
     config = RequestConfig(request)
     config.configure(interviews_table)

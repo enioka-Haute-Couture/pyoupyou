@@ -35,7 +35,6 @@ urlpatterns = [
         views.process_from_cognito_form,
         name="import-new-process-from-cognito-form",
     ),
-    url(r"^import-seekube/$", views.import_seekube, name="import-seekube"),
     url(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
     url(r"^process/(?P<process_id>\d+)/close/$", views.close_process, name="process-close"),
     url(r"^process/(?P<process_id>\d+)/reopen/$", views.reopen_process, name="process-reopen"),
