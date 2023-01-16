@@ -328,7 +328,6 @@ class StatusAndNotificationTestCase(TestCase):
         p.subscribers.add(u2.user)
         p.save()
 
-
         # change processs status to trigger mail notification
         p.state = Process.NO_GO
         p.save()
