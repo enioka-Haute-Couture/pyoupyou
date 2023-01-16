@@ -114,8 +114,9 @@ class Consultant(models.Model):
 
     class PrivilegeLevel(models.IntegerChoices):
         ALL = 1, _("User is an insider consultant")
-        EXTERNAL_FULL = 2, _("User is an external consultant")
-        EXTERNAL_READONLY = 3, _("User is external and has only read rights")
+        EXTERNAL_EXTRA = 2, _("User is an external consultant with additional rights")
+        EXTERNAL_FULL = 3, _("User is an external consultant")
+        EXTERNAL_READONLY = 4, _("User is external and has only read rights")
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
