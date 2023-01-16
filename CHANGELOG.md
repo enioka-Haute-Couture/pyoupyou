@@ -1,4 +1,5 @@
 # v1.18.0 (xxxx-xx-xx)
+- Update interviews list page: only display planned interviews if user has selected an end date in filter
 - Fix a bug where processes with a pending proposition where considered to be closed
 - Add prequalification info on interview minute
 - Update prequalification color in process details
