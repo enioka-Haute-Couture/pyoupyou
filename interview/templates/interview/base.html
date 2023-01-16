@@ -35,7 +35,7 @@
         <div class="container">
 
             <div class="navbar-header">
-                <a class="navbar-brand" href="{% url 'dashboard' %}">[{{ user }}]</a>
+                <a class="navbar-brand" href="{% url 'dashboard' %}">[{{ user.trigramme }}]</a>
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false">
                     <i class="fa fa-bars fa-2x"></i>
                 </button>
@@ -44,10 +44,10 @@
                 <ul class="nav navbar-nav">
                     <li class="active" ><a href="{% url 'process-list' %}">{% trans "Ongoing processes" %}</a></li>
                     <li class="active" ><a href="{% url 'process-closed-list' %}">{% trans "Closed processes" %}</a></li>
-                    {% if user.consultant.privilege != user.consultant.PrivilegeLevel.EXTERNAL_READONLY %}
+                    {% if user.privilege != user.PrivilegeLevel.EXTERNAL_READONLY %}
                     <li><a href="{% url 'candidate-new' %}">{% trans "New candidate" %}</a></li>
                     {% endif %}
-                    {% if user.consultant.privilege == user.consultant.PrivilegeLevel.ALL %}
+                    {% if user.privilege == user.PrivilegeLevel.ALL %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{% trans "More" %} <span class="caret"></span></a>
                         <ul class="dropdown-menu">

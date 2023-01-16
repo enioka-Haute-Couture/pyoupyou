@@ -32,7 +32,7 @@
         {% elif interview.state == "NO" %}
         <i class="fa fa-thumbs-down text-danger" aria-hidden="true"></i>
         {% endif %}
-        {% if user.consultant in interview.interviewers.all %}
+        {% if user in interview.interviewers.all %}
             <a class="btn btn-info btn-xs row-action" href="{% url 'interview-minute-edit' interview_id=interview.pk %}"><i class="fa fa-file-text-o" aria-hidden="true"></i> {% trans "Change minute" %}</a>
         {% endif %}
     </h3>

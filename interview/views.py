@@ -63,7 +63,7 @@ from interview.forms import (
 from interview.serializers import CognitoWebHookSerializer
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
 from ref.filters import SubsidiaryFilter
-from ref.models import Consultant, PyouPyouUser, Subsidiary
+from ref.models import PyouPyouUser, Subsidiary
 
 import datetime
 from django import template
@@ -117,9 +117,7 @@ class ProcessTable(tables.Table):
         return format_html(
             ", ".join(
                 [
-                    '<span title="{fullname}">{trigramme}</span>'.format(
-                        fullname=c.user.full_name, trigramme=c.user.trigramme
-                    )
+                    '<span title="{fullname}">{trigramme}</span>'.format(fullname=c.full_name, trigramme=c.trigramme)
                     for c in value.all()
                 ]
             )
@@ -240,9 +238,7 @@ def process(request, process_id, slug_info=None):
     except Process.DoesNotExist:
         return HttpResponseNotFound()
     interviews = (
-        Interview.objects.filter(process=process)
-        .select_related("process__candidate")
-        .prefetch_related("interviewers__user")
+        Interview.objects.filter(process=process).select_related("process__candidate").prefetch_related("interviewers")
     )
     interviews_for_process_table = InterviewTable(interviews)
     RequestConfig(request).configure(interviews_for_process_table)
@@ -277,8 +273,8 @@ def process(request, process_id, slug_info=None):
 @require_http_methods(["POST"])
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
     ]
 )
 def close_process(request, process_id):
@@ -301,8 +297,8 @@ def close_process(request, process_id):
 @require_http_methods(["GET"])
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
     ]
 )
 def reopen_process(request, process_id):
@@ -345,7 +341,7 @@ def closed_processes(request):
 @login_required
 @require_http_methods(["GET"])
 def processes_for_source(request, source_id):
-    if request.user.consultant.is_external and request.user.consultant.limited_to_source.id != source_id:
+    if request.user.is_external and request.user.limited_to_source.id != source_id:
         return redirect_to_login(next=request.path)
 
     subsidiary_filter = get_global_filter(request)
@@ -371,7 +367,7 @@ def processes_for_source(request, source_id):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def processes_for_offer(request, offer_id):
     subsidiary_filter = get_global_filter(request)
     try:
@@ -425,9 +421,9 @@ def processes(request):
 @require_http_methods(["POST"])
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
-        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
 def reuse_candidate(request, candidate_id):
@@ -466,9 +462,9 @@ def new_candidate_POST_handler(
 
         process = process_form.save(commit=False)
         process.candidate = candidate
-        process.creator = Consultant.objects.get(user=request.user)
-        if request.user.consultant.limited_to_source:
-            process.sources = request.user.consultant.limited_to_source
+        process.creator = PyouPyouUser.objects.get(id=request.user.id)
+        if request.user.limited_to_source:
+            process.sources = request.user.limited_to_source
         process.save()
         log_action(True, process, request.user, new_candidate)
 
@@ -487,9 +483,9 @@ def new_candidate_POST_handler(
 
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
-        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
 def new_candidate(request, past_candidate_id=None):
@@ -527,9 +523,9 @@ def new_candidate(request, past_candidate_id=None):
         candidate_form = ProcessCandidateForm()
         process_form = ProcessForm()
         interviewers_form = InterviewersForm(prefix="interviewers")
-        process_form.fields["subsidiary"].initial = request.user.consultant.company.id
+        process_form.fields["subsidiary"].initial = request.user.company.id
 
-    if request.user.consultant.is_external:
+    if request.user.is_external:
         process_form.fields.pop("sources")
 
         # restrict available interviewers to process creator
@@ -559,9 +555,9 @@ def new_candidate(request, past_candidate_id=None):
 @transaction.atomic
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
-        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
 def interview(request, process_id=None, interview_id=None, action=None):
@@ -571,10 +567,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     if interview_id is not None:
         try:
             interview_model = Interview.objects.for_user(request.user).get(id=interview_id)
-            if (
-                action in ["plan", "planning-request"]
-                and request.user.consultant not in interview_model.interviewers.all()
-            ):
+            if action in ["plan", "planning-request"] and request.user not in interview_model.interviewers.all():
                 return HttpResponseNotFound()
 
         except Interview.DoesNotExist:
@@ -592,10 +585,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
             interview_model.toggle_planning_request()
             return ret
 
-        if request.user.consultant.is_external:
+        if request.user.is_external:
             # set interviewer to be external consultant
             tmp = request.POST.copy()
-            tmp["interviewers"] = request.user.consultant.id
+            tmp["interviewers"] = request.user.id
             request.POST = tmp
         form = InterviewForm(request.POST, instance=interview_model)
 
@@ -606,7 +599,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         form = InterviewForm(instance=interview_model)
 
-    if request.user.consultant.is_external:
+    if request.user.is_external:
         form.fields.pop("interviewers", None)  # interviewer will always be user
 
     return render(
@@ -624,9 +617,9 @@ def interview(request, process_id=None, interview_id=None, action=None):
 @require_http_methods(["GET", "POST"])
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
-        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
 def minute_edit(request, interview_id):
@@ -636,7 +629,7 @@ def minute_edit(request, interview_id):
         return HttpResponseNotFound()
 
     # check if user is allowed to edit
-    if request.user.consultant not in interview.interviewers.all():
+    if request.user not in interview.interviewers.all():
         return HttpResponseNotFound()
     if request.method == "POST":
         if "itw-go" in request.POST:
@@ -712,11 +705,11 @@ def minute(request, interview_id, slug_info=None):
 @login_required
 @require_http_methods(["GET"])
 def dashboard(request):
-    if request.user.consultant.limited_to_source:  # if None, dashboard will be empty anyways
-        return processes_for_source(request, request.user.consultant.limited_to_source.id)
+    if request.user.limited_to_source:  # if None, dashboard will be empty anyways
+        return processes_for_source(request, request.user.limited_to_source.id)
 
     a_week_ago = timezone.now() - datetime.timedelta(days=7)
-    c = request.user.consultant
+    c = request.user
     actions_needed_processes = (
         Process.objects.for_table(request.user).exclude(state__in=Process.CLOSED_STATE_VALUES).filter(responsible=c)
     )
@@ -725,7 +718,7 @@ def dashboard(request):
 
     related_processes = (
         Process.objects.for_table(request.user)
-        .filter(interview__interviewers__user=request.user)
+        .filter(interview__interviewers=request.user)
         .filter(Q(end_date__gte=a_week_ago) | Q(state__in=Process.OPEN_STATE_VALUES))
         .distinct()
     )
@@ -756,7 +749,7 @@ def dashboard(request):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def create_source_ajax(request):
     form = SourceForm(request.POST, prefix="source")
     if form.is_valid():
@@ -771,7 +764,7 @@ def create_source_ajax(request):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def create_offer_ajax(request):
     form = OfferForm(request.POST, prefix="offer")
     if form.is_valid():
@@ -787,7 +780,7 @@ def create_offer_ajax(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 @user_passes_test(lambda u: u.is_superuser)
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def create_account(request):
     data = json.loads(request.body)
     subsidiary = Subsidiary.objects.filter(code=data["company"]).first()
@@ -799,7 +792,7 @@ def create_account(request):
             if parse_date(data["date_joined"]) is None:
                 return JsonResponse({"error": "ISO 8601 for date format"}, status=400)
             extra_fields["date_joined"] = data["date_joined"]
-        consultant = Consultant.objects.create_consultant(
+        consultant = PyouPyouUser.objects.create_user(
             trigramme=data["trigramme"].lower(),
             email=data["email"],
             company=subsidiary,
@@ -814,7 +807,7 @@ def create_account(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @user_passes_test(lambda u: u.is_superuser)
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def delete_account(request, trigramme):
     user = PyouPyouUser.objects.filter(trigramme=trigramme.lower()).first()
     if not user:
@@ -827,9 +820,9 @@ def delete_account(request, trigramme):
 @require_http_methods(["GET", "POST"])
 @privilege_level_check(
     authorised_level=[
-        Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
-        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+        PyouPyouUser.PrivilegeLevel.ALL,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_EXTRA,
+        PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
 def edit_candidate(request, process_id):
@@ -862,7 +855,7 @@ def edit_candidate(request, process_id):
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
 
-    if request.user.consultant.is_external:
+    if request.user.is_external:
         process_form.fields.pop("sources")
 
     data = {
@@ -972,7 +965,7 @@ def export_processes_tsv(request):
 @login_required
 @require_http_methods(["GET"])
 def export_interviews_tsv(request):
-    consultants = Consultant.objects.filter(user__is_active=True).select_related("user").select_related("company")
+    consultants = PyouPyouUser.objects.filter(is_active=True).select_related("user").select_related("company")
     interviews = (
         Interview.objects.for_user(request.user)
         .select_related("process")
@@ -1166,17 +1159,17 @@ def calculate_load(itws):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def interviewers_load(request):
     subsidiary_filter = get_global_filter(request)
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
 
     if subsidiary:
-        consultants_qs = Consultant.objects.filter(company=subsidiary)
+        consultants_qs = PyouPyouUser.objects.filter(company=subsidiary)
     else:
-        consultants_qs = Consultant.objects.all()
+        consultants_qs = PyouPyouUser.objects.all()
     data = []
-    for c in consultants_qs.filter(user__is_active=True).order_by("company", "user__full_name"):
+    for c in consultants_qs.filter(is_active=True).order_by("company", "full_name"):
         load = _interviewer_load(c)
         data.append(
             {
@@ -1208,7 +1201,7 @@ def interviewers_load(request):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def search(request):
     q = request.GET.get("q", "")
 
@@ -1231,7 +1224,7 @@ def search(request):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def gantt(request):
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = timezone.now().date()
@@ -1351,7 +1344,7 @@ class OffersTable(tables.Table):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def active_sources(request):
     subsidiary_filter = get_global_filter(request)
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary")
@@ -1431,7 +1424,7 @@ def active_sources(request):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def offers(request):
     subsidiary_filter = get_global_filter(request)
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary")
@@ -1482,7 +1475,7 @@ def offers(request):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@user_passes_test(lambda u: not u.is_external)
 def activity_summary(request):
     subsidiary_filter = get_global_filter(request)
     process_filter = ProcessSummaryFilter(
@@ -1631,7 +1624,7 @@ def interviews_list(request):
     #   - last month interviews
     # User can still view interviews for all subsidiaries by selecting "---" in the dropdown list
     if {} == interview_filter.data:
-        interview_filter.data["subsidiary"] = request.user.consultant.company
+        interview_filter.data["subsidiary"] = request.user.company
         interview_filter.data["last_state_change_after"] = a_month_ago.strftime("%d/%m/%Y")
 
     interviews_not_planned = (

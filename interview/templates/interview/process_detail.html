@@ -157,7 +157,7 @@
             <div class="panel-title">{% trans "Interviews for this process" %}</div>
         </div>
         {% render_table interviews_for_process_table %}
-        {% if user.consultant.privilege != user.consultant.PrivilegeLevel.EXTERNAL_READONLY %}
+        {% if user.privilege != user.PrivilegeLevel.EXTERNAL_READONLY %}
         <div class="panel-footer clearfix">
             <a href="{% url 'process-new-interview' process_id=process.id %}" class="btn btn-default pull-right"><i class="fa fa-plus" aria-hidden="true"></i> {% trans "Add an interview" %}</a>
         </div>
@@ -184,7 +184,7 @@
     </div>
 
 
-    {% if user.consultant.privilege == user.consultant.PrivilegeLevel.ALL or user.consultant.privilege == user.consultant.PrivilegeLevel.EXTERNAL_EXTRA %}
+    {% if user.privilege == user.PrivilegeLevel.ALL or user.privilege == user.PrivilegeLevel.EXTERNAL_EXTRA %}
     <div>
         {% if process.is_open %}
             <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>

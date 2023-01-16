@@ -2,14 +2,26 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import ugettext_lazy as _
 
-from ref.models import Subsidiary, Consultant, PyouPyouUser
+from ref.models import Subsidiary, PyouPyouUser
 
 
 class PyouPyouUserAdmin(UserAdmin):
     fieldsets = (
-        (None, {"fields": ("trigramme", "password")}),
-        (_("Personal info"), {"fields": ("full_name", "email")}),
-        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (_("Personal info"), {"fields": ("full_name", "trigramme", "password", "email", "company")}),
+        (
+            _("Permissions"),
+            {
+                "fields": (
+                    "privilege",
+                    "limited_to_source",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
 
@@ -21,5 +33,4 @@ class PyouPyouUserAdmin(UserAdmin):
 
 
 admin.site.register(Subsidiary)
-admin.site.register(Consultant)
 admin.site.register(PyouPyouUser, PyouPyouUserAdmin)
