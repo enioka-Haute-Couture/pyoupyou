@@ -172,14 +172,6 @@ class ProcessLightTable(ProcessTable):
         exclude = ("needs_attention", "current_rank", "candidate", "responsible", "start_date", "contract_type")
 
 
-def get_state_color(record):
-    if record.needs_attention:
-        return "danger"
-    elif record.prequalification:
-        return "info"
-    return None
-
-
 class InterviewTable(tables.Table):
     # rank = tables.Column(verbose_name='#')
     interviewers = tables.TemplateColumn(
@@ -206,7 +198,10 @@ class InterviewTable(tables.Table):
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
-        row_attrs = {"class": get_state_color}
+        row_attrs = {
+            "class": lambda record: "danger" if record.needs_attention else None,
+            "style": lambda record: "background-color: #e7cbf5;" if record.prequalification else None,
+        }
 
 
 class InterviewDetailTable(InterviewTable):
@@ -281,7 +276,12 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def close_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -300,7 +300,12 @@ def close_process(request, process_id):
 
 @login_required
 @require_http_methods(["GET"])
-@user_passes_test(lambda u: not u.consultant.is_external)
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+    ]
+)
 def reopen_process(request, process_id):
     try:
         process = Process.objects.for_user(request.user).get(pk=process_id)
@@ -419,7 +424,13 @@ def processes(request):
 
 
 @require_http_methods(["POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def reuse_candidate(request, candidate_id):
     return new_candidate(request, candidate_id)
 
@@ -475,7 +486,13 @@ def new_candidate_POST_handler(
     return False, duplicate_processes
 
 
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def new_candidate(request, past_candidate_id=None):
     duplicate_processes = None
     candidate = None
@@ -541,7 +558,13 @@ def new_candidate(request, past_candidate_id=None):
 
 @require_http_methods(["GET", "POST"])
 @transaction.atomic
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def interview(request, process_id=None, interview_id=None, action=None):
     """
     Insert or update an interview. Date and Interviewers
@@ -600,7 +623,13 @@ def interview(request, process_id=None, interview_id=None, action=None):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def minute_edit(request, interview_id):
     try:
         interview = Interview.objects.for_user(request.user).get(id=interview_id)
@@ -797,7 +826,13 @@ def delete_account(request, trigramme):
 
 
 @require_http_methods(["GET", "POST"])
-@privilege_level_check(authorised_level=[Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_FULL])
+@privilege_level_check(
+    authorised_level=[
+        Consultant.PrivilegeLevel.ALL,
+        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_FULL,
+    ]
+)
 def edit_candidate(request, process_id):
     try:
         process = Process.objects.for_user(request.user).select_related("candidate").get(id=process_id)
@@ -1395,7 +1430,9 @@ def active_sources(request):
 
     sources_filter = ActiveSourcesFilter(
         request_get,
-        queryset=Sources.objects.all() if subsidiary is None else Sources.objects.filter(name=subsidiary.name),
+        queryset=Sources.objects.all()
+        if subsidiary is None
+        else Sources.objects.filter(process__subsidiary=subsidiary).distinct(),
     )
     sources_qs = sources_filter.qs
 
