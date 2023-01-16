@@ -2,16 +2,25 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from ref.models import Subsidiary, Consultant, PyouPyouUser
+from ref.models import Subsidiary, PyouPyouUser
 
 
 class PyouPyouUserAdmin(UserAdmin):
     fieldsets = (
-        (None, {"fields": ("trigramme", "password")}),
-        (_("Personal info"), {"fields": ("full_name", "email")}),
+        (_("Personal info"), {"fields": ("full_name", "trigramme", "password", "email", "company")}),
         (
             _("Permissions"),
-            {"fields": ("is_active", "token", "is_staff", "is_superuser", "groups", "user_permissions")},
+            {
+                "fields": (
+                    "privilege",
+                    "limited_to_source",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
         ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
@@ -23,20 +32,5 @@ class PyouPyouUserAdmin(UserAdmin):
     ordering = ("trigramme",)
 
 
-class SubsidiaryAdmin(admin.ModelAdmin):
-    filter_horizontal = ("informed",)
-
-
-class InformedInline(admin.TabularInline):
-    model = Subsidiary.informed.through
-
-
-class ConsultantAdmin(admin.ModelAdmin):
-    inlines = [
-        InformedInline,
-    ]
-
-
-admin.site.register(Subsidiary, SubsidiaryAdmin)
-admin.site.register(Consultant, ConsultantAdmin)
+admin.site.register(Subsidiary)
 admin.site.register(PyouPyouUser, PyouPyouUserAdmin)

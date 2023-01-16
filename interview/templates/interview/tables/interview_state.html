@@ -1,7 +1,7 @@
 {% load i18n %}
 <form action="{% url 'interview-planning-request' record.process_id record.pk %}" method="POST" class="d-flex">
     {{ record.get_state_display }}
-    {% if user.consultant in record.interviewers.all  %}
+    {% if user in record.interviewers.all  %}
         {% if not record.planned_date %}
             {% csrf_token %}
             {% if record.planning_request_sent %}

@@ -14,9 +14,9 @@ class Subsidiary(models.Model):
 
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
-    responsible = models.ForeignKey("Consultant", null=True, on_delete=models.SET_NULL)
+    responsible = models.ForeignKey("PyouPyouUser", null=True, on_delete=models.SET_NULL)
     informed = models.ManyToManyField(
-        "Consultant", blank=True, related_name="subsidiary_notifications", verbose_name=_("Informed consultants")
+        "PyouPyouUser", blank=True, related_name="subsidiary_notifications", verbose_name=_("Informed consultants")
     )
     show_in_report_by_default = models.BooleanField(
         default=True, verbose_name=_("Show the subsidiary in the report analysis by default")
@@ -24,9 +24,9 @@ class Subsidiary(models.Model):
 
     @property
     def notification_emails(self):
-        res = [email for email in self.informed.all().values_list("user__email", flat=True)]
+        res = [email for email in self.informed.all().values_list("email", flat=True)]
         if self.responsible:
-            res.append(self.responsible.user.email)
+            res.append(self.responsible.email)
         return res
 
     def __str__(self):
@@ -77,6 +77,12 @@ def generate_token():
 
 
 class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
+    class PrivilegeLevel(models.IntegerChoices):
+        ALL = 1, _("User is an insider consultant")
+        EXTERNAL_RPO = 2, _("User is an external consultant with additional rights")
+        EXTERNAL_FULL = 3, _("User is an external consultant")
+        EXTERNAL_READONLY = 4, _("User is external and has only read rights")
+
     trigramme = models.CharField(max_length=40, unique=True)
     full_name = models.CharField(_("full name"), max_length=50, blank=True)
     email = models.EmailField(_("email address"), blank=True)
@@ -93,6 +99,27 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
+    company = models.ForeignKey(
+        Subsidiary, verbose_name=_("Subsidiary"), null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    # dst class written with string to avoid circular imports issues
+    limited_to_source = models.ForeignKey(
+        "interview.Sources",
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Limit user to a source"),
+        help_text=_("This field must be set if user is not an internal consultant"),
+    )
+    privilege = models.PositiveSmallIntegerField(
+        choices=PrivilegeLevel.choices,
+        verbose_name=_("Authority level"),
+        default=PrivilegeLevel.ALL,
+        help_text=_("Designates what a user can or cannot do"),
+    )
+
     objects = PyouPyouUserManager()
 
     USERNAME_FIELD = "trigramme"
@@ -101,6 +128,14 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        ordering = ("trigramme",)
+
+    def __str__(self):
+        return self.get_full_name()
+
+    @property
+    def is_external(self):
+        return self.limited_to_source is not None
 
     def get_full_name(self):
         return "{} ({})".format(self.full_name, self.trigramme)
