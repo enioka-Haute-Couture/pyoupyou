@@ -189,10 +189,3 @@ class CloseForm(forms.ModelForm):
         if self.instance.interview_set.last() and self.instance.interview_set.last().state == Interview.GO:
             default_choice = Process.HIRED
         self.fields["state"].initial = default_choice
-
-
-class UploadSeekubeFileForm(forms.Form):
-    file = forms.FileField()
-    helper = FormHelper()
-    helper.form_method = "POST"
-    helper.add_input(Submit("summit", _("Import"), css_class="btn-primary"))

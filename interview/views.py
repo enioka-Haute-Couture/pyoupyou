@@ -56,7 +56,6 @@ from interview.forms import (
     InterviewFormEditInterviewers,
     SourceForm,
     CloseForm,
-    UploadSeekubeFileForm,
     OfferForm,
     InterviewersForm,
 )
