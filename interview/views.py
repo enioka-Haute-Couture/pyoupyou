@@ -278,7 +278,7 @@ def process(request, process_id, slug_info=None):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
     ]
 )
 def close_process(request, process_id):
@@ -302,7 +302,7 @@ def close_process(request, process_id):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
     ]
 )
 def reopen_process(request, process_id):
@@ -426,7 +426,7 @@ def processes(request):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
         Consultant.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
@@ -488,7 +488,7 @@ def new_candidate_POST_handler(
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
         Consultant.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
@@ -560,7 +560,7 @@ def new_candidate(request, past_candidate_id=None):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
         Consultant.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
@@ -592,7 +592,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
             interview_model.toggle_planning_request()
             return ret
 
-        if request.user.consultant.is_external:
+        if request.user.consultant.privilege not in [
+            Consultant.PrivilegeLevel.ALL,
+            Consultant.PrivilegeLevel.EXTERNAL_RPO,
+        ]:
             # set interviewer to be external consultant
             tmp = request.POST.copy()
             tmp["interviewers"] = request.user.consultant.id
@@ -606,7 +609,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
     else:
         form = InterviewForm(instance=interview_model)
 
-    if request.user.consultant.is_external:
+    if request.user.consultant.privilege not in [Consultant.PrivilegeLevel.ALL, Consultant.PrivilegeLevel.EXTERNAL_RPO]:
         form.fields.pop("interviewers", None)  # interviewer will always be user
 
     return render(
@@ -625,7 +628,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
         Consultant.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
@@ -828,7 +831,7 @@ def delete_account(request, trigramme):
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
-        Consultant.PrivilegeLevel.EXTERNAL_EXTRA,
+        Consultant.PrivilegeLevel.EXTERNAL_RPO,
         Consultant.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )

@@ -114,7 +114,7 @@ class Consultant(models.Model):
 
     class PrivilegeLevel(models.IntegerChoices):
         ALL = 1, _("User is an insider consultant")
-        EXTERNAL_EXTRA = 2, _("User is an external consultant with additional rights")
+        EXTERNAL_RPO = 2, _("User is an external consultant with additional rights")
         EXTERNAL_FULL = 3, _("User is an external consultant")
         EXTERNAL_READONLY = 4, _("User is external and has only read rights")
 
