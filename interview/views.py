@@ -1629,13 +1629,10 @@ def interviews_list(request):
     interview_filter = InterviewListFilter(request.GET, queryset=itw_qs.order_by("planned_date"))
 
     # By default (if no filter data was sent in request), filter for
-    #   - interviews of user's susidiary.
     #   - last month interviews
-    # User can still view interviews for all subsidiaries by selecting "---" in the dropdown list
-    if {} == interview_filter.data:
-        interview_filter.data["subsidiary"] = request.user.consultant.company
-        interview_filter.data["last_state_change_after"] = a_month_ago.strftime("%d/%m/%Y")
+    interview_filter.data.setdefault("last_state_change_after", a_month_ago.strftime("%d/%m/%Y"))
 
+    # interview that are not planned are not selected by default filter as it is a range on planned_date, hence this query
     interviews_not_planned = (
         Interview.objects.for_table(request.user)
         .filter(planned_date=None)
