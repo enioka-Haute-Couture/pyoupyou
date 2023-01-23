@@ -285,10 +285,10 @@ def switch_process_subscription_ajax(request, process_id):
 
     if request.user in p.subscribers.all():
         p.subscribers.remove(request.user)
-        return render(request, "interview/subscribe_button.html", {})
+        return render(request, "interview/subscribe_button_process.html", {})
 
     p.subscribers.add(request.user)
-    return render(request, "interview/unsubscribe_button.html", {})
+    return render(request, "interview/unsubscribe_button_process.html", {})
 
 
 @login_required

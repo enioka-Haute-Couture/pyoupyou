@@ -18,9 +18,9 @@
         <h3 class="col-md-8"> {% trans "Candidate:" %} <a href="{% url 'candidate' process.pk %}">{{ process.candidate.display_name }} </a> [{{ process.subsidiary }}]</h3>
         <h3 class="col-md-4" hx-post="/switch_process_subscription/{{ process.id }}/" hx-target="this" hx-swap="innerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' id="h3-subscribe-button-id">
             {% if user not in process.subscribers.all %}
-                {% include "interview/subscribe_button.html" %}
+                {% include "interview/subscribe_button_process.html" %}
             {% else %}
-                {% include "interview/unsubscribe_button.html" %}
+                {% include "interview/unsubscribe_button_process.html" %}
             {% endif %}
         </h3>
     </div>
