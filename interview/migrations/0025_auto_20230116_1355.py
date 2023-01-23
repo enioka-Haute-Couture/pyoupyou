@@ -9,23 +9,30 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('interview', '0024_merge_20221212_1657'),
+        ("interview", "0024_merge_20221212_1657"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='interview',
-            name='interviewers',
+            model_name="interview",
+            name="interviewers",
             field=models.ManyToManyField(to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='creator',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='process_creator', to=settings.AUTH_USER_MODEL, verbose_name='Process creator'),
+            model_name="process",
+            name="creator",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="process_creator",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Process creator",
+            ),
         ),
         migrations.AlterField(
-            model_name='process',
-            name='responsible',
+            model_name="process",
+            name="responsible",
             field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
         ),
     ]
