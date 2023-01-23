@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if user.consultant not in record.interviewers.all %}
+{% if user not in record.interviewers.all %}
     {% if record.planned_date %}
         {{ record.planned_date }}
     {% else %}

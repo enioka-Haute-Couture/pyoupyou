@@ -12,7 +12,7 @@ class Subsidiary(models.Model):
 
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
-    responsible = models.ForeignKey("Consultant", null=True, on_delete=models.SET_NULL)
+    responsible = models.ForeignKey("PyouPyouUser", null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name
@@ -58,6 +58,12 @@ class PyouPyouUserManager(BaseUserManager):
 
 
 class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
+    class PrivilegeLevel(models.IntegerChoices):
+        ALL = 1, _("User is an insider consultant")
+        EXTERNAL_EXTRA = 2, _("User is an external consultant with additional rights")
+        EXTERNAL_FULL = 3, _("User is an external consultant")
+        EXTERNAL_READONLY = 4, _("User is external and has only read rights")
+
     trigramme = models.CharField(max_length=4, unique=True)
     full_name = models.CharField(_("full name"), max_length=50, blank=True)
     email = models.EmailField(_("email address"), blank=True)
@@ -74,6 +80,27 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
+    company = models.ForeignKey(
+        Subsidiary, verbose_name=_("Subsidiary"), null=True, blank=True, on_delete=models.SET_NULL
+    )
+
+    # dst class written with string to avoid circular imports issues
+    limited_to_source = models.ForeignKey(
+        "interview.Sources",
+        null=True,
+        blank=True,
+        default=None,
+        on_delete=models.SET_NULL,
+        verbose_name=_("Limit user to a source"),
+        help_text=_("This field must be set if user is not an internal consultant"),
+    )
+    privilege = models.PositiveSmallIntegerField(
+        choices=PrivilegeLevel.choices,
+        verbose_name=_("Authority level"),
+        default=PrivilegeLevel.ALL,
+        help_text=_("Designates what a user can or cannot do"),
+    )
+
     objects = PyouPyouUserManager()
 
     USERNAME_FIELD = "trigramme"
@@ -82,6 +109,14 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+        ordering = ("trigramme",)
+
+    def __str__(self):
+        return self.get_full_name()
+
+    @property
+    def is_external(self):
+        return self.limited_to_source is not None
 
     def get_full_name(self):
         return "{} ({})".format(self.full_name, self.trigramme)
@@ -94,45 +129,3 @@ class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
         Sends an email to this User.
         """
         send_mail(subject, message, from_email, [self.email], **kwargs)
-
-
-class ConsultantManager(models.Manager):
-    @transaction.atomic
-    def create_consultant(self, trigramme, email, company, full_name, **extra_fields):
-        user = PyouPyouUser.objects.create_user(trigramme, email, full_name=full_name, **extra_fields)
-        consultant = self.model(user=user, company=company)
-        consultant.save()
-        return consultant
-
-
-class Consultant(models.Model):
-    """A consultant that can do recruitment meeting"""
-
-    @property
-    def is_external(self):
-        return self.limited_to_source is not None
-
-    class PrivilegeLevel(models.IntegerChoices):
-        ALL = 1, _("User is an insider consultant")
-        EXTERNAL_EXTRA = 2, _("User is an external consultant with additional rights")
-        EXTERNAL_FULL = 3, _("User is an external consultant")
-        EXTERNAL_READONLY = 4, _("User is external and has only read rights")
-
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    company = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), null=True, on_delete=models.SET_NULL)
-
-    # dst class written with string to avoid circular imports issues
-    limited_to_source = models.ForeignKey(
-        "interview.Sources", null=True, blank=True, default=None, on_delete=models.SET_NULL
-    )
-    privilege = models.PositiveSmallIntegerField(
-        choices=PrivilegeLevel.choices, verbose_name=_("Authority level"), default=PrivilegeLevel.ALL
-    )
-
-    objects = ConsultantManager()
-
-    def __str__(self):
-        return self.user.get_full_name()
-
-    class Meta:
-        ordering = ("user__trigramme",)

@@ -1,7 +1,7 @@
 import django_filters
 
 from interview.models import Process, Interview
-from ref.models import Subsidiary, Consultant
+from ref.models import Subsidiary, PyouPyouUser
 from django.utils.translation import ugettext_lazy as _
 
 
@@ -22,7 +22,7 @@ class InterviewSummaryFilter(django_filters.FilterSet):
 class InterviewListFilter(django_filters.FilterSet):
     last_state_change = django_filters.DateFromToRangeFilter(field_name="planned_date")
     interviewer = django_filters.ModelChoiceFilter(
-        queryset=Consultant.objects.filter(user__is_active=True).select_related("user"), field_name="interviewers"
+        queryset=PyouPyouUser.objects.filter(is_active=True), field_name="interviewers"
     )
     state = django_filters.ChoiceFilter(choices=Interview.ITW_STATE, field_name="state", empty_label=_("All states"))
 

@@ -22,8 +22,7 @@ from interview.factory import (
     InterviewFactory,
 )
 from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process, Sources
-from ref.factory import SubsidiaryFactory, PyouPyouUserFactory, ConsultantFactory
-from ref.models import Consultant
+from ref.factory import SubsidiaryFactory, PyouPyouUserFactory
 from interview.factory import (
     date_minus_time_ago,
     date_random_plus_minus_time,
@@ -89,7 +88,7 @@ class Command(BaseCommand):
             # create consultants for this subsidiary
             subsidiary_consultants = []
             for k in range(5):
-                subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
+                subsidiary_consultants.append(PyouPyouUserFactory(company=subsidiary))
 
             # set subsidiary's responsible
             subsidiary.responsible = subsidiary_consultants[0]

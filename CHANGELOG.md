@@ -5,6 +5,7 @@
 - Add prequalification info on interview minute
 - Update prequalification color in process details
 - Remove seekube ics import
+- Update user model to merge Consultant and PyouPyouUser
 
 # V1.17.2 (2023-01-16)
 - Fix a bug where global subsidiary filter would yield no result on active source page

@@ -7,7 +7,7 @@ from django_ical.views import ICalFeed
 from django.utils import timezone
 
 from interview.models import Interview
-from ref.models import Subsidiary, PyouPyouUser, Consultant
+from ref.models import Subsidiary, PyouPyouUser
 
 
 class AbstractPyoupyouInterviewFeed(ICalFeed):
@@ -20,7 +20,7 @@ class AbstractPyoupyouInterviewFeed(ICalFeed):
         return super().__call__(request, *args, **kwargs)
 
     def item_title(self, item):
-        itws = ", ".join([i.user.trigramme for i in item.interviewers.all()])
+        itws = ", ".join([i.trigramme for i in item.interviewers.all()])
         return escape(force_text("#{} {} [{}]".format(item.rank, item.process.candidate.name, itws)))
 
     def item_description(self, item):
@@ -100,4 +100,4 @@ class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
 
     def items(self, user):
         last_month = timezone.now() - timedelta(days=30)
-        return Interview.objects.filter(interviewers__user=user, planned_date__gte=last_month).order_by("-planned_date")
+        return Interview.objects.filter(interviewers=user, planned_date__gte=last_month).order_by("-planned_date")
