@@ -1,0 +1,28 @@
+{% extends "interview/base.html" %}
+{% load render_table from django_tables2 %}
+{% load static %}
+
+{% block more_css %}
+<script src="{% static "interview/js/htmx.min.js" %}"></script>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="panel panel-primary">
+            <div class="panel-heading clearfix">
+                <div class="panel-title" style="float: left">
+                    {{ title }}
+                </div>
+                <div class="" style="float: right" hx-post="{{ subscription_url }}" hx-target="this" hx-swap="innerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    {% if user not in subscribed_object.subscribers.all %}
+                        {% include subscribe_button_template %}
+                    {% else %}
+                        {% include unsubscribe_button_template %}
+                    {% endif %}
+                </div>
+            </div>
+            {% render_table table %}
+        </div>
+    </div>
+{% endblock %}
+
