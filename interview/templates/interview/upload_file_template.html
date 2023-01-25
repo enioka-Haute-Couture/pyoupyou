@@ -1,0 +1,30 @@
+{% load static %}
+{% load i18n %}
+
+<link rel="stylesheet" href="{% static "interview/css/file-upload-widget.css" %}">
+<div>
+    <label for="input-btn-id" class="input-btn-class" style="width: 100%; height: 100%; position: relative; display: flex">
+        <span style="display: flex; align-items: center; justify-content: center; position: absolute; top: 0; left: 0; height: 100%; width: 100%;">
+            {% trans "Add files" %}
+            <i class="fa fa-file" aria-hidden="true"></i>
+        </span>
+        <div
+                style="width: 100%; height: available; z-index: 1"
+                class="drop-zone"
+                onDrop="dropHandler(event);"
+                onDragOver= "dragOverHandler(event)">
+        </div>
+    </label>
+    <input type="{{ widget.type }}" name="{{ widget.name }}" id="input-btn-id" style="width: 0; height: 0;" multiple>
+    <ul class="file-ul" id="file-list-id"></ul>
+</div>
+
+<script src="{% static "interview/js/file-upload-widget.js" %}"></script>
+<script>
+    // keep UI updated with state of input even after reload
+    window.onload = () => {
+        for (let file of document.getElementById("input-btn-id").files) {
+            addFileToList(file, file.name)
+        }
+    }
+</script>

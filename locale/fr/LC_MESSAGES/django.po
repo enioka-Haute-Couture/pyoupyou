@@ -657,7 +657,12 @@ msgstr "J'ai envoyé une demande d'entretien"
 msgid "You do not have the rights to access this process"
 msgstr "Vous n'avez pas le droit d'accéder à ce processus."
 
-#: interview/views.py:105
+#: interview/templates/interview/upload_file_template.html:8
+#| msgid "Add Offer"
+msgid "Add files"
+msgstr "Ajouter des fichiers"
+
+#: interview/views.py:104
 msgid "Process state"
 msgstr "Status du processus"
 
