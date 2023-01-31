@@ -347,6 +347,11 @@ def processes_for_source(request, source_id):
     if request.user.consultant.is_external and request.user.consultant.limited_to_source.id != source_id:
         return redirect_to_login(next=request.path)
 
+    # override table's default sort by setting custom sort in request
+    get_req = request.GET.copy()
+    get_req.setdefault("csort", "-start_date")
+    request.GET = get_req
+
     subsidiary_filter = get_global_filter(request)
     try:
         source = Sources.objects.get(id=source_id)
