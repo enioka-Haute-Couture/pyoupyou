@@ -3,7 +3,7 @@ line-length = 120
 
 [tool.poetry]
 name = "pyoupyou"
-version = "1.17.2"
+version = "1.18.0"
 description = "ATS"
 authors = [
     "Benjamin Port <benjamin.port@enioka.com>",
