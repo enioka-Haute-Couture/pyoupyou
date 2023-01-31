@@ -186,7 +186,7 @@
     </div>
 
 
-    {% if user.consultant.privilege == user.consultant.PrivilegeLevel.ALL or user.consultant.privilege == user.consultant.PrivilegeLevel.EXTERNAL_EXTRA %}
+    {% if user.consultant.privilege == user.consultant.PrivilegeLevel.ALL or user.consultant.privilege == user.consultant.PrivilegeLevel.EXTERNAL_RPO %}
     <div>
         {% if process.is_open %}
             <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>
