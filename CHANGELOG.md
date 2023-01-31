@@ -8,6 +8,7 @@
 - Remove seekube ics import
 - Rename consultant privilege level EXTERNAL_EXTRA to EXTERNAL_RPO
 - Allow EXTERNAL_RPO consultants to set interviewers for an interview
+- Change default sort order for source's process list
 
 # V1.17.2 (2023-01-16)
 - Fix a bug where global subsidiary filter would yield no result on active source page
