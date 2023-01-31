@@ -1,4 +1,4 @@
-# v1.18.0 (xxxx-xx-xx)
+# v1.18.0 (2023-01-31)
 - Fix interview page sort order
 - Add State filter for all interviews view
 - Update interviews list page: only display planned interviews if user has selected an end date in filter
@@ -9,6 +9,7 @@
 - Rename consultant privilege level EXTERNAL_EXTRA to EXTERNAL_RPO
 - Allow EXTERNAL_RPO consultants to set interviewers for an interview
 - Change default sort order for source's process list
+- Update dependencies (Fix https://nvd.nist.gov/vuln/detail/CVE-2022-23491)
 
 # V1.17.2 (2023-01-16)
 - Fix a bug where global subsidiary filter would yield no result on active source page
