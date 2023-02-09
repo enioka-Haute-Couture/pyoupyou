@@ -274,6 +274,25 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
+def switch_offer_subscription_ajax(request, offer_id):
+    offer = None
+    try:
+        if offer_id is None:
+            raise Offer.DoesNotExist
+        offer = Offer.objects.get(id=offer_id)
+    except Offer.DoesNotExist:
+        return HttpResponseNotFound()
+
+    if request.user in offer.subscribers.all():
+        offer.subscribers.remove(request.user)
+        return render(request, "interview/subscribe_button_offer.html", {})
+
+    offer.subscribers.add(request.user)
+    return render(request, "interview/unsubscribe_button_offer.html", {})
+
+
+@login_required
+@require_http_methods(["POST"])
 def switch_process_subscription_ajax(request, process_id):
     p = None
     try:
@@ -412,9 +431,13 @@ def processes_for_offer(request, offer_id):
         "title": offer.name + " (" + offer.subsidiary.name + ")",
         "table": processes_table,
         "subsidiaries": Subsidiary.objects.all(),
+        "subscribed_object": offer,
+        "subscription_url": f"/switch_offer_subscription/{offer.id}/",
+        "subscribe_button_template": "interview/subscribe_button_offer.html",
+        "unsubscribe_button_template": "interview/unsubscribe_button_offer.html",
     }
 
-    return render(request, "interview/single_table.html", context)
+    return render(request, "interview/single_table_subscribe_button.html", context)
 
 
 @login_required
