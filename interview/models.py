@@ -440,8 +440,7 @@ class Process(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"process": self, "url": url})
-
-            recipient_list = []
+            recipient_list = self.subsidiary.notification_emails
 
             # add subsidiary responsible to recipient list
             if self.subsidiary.responsible:
@@ -630,9 +629,7 @@ class Interview(models.Model):
         return ""
 
     def trigger_notification(self):
-        recipient_list = []
-        if self.process.subsidiary.responsible:
-            recipient_list.append(self.process.subsidiary.responsible.user.email)
+        recipient_list = self.process.subsidiary.notification_emails
         if self.id:
             recipient_list = recipient_list + [i.user.email for i in self.interviewers.all()]
 

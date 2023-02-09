@@ -304,7 +304,41 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
         mail.outbox = []
 
-    def test_subscription_notification(self):
+    def test_informed_user_notification(self):
+        subsidiary = SubsidiaryFactory()
+        subsidiaryResponsible = ConsultantFactory(company=subsidiary)
+        subsidiary.responsible = subsidiaryResponsible
+        subsidiary.save()
+
+        # case where subsidiary responsible is supposed to receive an email (check test above for explanation)
+        p = ProcessFactory(subsidiary=subsidiary)
+        self.assertEqual(p.state, Process.WAITING_INTERVIEWER_TO_BE_DESIGNED)
+        self.assertEqual(list(p.responsible.all()), [subsidiaryResponsible])
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
+        mail.outbox = []
+
+        interviewer = ConsultantFactory(company=subsidiary)
+        u1 = ConsultantFactory(
+            company=p.subsidiary
+        )  # create another consultant that will be subscribed to subsidiary emails
+        subsidiary.informed.add(u1)
+        subsidiary.save()
+
+        i1 = Interview(process_id=p.id)
+        i1.save()
+        i1.interviewers.add(interviewer)
+        self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
+        self.assertEqual(i1.state, Interview.WAITING_PLANIFICATION)
+        self.assertEqual(list(p.responsible.all()), [interviewer])
+        self.assertEqual(len(mail.outbox), 1)
+        # assert u1 is also in the recipients
+        self.assertCountEqual(
+            mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email, u1.user.email]
+        )
+        mail.outbox = []
+
+    def test_process_subscription_notification(self):
         subsidiary = SubsidiaryFactory()
         p = ProcessFactory(subsidiary=subsidiary)
         u1 = ConsultantFactory(company=p.subsidiary)
