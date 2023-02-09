@@ -36,6 +36,11 @@ urlpatterns = [
         name="import-new-process-from-cognito-form",
     ),
     url(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
+    url(
+        r"^switch_process_subscription/(?P<process_id>\d+)/$",
+        views.switch_process_subscription_ajax,
+        name="switch-process-subscription",
+    ),
     url(r"^process/(?P<process_id>\d+)/close/$", views.close_process, name="process-close"),
     url(r"^process/(?P<process_id>\d+)/reopen/$", views.reopen_process, name="process-reopen"),
     url(r"^process/(?P<process_id>\d+)/interview/$", views.interview, {"action": "edit"}, name="process-new-interview"),

@@ -274,6 +274,25 @@ def process(request, process_id, slug_info=None):
 
 @login_required
 @require_http_methods(["POST"])
+def switch_process_subscription_ajax(request, process_id):
+    p = None
+    try:
+        if process_id is None:
+            raise Process.DoesNotExist
+        p = Process.objects.get(id=process_id)
+    except Process.DoesNotExist:
+        return HttpResponseNotFound()
+
+    if request.user in p.subscribers.all():
+        p.subscribers.remove(request.user)
+        return render(request, "interview/subscribe_button_process.html", {})
+
+    p.subscribers.add(request.user)
+    return render(request, "interview/unsubscribe_button_process.html", {})
+
+
+@login_required
+@require_http_methods(["POST"])
 @privilege_level_check(
     authorised_level=[
         Consultant.PrivilegeLevel.ALL,
