@@ -1,15 +1,12 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
-# Sebastien Renard <renard@kde.org>, 2017.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-02-09 10:59+0100\n"
+"POT-Creation-Date: 2023-02-09 11:05+0100\n"
 "PO-Revision-Date: 2022-02-11 11:15+0100\n"
-"Last-Translator: Sebastien Renard <renard@kde.org>\n"
-"Language-Team: French <kde-francophone@kde.org>\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -806,66 +803,3 @@ msgstr ""
 #: ref/models.py:129
 msgid "Authority level"
 msgstr "Niveau d'autorisation"
-
-#~ msgid "Filter"
-#~ msgstr "Filtrer"
-
-#~ msgid "Import"
-#~ msgstr "Importer"
-
-#~ msgid "Start date"
-#~ msgstr "Date de démarrage"
-
-#~ msgid "Anonymized Hashed Phone"
-#~ msgstr "Hash anonymisé du téléphone"
-
-#~ msgid "Name matching"
-#~ msgstr "Correspondance sur le nom"
-
-#~ msgid "Email matching"
-#~ msgstr "Correspondance sur l'email"
-
-#~ msgid "Phone matching"
-#~ msgstr "Correspondance sur le téléphone"
-
-#~ msgid "Past recruitement processes"
-#~ msgstr "Processus de recrutement passé"
-
-#~ msgid "Process end date"
-#~ msgstr "Fin du processus"
-
-#~ msgid "Interview date"
-#~ msgstr "Date de l'entretien"
-
-#~ msgid "Count"
-#~ msgstr "Nombre"
-
-#~ msgid "Subsidiary and state"
-#~ msgstr "Entité et statut"
-
-#~ msgid "Productive"
-#~ msgstr "Productif"
-
-#~ msgid "Candidate %(candidate)s declined our offer"
-#~ msgstr "Le candidat %(candidate)s a décliné notre offre"
-
-#~ msgid "Candidate %(candidate)s accepted our offer"
-#~ msgstr "Le candidat %(candidate)s a accepté notre offre"
-
-#~ msgid ""
-#~ "Interview for %(candidate)s was planned with %(itws)s (%(planned_date)s)"
-#~ msgstr ""
-#~ "Un entretien pour %(candidate)s a été planifié avec %(itws)s "
-#~ "(%(planned_date)s)"
-
-#~ msgid "A job offer is ongoing for %(candidate)s"
-#~ msgstr "Une proposition a été faite à %(candidate)s"
-
-#~ msgid "Interview by %(itws)s for %(candidate)s: %(state)s"
-#~ msgstr "Résultat de l'entretien pour %(candidate)s par %(itws)s : %(state)s"
-
-#~ msgid "%(itws)s was assigned as %(candidate)s interviewer(s)."
-#~ msgstr "%(candidate)s a été assigné à %(itws)s"
-
-#~ msgid "New process for candidate %(candidate)s"
-#~ msgstr "Nouveau processus pour le candidat %(candidate)s"
