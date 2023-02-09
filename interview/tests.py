@@ -302,7 +302,42 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(Process.objects.get(id=p.id).state, Process.HIRED)
         self.assertEqual(list(p.responsible.all()), [])
         self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email])
-        mail.outbox = 0
+        mail.outbox = []
+
+    def test_subscription_notification(self):
+        subsidiary = SubsidiaryFactory()
+        p = ProcessFactory(subsidiary=subsidiary)
+        u1 = ConsultantFactory(company=p.subsidiary)
+        u2 = ConsultantFactory(company=p.subsidiary)
+
+        p.subscribers.add(u1.user)
+
+        # change processs status to trigger mail notification
+        p.state = Process.HIRED
+        p.save()
+
+        # assert only one email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        # assert it was sent to subscribed user
+        self.assertEqual(mail.outbox[0].to, [u1.user.email])
+        # reset outbox
+        mail.outbox = []
+
+        # change subscribers
+        p.subscribers.remove(u1.user)
+        p.subscribers.add(u2.user)
+        p.save()
+
+
+        # change processs status to trigger mail notification
+        p.state = Process.NO_GO
+        p.save()
+
+        # assert only one email was sent
+        self.assertEqual(len(mail.outbox), 1)
+        # assert it was sent to subscribed user
+        self.assertEqual(mail.outbox[0].to, [u2.user.email])
+        mail.outbox = []
 
 
 class AnonymizesCanditateTestCase(TestCase):

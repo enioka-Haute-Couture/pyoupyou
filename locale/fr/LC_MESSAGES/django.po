@@ -201,7 +201,11 @@ msgstr "Informations complémentaires"
 msgid "Process creator"
 msgstr "Créateur du processus"
 
-#: interview/models.py:371
+#: interview/models.py:328
+msgid "Subscribers"
+msgstr "Abonnés"
+
+#: interview/models.py:375
 #: interview/templates/interview/interview_minute.html:10
 #: interview/templates/interview/interview_minute_form.html:45
 msgid "for subsidiary"
@@ -516,7 +520,19 @@ msgstr "Ajout d'une offre"
 msgid "Offers: "
 msgstr "Offres : "
 
-#: interview/templates/interview/process_detail.html:16
+#: interview/templates/interview/process_detail.html:35
+#: interview/templates/interview/process_detail.html:58
+#: interview/templates/interview/unsubscribe_button.html:7
+msgid "Unsubscribe to this process' notifications"
+msgstr "Se désabonner des notifications de ce processus"
+
+#: interview/templates/interview/process_detail.html:38
+#: interview/templates/interview/process_detail.html:56
+#: interview/templates/interview/subscribe_button.html:7
+msgid "Subscribe to this process' notifications"
+msgstr "S'abonner aux notifications de ce processus"
+
+#: interview/templates/interview/process_detail.html:53
 msgid "Candidate:"
 msgstr "Candidat :"
 
