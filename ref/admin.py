@@ -20,6 +20,20 @@ class PyouPyouUserAdmin(UserAdmin):
     ordering = ("trigramme",)
 
 
-admin.site.register(Subsidiary)
-admin.site.register(Consultant)
+class SubsidiaryAdmin(admin.ModelAdmin):
+    filter_horizontal = ("informed",)
+
+
+class InformedInline(admin.TabularInline):
+    model = Subsidiary.informed.through
+
+
+class ConsultantAdmin(admin.ModelAdmin):
+    inlines = [
+        InformedInline,
+    ]
+
+
+admin.site.register(Subsidiary, SubsidiaryAdmin)
+admin.site.register(Consultant, ConsultantAdmin)
 admin.site.register(PyouPyouUser, PyouPyouUserAdmin)

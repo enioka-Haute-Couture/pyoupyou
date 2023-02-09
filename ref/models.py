@@ -13,6 +13,16 @@ class Subsidiary(models.Model):
     name = models.CharField(_("Name"), max_length=200, unique=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
     responsible = models.ForeignKey("Consultant", null=True, on_delete=models.SET_NULL)
+    informed = models.ManyToManyField(
+        "Consultant", blank=True, related_name="subsidiary_notifications", verbose_name=_("Informed consultants")
+    )
+
+    @property
+    def notification_emails(self):
+        res = [email for email in self.informed.all().values_list("user__email", flat=True)]
+        if self.responsible:
+            res.append(self.responsible.user.email)
+        return res
 
     def __str__(self):
         return self.name
