@@ -324,6 +324,10 @@ class Process(models.Model):
         verbose_name=_("Process creator"),
     )
 
+    subscribers = models.ManyToManyField(
+        PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_processes"
+    )
+
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         is_new = False if self.id else True
         if is_new:
@@ -436,6 +440,7 @@ class Process(models.Model):
             recipient_list = []
             if self.subsidiary.responsible:
                 recipient_list.append(self.subsidiary.responsible.user.email)
+            recipient_list = recipient_list + [user.email for user in self.subscribers.all()]
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
@@ -632,6 +637,7 @@ class Interview(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"interview": self, "url": url})
+            recipient_list = recipient_list + [user.email for user in self.process.subscribers.all()]
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
