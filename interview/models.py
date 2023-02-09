@@ -202,6 +202,9 @@ class Offer(models.Model):
     name = models.CharField(max_length=50)
     subsidiary = models.ForeignKey(Subsidiary, verbose_name=_("Subsidiary"), on_delete=models.CASCADE)
     archived = models.BooleanField(default=False)
+    subscribers = models.ManyToManyField(
+        PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_offers"
+    )
 
     def __str__(self):
         return "{name} ({sub})".format(name=self.name, sub=self.subsidiary)
@@ -437,10 +440,19 @@ class Process(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"process": self, "url": url})
+
             recipient_list = []
+
+            # add subsidiary responsible to recipient list
             if self.subsidiary.responsible:
                 recipient_list.append(self.subsidiary.responsible.user.email)
+
+            # add users subscribed to offer's notification
+            if self.offer:
+                recipient_list = recipient_list + [user.email for user in self.offer.subscribers.all()]
+
             recipient_list = recipient_list + [user.email for user in self.subscribers.all()]
+
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
@@ -637,7 +649,15 @@ class Interview(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"interview": self, "url": url})
-            recipient_list = recipient_list + [user.email for user in self.process.subscribers.all()]
+
+            # add users subscribed to process offer's notification
+            if self.process.offer:
+                recipient_list = recipient_list + [user.email for user in self.process.offer.subscribers.all()]
+
+            recipient_list = recipient_list + [
+                user.email for user in self.process.subscribers.all()
+            ]  # users who subscribed to process' notifications
+
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )

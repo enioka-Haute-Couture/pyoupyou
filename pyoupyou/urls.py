@@ -28,6 +28,11 @@ urlpatterns = [
     url(r"^processes/closed$", views.closed_processes, name="process-closed-list"),
     url(r"^processes/source/(?P<source_id>\d+)$", views.processes_for_source, name="process-list-source"),
     url(r"^processes/offer/(?P<offer_id>\d+)$", views.processes_for_offer, name="process-list-offer"),
+    url(
+        r"^switch_offer_subscription/(?P<offer_id>\d+)/$",
+        views.switch_offer_subscription_ajax,
+        name="switch-offer-subscription",
+    ),
     url(r"^interviews/$", views.interviews_list, name="interviews-list"),
     url(r"^candidate/$", views.new_candidate, name="candidate-new"),
     url(
