@@ -252,6 +252,9 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertIn("Video conference app suggestion", mail.outbox[0].body)
+        self.assertIn("/" + i1.interviewers.all()[0].user.trigramme, mail.outbox[0].body)
+        self.assertIn("/interview_" + p.candidate.name_slug, mail.outbox[0].body)
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to
