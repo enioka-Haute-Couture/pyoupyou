@@ -635,6 +635,8 @@ class Interview(models.Model):
 
         subject = None
         body_template = None
+        url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
+        body_params = {"interview": self, "url": url}
         if self.state == Interview.WAITING_PLANIFICATION:
             subject = _("New interview for {process}").format(process=self.process)
             body_template = "interview/email/new_interview.txt"
@@ -642,10 +644,18 @@ class Interview(models.Model):
         elif self.state == Interview.PLANNED:
             subject = _("Interview planned: {process}").format(process=self.process)
             body_template = "interview/email/interview_planned.txt"
+            try:
+                video_meeting_url = "https://talk.enioka.com/"
+                video_meeting_url += "_".join(
+                    [interviewer.user.trigramme for interviewer in self.interviewers.all() if self.interviewers]
+                )
+                video_meeting_url += "/interview_" + self.process.candidate.name_slug
+                body_params["interview_video_url"] = video_meeting_url
+            except RecursionError as err:
+                print("No interviewers/consultantManager supplied")
 
         if subject and body_template:
-            url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
-            body = render_to_string(body_template, {"interview": self, "url": url})
+            body = render_to_string(body_template, body_params)
 
             # add users subscribed to process offer's notification
             if self.process.offer:
