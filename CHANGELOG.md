@@ -3,6 +3,7 @@
 - Allow user to subscribe to an offer
 - Add "informed" users for a subsidiary which will receive the same emails as the subsidiary responsible
 - Fix poetry version to 1.4.0
+- Update dependencies
 
 # v1.18.0 (2023-01-31)
 - Fix interview page sort order
