@@ -1,6 +1,6 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 
-from django.http.response import HttpResponseNotAllowed, HttpResponse
+from django.http.response import HttpResponse
 from django.utils.encoding import force_text
 from django.utils.html import escape
 from django_ical.views import ICalFeed
@@ -15,7 +15,7 @@ class AbstractPyoupyouInterviewFeed(ICalFeed):
     timezone = "Europe/Paris"
 
     def __call__(self, request, *args, **kwargs):
-        if not request.user.is_authenticated:
+        if not request.user.is_authenticated or request.user.consultant.privilege != Consultant.PrivilegeLevel.ALL:
             return HttpResponse("Unauthenticated user", status=401)
         return super().__call__(request, *args, **kwargs)
 
