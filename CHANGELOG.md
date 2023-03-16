@@ -2,6 +2,7 @@
 - Allow user to subscribe to a recruitment process
 - Allow user to subscribe to an offer
 - Add "informed" users for a subsidiary which will receive the same emails as the subsidiary responsible
+- Limit access to ical feed for internal users
 - Fix poetry version to 1.4.0
 - Update dependencies
 

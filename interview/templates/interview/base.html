@@ -67,6 +67,7 @@
                     <li><form class="navbar-form" role="search" action="{% url 'search' %}" method="GET">
                         <input type="text" class="form-control" placeholder="{% trans "Search" %}" name="q" value="{{ search_query }}">
                     </form></li>
+                    {% if user.consultant.privilege == user.consultant.PrivilegeLevel.ALL %}
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> <i class="fa fa-calendar" aria-hidden="true"> </i> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
@@ -79,6 +80,7 @@
                             <li><a href="{% url 'calendar_full' %}"> {% trans "All" %} </a></li>
                         </ul>
                     </li>
+                    {% endif %}
                </ul>
                 <form class="navbar-form" id="global-subsidiary-filter-form"  method="get" onchange='document.getElementById("global-subsidiary-filter-form").submit();' style="float: right">
                     {{ request.subsidiaries_filter.form|crispy }}
