@@ -1,4 +1,4 @@
-# v1.19.0 (2023-02-XX)
+# v1.19.0 (2023-03-16)
 - Allow user to subscribe to a recruitment process
 - Allow user to subscribe to an offer
 - Add "informed" users for a subsidiary which will receive the same emails as the subsidiary responsible
