@@ -10,7 +10,7 @@ http://www.gnu.org/licenses/agpl-3.0.html
 ## Dependencies
 
 - Python ~= 3.9
-- poetry
+- poetry == 1.4.0
 
 ## Dev environment
 
