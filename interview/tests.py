@@ -13,7 +13,7 @@ from django.core import mail
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from interview import views
+from interview import views, feeds
 from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory, OfferFactory, SourcesFactory
 from interview.models import Process, Document, Interview, Candidate
 from django.utils.text import slugify
@@ -1074,6 +1074,10 @@ class PrivilegeLevelTestCase(TestCase):
 
         response = self.client.get(reverse(views.dashboard))
         self.assertEqual(response.status_code, 403)
+
+    def test_ical_feed(self):
+        response = self.client.get(reverse("calendar_full"))
+        self.assertEqual(response.status_code, 401)
 
 
 class MiddlewareTestCase(TestCase):
