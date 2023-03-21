@@ -2,10 +2,12 @@
 {% autoescape off %}
 {% blocktrans with candidate=interview.process.candidate itws=interview.interviewers_str planned_date=interview.planned_date %}Interview for {{ candidate }} was planned with {{ itws }} ({{ planned_date }}){% endblocktrans %}
 {% if interview.get_goal %}
-Interview goal: {{ interview.get_goal }}
+    {% blocktrans %}Interview goal: {{ interview.get_goal }}{% endblocktrans %}
 {% endif %}
 {% endautoescape %}
 
 {{ url }}
 
-Video conference app suggestion: {{ interview_video_url }}
+{% if interview_medium %}
+    {% blocktrans %}Video conference app suggestion: {{ interview_medium }}{% endblocktrans %}
+{% endif %}

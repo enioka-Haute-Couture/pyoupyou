@@ -24,6 +24,7 @@ from ref.models import Consultant, Subsidiary, PyouPyouUser
 CharField.register_lookup(Lower)
 
 
+
 class ContractType(models.Model):
     name = models.CharField(_("Name"), max_length=200)
     has_duration = models.BooleanField(default=False)
@@ -462,6 +463,7 @@ class Process(models.Model):
 
 class InterviewKind(models.Model):
     name = models.CharField(max_length=255)
+    medium = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -635,8 +637,7 @@ class Interview(models.Model):
 
         subject = None
         body_template = None
-        url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
-        body_params = {"interview": self, "url": url}
+        interview_medium = None
         if self.state == Interview.WAITING_PLANIFICATION:
             subject = _("New interview for {process}").format(process=self.process)
             body_template = "interview/email/new_interview.txt"
@@ -645,17 +646,16 @@ class Interview(models.Model):
             subject = _("Interview planned: {process}").format(process=self.process)
             body_template = "interview/email/interview_planned.txt"
             try:
-                video_meeting_url = "https://talk.enioka.com/"
-                video_meeting_url += "_".join(
-                    [interviewer.user.trigramme for interviewer in self.interviewers.all() if self.interviewers]
-                )
-                video_meeting_url += "/interview_" + self.process.candidate.name_slug
-                body_params["interview_video_url"] = video_meeting_url
+                if self.kind_of_interview is not None and self.kind_of_interview.medium is not None:
+                    interview_medium = self.kind_of_interview.medium + "/interview/" + self.process.candidate.name_slug
             except RecursionError as err:
                 print("No interviewers/consultantManager supplied")
 
         if subject and body_template:
-            body = render_to_string(body_template, body_params)
+            url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
+            body = render_to_string(
+                body_template, {"interview": self, "url": url, "interview_medium": interview_medium}
+            )
 
             # add users subscribed to process offer's notification
             if self.process.offer:

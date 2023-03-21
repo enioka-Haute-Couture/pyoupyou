@@ -93,5 +93,5 @@ class OfferAdmin(admin.ModelAdmin):
 
 @admin.register(InterviewKind)
 class InterviewKindAdmin(admin.ModelAdmin):
-    list_display = ("id", "name")
+    list_display = ("id", "name", "medium")
     search_fields = ("name",)
