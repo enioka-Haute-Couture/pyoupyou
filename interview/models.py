@@ -5,6 +5,7 @@ import os
 import hashlib
 import unicodedata
 import itertools
+import logging
 
 from django.conf import settings
 from django.core import mail
@@ -23,6 +24,7 @@ from ref.models import Consultant, Subsidiary, PyouPyouUser
 
 CharField.register_lookup(Lower)
 
+logger = logging.getLogger("pyoupyou.interview.models")
 
 
 class ContractType(models.Model):
@@ -649,7 +651,7 @@ class Interview(models.Model):
                 if self.kind_of_interview is not None and self.kind_of_interview.medium is not None:
                     interview_medium = self.kind_of_interview.medium + "/interview/" + self.process.candidate.name_slug
             except RecursionError as err:
-                print("No interviewers/consultantManager supplied")
+                logger.error("No interviewers/consultantManager supplied")
 
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
