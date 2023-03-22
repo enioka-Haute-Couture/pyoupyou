@@ -230,6 +230,7 @@ class InterviewKindFactory(factory.django.DjangoModelFactory):
 
     # name = "Default Interview Kind"
     name = factory.Faker("text", max_nb_chars=20)
+    medium = factory.Faker("url")
 
 
 class InterviewFactory(factory.django.DjangoModelFactory):
