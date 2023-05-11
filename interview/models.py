@@ -470,6 +470,9 @@ class InterviewKind(models.Model):
     def __str__(self):
         return self.name
 
+    def get_interview_url_from_medium(self, process):
+        return self.medium + "/interview/" + process.candidate.name_slug
+
 
 class InterviewManager(models.Manager):
     def for_user(self, user):
@@ -647,11 +650,8 @@ class Interview(models.Model):
         elif self.state == Interview.PLANNED:
             subject = _("Interview planned: {process}").format(process=self.process)
             body_template = "interview/email/interview_planned.txt"
-            try:
-                if self.kind_of_interview is not None and self.kind_of_interview.medium is not None:
-                    interview_medium = self.kind_of_interview.medium + "/interview/" + self.process.candidate.name_slug
-            except RecursionError as err:
-                logger.error("No interviewers/consultantManager supplied")
+            if self.kind_of_interview is not None and self.kind_of_interview.medium is not None:
+                interview_medium = self.kind_of_interview.get_interview_url_from_medium(self.process)
 
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
