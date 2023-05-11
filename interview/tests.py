@@ -228,7 +228,7 @@ class StatusAndNotificationTestCase(TestCase):
         # Interview state will be: WAITING_PLANIFICATION
         # Action responsible will be: Interviewer
         # Mail will be sent to  subsidiary responsible and interviewer
-        i1 = Interview(process_id=p.id)
+        i1 = Interview(process_id=p.id, kind_of_interview=InterviewKindFactory())
         i1.save()
         i1.interviewers.add(interviewer)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_INTERVIEW_PLANIFICATION)
@@ -252,6 +252,8 @@ class StatusAndNotificationTestCase(TestCase):
         self.assertEqual(list(p.responsible.all()), [interviewer])
         self.assertEqual(len(mail.outbox), 1)
         self.assertCountEqual(mail.outbox[0].to, [subsidiaryResponsible.user.email, interviewer.user.email])
+        self.assertIn("Video conference app suggestion", mail.outbox[0].body)
+        self.assertIn("/interview/" + p.candidate.name_slug, mail.outbox[0].body)
         mail.outbox = []
 
         # When ITW date is in the past cron will set state to WAIT_INFORMATION for the interview and indirectly to

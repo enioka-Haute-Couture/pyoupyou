@@ -1,3 +1,6 @@
+# v1.20.0 (2023-05-11)
+- Add url link in email notification for planned interview specific kind
+
 # v1.19.0 (2023-03-16)
 - Allow user to subscribe to a recruitment process
 - Allow user to subscribe to an offer

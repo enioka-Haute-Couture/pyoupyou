@@ -5,6 +5,7 @@ import os
 import hashlib
 import unicodedata
 import itertools
+import logging
 
 from django.conf import settings
 from django.core import mail
@@ -22,6 +23,8 @@ from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Consultant, Subsidiary, PyouPyouUser
 
 CharField.register_lookup(Lower)
+
+logger = logging.getLogger("pyoupyou.interview.models")
 
 
 class ContractType(models.Model):
@@ -462,9 +465,13 @@ class Process(models.Model):
 
 class InterviewKind(models.Model):
     name = models.CharField(max_length=255)
+    medium = models.URLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+    def get_interview_url_from_medium(self, process):
+        return self.medium + "/interview/" + process.candidate.name_slug
 
 
 class InterviewManager(models.Manager):
@@ -635,6 +642,7 @@ class Interview(models.Model):
 
         subject = None
         body_template = None
+        interview_medium = None
         if self.state == Interview.WAITING_PLANIFICATION:
             subject = _("New interview for {process}").format(process=self.process)
             body_template = "interview/email/new_interview.txt"
@@ -642,10 +650,14 @@ class Interview(models.Model):
         elif self.state == Interview.PLANNED:
             subject = _("Interview planned: {process}").format(process=self.process)
             body_template = "interview/email/interview_planned.txt"
+            if self.kind_of_interview is not None and self.kind_of_interview.medium is not None:
+                interview_medium = self.kind_of_interview.get_interview_url_from_medium(self.process)
 
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
-            body = render_to_string(body_template, {"interview": self, "url": url})
+            body = render_to_string(
+                body_template, {"interview": self, "url": url, "interview_medium": interview_medium}
+            )
 
             # add users subscribed to process offer's notification
             if self.process.offer:
