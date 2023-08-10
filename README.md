@@ -90,4 +90,6 @@ PYOUPYOU_ENV="prod" poetry run ./manage.py migrate
 
 ## Run
 
-In order to run it you can use a wsgi capable webserver (apache mod_wsgi, gunicorn, uWSGI...), ensure to set PYOUPYOU_ENV variable to _prod_
+In order to run it you can use a wsgi capable webserver (apache mod_wsgi, gunicorn, uWSGI...), ensure to set PYOUPYOU_ENV variable to _prod_ or _dev_.
+
+As an alternative you can also set name in pyoupyou/.pyoupyou.env file.
