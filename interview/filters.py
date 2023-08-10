@@ -2,7 +2,7 @@ import django_filters
 
 from interview.models import Process, Interview
 from ref.models import Subsidiary, Consultant
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class ProcessFilter(django_filters.FilterSet):

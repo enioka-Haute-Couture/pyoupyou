@@ -1,3 +1,7 @@
+# v1.20.0 (xxxx-xx-xx)
+- Update django to 4.2.x
+- Support python 3.11
+
 # v1.19.0 (2023-03-16)
 - Allow user to subscribe to a recruitment process
 - Allow user to subscribe to an offer

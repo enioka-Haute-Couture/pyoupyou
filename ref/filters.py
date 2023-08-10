@@ -1,6 +1,6 @@
 import django.forms.widgets
 import django_filters
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from ref.models import Subsidiary
 

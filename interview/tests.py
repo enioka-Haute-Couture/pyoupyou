@@ -5,19 +5,14 @@ import datetime
 import hashlib
 
 import dateutil.relativedelta
-import factory
 import pytz
-from django.conf import settings
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from interview import views, feeds
-from interview.factory import ProcessFactory, InterviewFactory, CandidateFactory, OfferFactory, SourcesFactory
-from interview.models import Process, Document, Interview, Candidate
+from interview.models import Candidate
 from django.utils.text import slugify
-from django.utils.translation import ugettext_lazy as _
 from factory.faker import faker
 
 from interview import views
@@ -1300,7 +1295,7 @@ class ImportCognitoFormTestCase(TestCase):
                     "Name": "doc2.pdf",
                     "Size": 139130,
                     "StorageUrl": None,
-                    "File": "http://www.ec-bievres.ac-versailles.fr/IMG/pdf/test_pdf.pdf",
+                    "File": "https://www.orimi.com/pdf-test.pdf",
                 },
             ],
         }

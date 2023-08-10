@@ -3,9 +3,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
-from django.utils.translation import ugettext_lazy as __
-
+from django.utils.translation import gettext as _
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Submit, Column, Field
@@ -147,16 +145,16 @@ class InterviewFormEditInterviewers(forms.ModelForm):
     helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ["minute", "next_interview_goal", "kind_of_interview"]
 
-    # https://docs.djangoproject.com/en/1.11/topics/http/file-uploads/#uploading-multiple-files
-    # Only way to select multiple files is when selecting them at the same time (e.g: using SHIFT + click)
-    document = forms.FileField(
-        label="Document", required=False, widget=forms.ClearableFileInput(attrs={"multiple": True})
-    )
+    document = forms.FileField(label="Document", required=False, widget=MultipleFileInput())
     helper = FormHelper()
     helper.form_tag = False
 
