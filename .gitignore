@@ -9,3 +9,4 @@ venv/
 .venv/
 pyoupyou/settings/local.py
 media/
+/pyoupyou/.pyoupyou_env
