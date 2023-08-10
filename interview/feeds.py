@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django.http.response import HttpResponse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.utils.html import escape
 from django_ical.views import ICalFeed
 from django.utils import timezone
@@ -21,7 +21,7 @@ class AbstractPyoupyouInterviewFeed(ICalFeed):
 
     def item_title(self, item):
         itws = ", ".join([i.user.trigramme for i in item.interviewers.all()])
-        return escape(force_text("#{} {} [{}]".format(item.rank, item.process.candidate.name, itws)))
+        return escape(force_str("#{} {} [{}]".format(item.rank, item.process.candidate.name, itws)))
 
     def item_description(self, item):
         return ""

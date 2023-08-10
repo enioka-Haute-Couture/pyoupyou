@@ -15,7 +15,7 @@ INSTALLED_APPS += ["debug_toolbar", "debug_toolbar_user_panel"]
 MIDDLEWARE += ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 
 DEBUG_TOOLBAR_PANELS = [
-    "ddt_request_history.panels.request_history.RequestHistoryPanel",
+    "debug_toolbar.panels.history.HistoryPanel",
     "debug_toolbar_user_panel.panels.UserPanel",
     "debug_toolbar.panels.versions.VersionsPanel",
     "debug_toolbar.panels.timer.TimerPanel",

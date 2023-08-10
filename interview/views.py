@@ -30,8 +30,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 from django.utils.html import format_html
-from django.utils.translation import ugettext as _t
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext as _t
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 from django.views.decorators.csrf import csrf_exempt
