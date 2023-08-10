@@ -5,6 +5,7 @@
 - Fix create process form (remove subscribe to notification field)
 - Strip search
 - Fix gantt chart when no data
+- Add ordering to offer (prevent warning)
 
 # v1.19.0 (2023-03-16)
 - Allow user to subscribe to a recruitment process
