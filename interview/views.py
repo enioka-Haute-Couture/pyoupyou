@@ -1259,7 +1259,7 @@ def interviewers_load(request):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.consultant.is_external)
 def search(request):
-    q = request.GET.get("q", "")
+    q = request.GET.get("q", "").strip()
 
     results = Process.objects.filter(Q(candidate__name__icontains=q) | Q(candidate__email__icontains=q)).distinct()
 
