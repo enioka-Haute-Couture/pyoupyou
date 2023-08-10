@@ -1325,6 +1325,15 @@ def gantt(request):
             }
         )
 
+    if not processes_dict:
+        context = {
+            "gantt": _("No data"),
+            "filter": filter,
+            "subsidiaries": Subsidiary.objects.all(),
+        }
+
+        return render(request, "interview/gantt.html", context)
+
     for process in processes_dict:
         if not process["Finish"]:
             process["Finish"] = max_end_date
