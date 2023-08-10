@@ -14,32 +14,30 @@ authors = [
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">= 3.9, <3.11"
+python = ">= 3.9, <3.12"
 django-bootstrap-static = ">=3.3.7,<3.4"
 django-crispy-forms = "==1.14.0"
-django-select2 = "==8.1.1"
-django-extensions = "==3.2.1"
-django-tables2 = "==2.5.3"
-django-ical = "==1.8.3"
-django-bleach = "==3.0.1"
+django-select2 = "==8.1.2"
+django-extensions = "==3.2.3"
+django-tables2 = "==2.6.0"
+django-ical = "==1.9.2"
+django-bleach = "==3.1.0"
 django-split-settings = "==1.2.0"
-requests = '==2.28.2 '
-django-filter = "==22.1"
+requests = '==2.31.0 '
+django-filter = "==23.2"
 plotly = "==4.8.2"
 numpy = "==1.24.1"
-pytz = "==2022.7.1"
+pytz = "==2023.3"
 pandas = "==1.5.3"
-django = "==3.2.18"
-urllib3 = "==1.26.15"
-markdown-it-py = "^2.2.0"
+django = "==4.2.4"
+urllib3 = "==1.26.16"
+markdown-it-py = "3.0.0"
 djangorestframework = "^3.14.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "==22.8.0"
-django-debug-toolbar = "==2.2.1"
+django-debug-toolbar = "==4.1.0"
 factory-boy = "==3.1.0"
 tzlocal = "*"
 coverage = "*"
-django-debug-toolbar-user-panel = {git = "https://github.com/Napoleon-Black/django-debug-toolbar-user-panel.git",rev = "1481b04e0cbbf7db35bf43061883535ef25892f5"}
-django-debug-toolbar-request-history = "==0.1.3"
-
+django-debug-toolbar-user-panel = "==2.0.0"

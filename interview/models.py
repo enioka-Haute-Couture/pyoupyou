@@ -16,7 +16,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Consultant, Subsidiary, PyouPyouUser
