@@ -2,6 +2,7 @@
 - Update django to 4.2.x
 - Support python 3.11
 - Allow to set PYOUPYOU_ENV from a file
+- Fix create process form (remove subscribe to notification field)
 
 # v1.19.0 (2023-03-16)
 - Allow user to subscribe to a recruitment process
