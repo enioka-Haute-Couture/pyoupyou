@@ -209,6 +209,9 @@ class Offer(models.Model):
     def __str__(self):
         return "{name} ({sub})".format(name=self.name, sub=self.subsidiary)
 
+    class Meta:
+        ordering = ("pk",)
+
 
 class ProcessManager(models.Manager):
     def for_user(self, user):
