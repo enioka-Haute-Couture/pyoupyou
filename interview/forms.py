@@ -72,6 +72,7 @@ class ProcessForm(forms.ModelForm):
             "responsible",
             "last_state_change",
             "creator",
+            "subscribers",
         ]
 
         widgets = {"sources": SelectOrCreateSource, "offer": SelectOrCreateOffer}
