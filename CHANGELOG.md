@@ -1,4 +1,4 @@
-# v1.20.0 (xxxx-xx-xx)
+# v1.20.0 (2023-08-11)
 - Update django to 4.2.x
 - Support python 3.11
 - Allow to set PYOUPYOU_ENV from a file
