@@ -112,8 +112,8 @@ class Candidate(models.Model):
                 doc.content.delete()
             Document.objects.filter(candidate=self).delete()
             # remove directory as well
+            path = settings.MEDIA_ROOT / f"CV/{self.id}_{self.name}"
             try:
-                path = settings.MEDIA_ROOT + f"/CV/{self.id}_{self.name}"
                 os.rmdir(path)
             except FileNotFoundError:
                 print(f"directory {path} doesnt exist")
