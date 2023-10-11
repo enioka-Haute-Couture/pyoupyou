@@ -1774,7 +1774,7 @@ def interviews_pivotable(request):
     processes_length = {}
     processes_itw_count = {}
     for process in processes:
-        # Compute interview lenght
+        # Compute interview length
         if process.id not in processes_length:
             process_length, process_interview_count = process_stats(process)
             processes_length[process.id] = process_length
@@ -1791,18 +1791,7 @@ def interviews_pivotable(request):
         if process.start_date < financial_closing_start_date:
             process_start_fiscal_year = "%d/%d" % (process.start_date.year - 1, process.start_date.year)
 
-        process_end_fiscal_year = ""
-        if process.end_date is not None:
-            financial_closing_end_date = parser.parse(
-                "%d-%s" % (process.end_date.year, settings.FINANCIAL_CLOSING_MONTH_DAY)
-            ).date()
-            process_end_fiscal_year = "%d/%d" % (process.end_date.year, process.end_date.year + 1)
-            if process.end_date < financial_closing_end_date:
-                process_end_fiscal_year = "%d/%d" % (process.end_date.year - 1, process.end_date.year)
-
         process_end_date = "" if process.end_date is None else process.end_date.strftime("%Y-%m-%d")
-        process_end_date_year_month = "" if process.end_date is None else process.end_date.strftime("%Y-%m")
-        process_end_date_year = "" if process.end_date is None else process.end_date.strftime("%Y")
         process_source_category = "" if process.sources is None else process.sources.category.name
         process_contract_start_date = (
             "" if process.contract_start_date is None else process.contract_start_date.strftime("%Y-%m")
@@ -1840,20 +1829,19 @@ def interviews_pivotable(request):
             else:
                 time_since_last_event = _("Unknown")
 
-            interview_planned_date = "" if interview.planned_date is None else interview.planned_date.strftime("%Y-%m")
+            interview_planned_date = (
+                "" if interview.planned_date is None else interview.planned_date.strftime("%Y-%m-%d")
+            )
+            interview_planned_month_year = (
+                "" if interview.planned_date is None else interview.planned_date.strftime("%Y-%m")
+            )
 
             data.append(
                 {
                     _("subsidiary"): str(process.subsidiary),
                     _("process start date"): process.start_date.strftime("%Y-%m-%d"),
-                    _("process start year month"): process.start_date.strftime("%Y-%m"),
-                    _("process start year"): process.start_date.strftime("%Y"),
                     _("process start fiscal year"): process_start_fiscal_year,
                     _("process end date"): process_end_date,
-                    _("process end year-month"): process_end_date_year_month,
-                    _("process end year"): process_end_date_year,
-                    _("process end fiscal year"): process_end_fiscal_year,
-                    _("process length"): process_length,
                     _("source"): str(process.sources),
                     _("source category"): process_source_category,
                     _("offer"): str(process.offer),
@@ -1866,9 +1854,12 @@ def interviews_pivotable(request):
                     _("itw state label"): interview.get_state_display(),
                     _("interviewers"): interviewers,
                     _("interview rank"): interview.rank,
-                    _("days since last event"): time_since_last_event,
-                    _("itw planned date"): interview_planned_date,
+                    _("days since last itw"): time_since_last_event,
+                    _("itw id"): interview.id,
+                    _("itw date"): interview_planned_date,
+                    _("itw year month"): interview_planned_month_year,
                     _("itw kind"): str(interview.kind_of_interview),
+                    _("itw prequalification"): _("yes") if interview.prequalification else _("no")
                 }
             )
 
@@ -1878,5 +1869,93 @@ def interviews_pivotable(request):
         {
             "data": data,
             "current_financial_year_default_filter": current_financial_year_default_filter,
+            "title": _("Interviews analysis"),
+        },
+    )
+
+@login_required
+@user_passes_test(lambda u: not u.consultant.is_external)
+def processes_pivotable(request):
+    data = []
+
+    subsidiary_filter = get_global_filter(request)
+
+    processes = subsidiary_filter.filter_queryset(
+        Process.objects.all()
+        .select_related("sources__category")
+        .select_related("contract_type")
+        .select_related("candidate")
+        .select_related("subsidiary")
+        .select_related("offer__subsidiary")
+        .prefetch_related("interview_set__kind_of_interview", "interview_set__interviewers__user")
+        .annotate(interview_last_planned_date=Max("interview__planned_date"))
+    )
+
+    # Analysis default filter on the current financial year
+    current_financial_year_default_filter = "%d/%d" % (datetime.date.today().year, datetime.date.today().year + 1)
+    financial_closing_current_date = parser.parse(
+        "%d-%s" % (datetime.date.today().year, settings.FINANCIAL_STARTING_MONTH_DAY)
+    ).date()
+    if datetime.date.today() < financial_closing_current_date:
+        current_financial_year_default_filter = "%d/%d" % (datetime.date.today().year - 1, datetime.date.today().year)
+
+    processes_length = {}
+    processes_itw_count = {}
+    for process in processes:
+        # Compute interview length
+        if process.id not in processes_length:
+            process_length, process_interview_count = process_stats(process)
+            processes_length[process.id] = process_length
+            processes_itw_count[process.id] = process_interview_count
+        else:
+            process_length = processes_length[process.id]
+            process_interview_count = processes_itw_count[process.id]
+
+        # Compute process start/end financial closing date
+        financial_closing_start_date = parser.parse(
+            "%d-%s" % (process.start_date.year, settings.FINANCIAL_STARTING_MONTH_DAY)
+        ).date()
+        process_start_fiscal_year = "%d/%d" % (process.start_date.year, process.start_date.year + 1)
+        if process.start_date < financial_closing_start_date:
+            process_start_fiscal_year = "%d/%d" % (process.start_date.year - 1, process.start_date.year)
+
+        process_end_date = "" if process.end_date is None else process.end_date.strftime("%Y-%m-%d")
+        process_source_category = "" if process.sources is None else process.sources.category.name
+        process_contract_start_date = (
+            "" if process.contract_start_date is None else process.contract_start_date.strftime("%Y-%m")
+        )
+        process_contract_duration = 0 if process.contract_duration is None else process.contract_duration
+        process_mean_days_between_itws = (
+            0 if process_interview_count == 0 else int(process_length / process_interview_count)
+        )
+
+        data.append(
+            {
+                _("subsidiary"): str(process.subsidiary),
+                _("process id"): str(process.id),
+                _("process start date"): process.start_date.strftime("%Y-%m-%d"),
+                _("process start year month"): process.start_date.strftime("%Y-%m"),
+                _("process start fiscal year"): process_start_fiscal_year,
+                _("process end date"): process_end_date,
+                _("process length"): process_length,
+                _("source"): str(process.sources),
+                _("source category"): process_source_category,
+                _("offer"): str(process.offer),
+                _("contract type"): str(process.contract_type),
+                _("contract start date"): process_contract_start_date,
+                _("contract duration"): process_contract_duration,
+                _("process state label"): process.get_state_display(),
+                _("process itw count"): process_interview_count,
+                _("mean days between itws"): process_mean_days_between_itws,
+            }
+        )
+
+    return render(
+        request,
+        "interview/pivotable.html",
+        {
+            "data": data,
+            "current_financial_year_default_filter": current_financial_year_default_filter,
+            "title": _("Processes analysis"),
         },
     )
