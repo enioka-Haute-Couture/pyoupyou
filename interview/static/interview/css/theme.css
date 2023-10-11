@@ -146,3 +146,8 @@ th.asc .sort-icon::before {
 .pivotable-navbar .filter-fiscal-year span.year-selector-label {
     align-self: center;
 }
+
+.pivotable_title {
+    text-align: center;
+    font-size: 2em;
+}
