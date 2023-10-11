@@ -65,6 +65,7 @@ urlpatterns = [
     re_path(r"^reports/offers/$", views.offers, name="offers"),
     re_path(r"^reports/activity-summary/$", views.activity_summary, name="activity_summary"),
     re_path(r"^reports/pivotable/interviews/$", views.interviews_pivotable, name="interviews-pivotable"),
+    re_path(r"^reports/pivotable/processes/$", views.processes_pivotable, name="processes-pivotable"),
     re_path(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
     re_path(r"^candidate-reuse/(?P<candidate_id>\d+)/$", views.reuse_candidate, name="reuse_candidate"),
     re_path(r"^create_source/$", views.create_source_ajax, name="create_source"),
