@@ -1859,9 +1859,44 @@ def interviews_pivotable(request):
                     _("itw date"): interview_planned_date,
                     _("itw year month"): interview_planned_month_year,
                     _("itw kind"): str(interview.kind_of_interview),
-                    _("itw prequalification"): _("yes") if interview.prequalification else _("no")
+                    _("itw prequalification"): _("yes") if interview.prequalification else _("no"),
                 }
             )
+
+    representations = [
+        {
+            "title": _("Interview per state/subsidiaries"),
+            "rows": [_("subsidiary"), _("itw state label")],
+            "cols": [_("itw year month")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [""],
+        },
+        {
+            "title": _("Interview per subsidiaries/kind"),
+            "rows": [_("subsidiary"), _("itw kind")],
+            "cols": [_("itw year month")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [""],
+        },
+        {
+            "title": _("Interview per interviewer month based"),
+            "rows": [_("interviewers")],
+            "cols": [_("itw year month")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [""],
+        },
+        {
+            "title": _("Elapsed time between interviews"),
+            "rows": [_("interview rank")],
+            "cols": [_("days since last itw")],
+            "rendererName": "Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [""],
+        },
+    ]
 
     return render(
         request,
@@ -1870,8 +1905,10 @@ def interviews_pivotable(request):
             "data": data,
             "current_financial_year_default_filter": current_financial_year_default_filter,
             "title": _("Interviews analysis"),
+            "representations": representations,
         },
     )
+
 
 @login_required
 @user_passes_test(lambda u: not u.consultant.is_external)
@@ -1950,6 +1987,25 @@ def processes_pivotable(request):
             }
         )
 
+    representations = [
+        {
+            "title": _("Candidates sources/subsidiaries"),
+            "rows": [_("source")],
+            "cols": [_("process start year month"), _("subsidiary")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [_("process start fiscal year")],
+        },
+        {
+            "title": _("Processes per contract type"),
+            "rows": [_("contract type")],
+            "cols": [_("process start year month"), _("interview rank")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [_("process start fiscal year")],
+        },
+    ]
+
     return render(
         request,
         "interview/pivotable.html",
@@ -1957,5 +2013,6 @@ def processes_pivotable(request):
             "data": data,
             "current_financial_year_default_filter": current_financial_year_default_filter,
             "title": _("Processes analysis"),
+            "representations": representations,
         },
     )
