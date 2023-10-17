@@ -1,0 +1,73 @@
+{% extends "interview/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block more_css %}
+    {% include "interview/_pivotable_header.html" %}
+{%  endblock  %}
+
+{% block content %}
+<div class="container pivotable-navbar">
+    <div class="dropdown">
+        <span class="chart-selector-label">{%  trans "Suggested analysis: " %}</span>
+        <a class="btn btn-primary dropdown-toggle" role="button" type="button" data-toggle="dropdown" aria-expanded="false">
+            <span id="chart-selector-value" data-value="current-processes-state-subsidiaries">{% trans "Processes per state/subsidiaries" %}</span>
+            <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu chart-selector-buttons">
+            <li><a class="dropdown-item" href="#" id="current-processes-state-subsidiaries">{% trans "Processes per state/subsidiaries" %}</a></li>
+            <li><a class="dropdown-item" href="#" id="candidates-sources-subsidiaries">{% trans "Candidates sources/subsidiaries" %}</a></li>
+            <li><a class="dropdown-item" href="#" id="process-per-contract-type">{% trans "Processes per contract type" %}</a></li>
+            <li><a class="dropdown-item" href="#" id="process-duration">{% trans "Processes duration" %}</a></li>
+        </ul>
+    </div>
+</div>
+<div id="pivotable-output"></div>
+<script src="{% static 'pivotable.js' %}"></script>
+<script>
+    // data set given to pivotable
+    var data = {{ data|safe }};
+
+    // pivotable options
+    var options = {}
+    {% if current_financial_year_default_filter %}
+        let currentFinancialYearDefaultFilter = "{{ current_financial_year_default_filter | safe }}"
+        options = {"inclusions": {}}
+        options['inclusions']["{% trans 'process start fiscal year' %}"] = [currentFinancialYearDefaultFilter];
+    {% endif %}
+
+    $(document).ready(function() {
+        let rows = [];
+        let cols = [];
+
+        // chart selector dropdown label update on selection change
+        document.querySelectorAll(".chart-selector-buttons li a").forEach(button => {
+            button.addEventListener("click", () =>{
+                document.querySelector('#chart-selector-value').innerText = button.innerText;
+            })
+        });
+
+        // define chart dropdown suggestions
+        document.querySelector("#current-processes-state-subsidiaries").addEventListener("click", () => {
+            document.querySelector("#chart-selector-value").dataset.value = "current-processes-state-subsidiaries";
+            drawPivot(data, ["{% trans 'subsidiary' %}", "{% trans 'process state label' %}"], ["{% trans 'process end year-month' %}"], "Stacked Bar Chart", "Somme", ["{% trans 'process end year-month' %}"], options);
+        })
+        document.querySelector("#candidates-sources-subsidiaries").addEventListener("click", () => {
+            document.querySelector("#chart-selector-value").dataset.value = "candidates-sources-subsidiaries";
+            drawPivot(data, ["{% trans 'source' %}"], ["{% trans 'process end fiscal year' %}", "{% trans 'subsidiary' %}"], "Stacked Bar Chart", "Somme", ["{% trans 'process end fiscal year' %}"], options);
+        })
+        document.querySelector("#process-per-contract-type").addEventListener("click", () => {
+            document.querySelector("#chart-selector-value").dataset.value = "process-per-contract-type";
+            drawPivot(data, ["{% trans 'contract type' %}"], ["{% trans 'process end fiscal year' %}", "{% trans 'interview rank' %}"], "Stacked Bar Chart", "Somme", ["{% trans 'process end fiscal year' %}"], options);
+        })
+        document.querySelector("#process-duration").addEventListener("click", () => {
+            document.querySelector("#chart-selector-value").dataset.value = "process-duration";
+            drawPivot(data, ["{% trans 'days since last event' %}"], ["{% trans 'process end fiscal year' %}", "{% trans 'interview rank' %}", "{% trans 'contract type' %}"], "Stacked Bar Chart", "Nombre", [''], options);
+        })
+
+        // launch the initial chart suggestion
+        let domCurrentChart = document.querySelector("#chart-selector-value").dataset.value;
+        document.querySelector("#"+ domCurrentChart).click();
+    });
+</script>
+{% endblock %}

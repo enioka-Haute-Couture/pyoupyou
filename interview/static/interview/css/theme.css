@@ -75,3 +75,74 @@ th.asc .sort-icon::before {
     display: inline;
     margin-right: 15px;
 }
+
+/* pivotable */
+.pivotable-navbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.pivotable-navbar:before, .pivotable-navbar:after {
+    content:none;
+}
+
+/* Resize pivotable space usage */
+#pivotable-output {
+    width: 90%;
+    margin: 2rem auto;
+}
+
+/* prevent pivotable unused attributes to grow on width */
+.pvtUnused {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* improve filter visibility and style */
+#pivotable-output td.pvtAxisContainer > li > span.pvtAttr {
+    padding: 0.5rem 0.8rem;
+}
+#pivotable-output li.pvtFilteredAttribute span.pvtAttr {
+    background-color: orange;
+    color: white;
+    font-style: normal;
+    font-weight: bold;
+}
+
+/* improve pivotable filter style */
+#pivotable-output .pvtFilterBox {
+    border-radius: 1rem;
+}
+
+#pivotable-output .pvtFilterBox > p > button {
+    border-radius: 0.4rem;
+    border: 1px solid black;
+    padding: 0.2rem 0.8rem;
+}
+
+.pvtFilterBox > p:has(.pvtSearch) input {
+    margin-bottom: 1rem;
+}
+
+.pvtFilterBox > p:has(.pvtSearch) button:first-child {
+    margin-right: 1rem;
+}
+
+.pvtFilterBox > p:last-child {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.pivotable-navbar .filter-fiscal-year {
+    flex-grow: 0.1;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.pivotable-navbar .filter-fiscal-year span.year-selector-label {
+    align-self: center;
+}
