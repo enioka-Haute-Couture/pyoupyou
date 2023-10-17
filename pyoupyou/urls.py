@@ -81,8 +81,6 @@ urlpatterns = [
     re_path(
         r"^feed/user/(?P<user_id>\d+)/pyoupyou_interviews.ics$", feeds.ConsultantInterviewFeed(), name="calendar_user"
     ),
-    re_path(r"^export/all_interviews.tsv$", views.export_interviews_tsv, name="export_interviews_tsv"),
-    re_path(r"^export/all_processes.tsv$", views.export_processes_tsv, name="export_processess_tsv"),
     re_path(r"^select2/", include("django_select2.urls")),
     re_path(r"^search/", views.search, name="search"),
     re_path(r"^gantt/", views.gantt, name="gantt"),
