@@ -57,6 +57,7 @@
                             <li><a href="{% url 'active-sources' %}">{% trans "Sources" %}</a></li>
                             <li><a href="{% url 'offers' %}">{% trans "Offers" %}</a></li>
                             <li><a href="{% url 'activity_summary' %}">{% trans "Activity summary" %}</a></li>
+                            <li><a href="{% url 'interviews-pivotable' %}">{% trans "Analysis" %}</a></li>
                             {% if user.is_staff %}
                                 <li role="separator" class="divider"></li>
                                 <li><a href="{% url 'admin:index' %}">{% trans "Admin" %}</a></li>

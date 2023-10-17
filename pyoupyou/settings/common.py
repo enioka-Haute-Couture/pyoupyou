@@ -119,3 +119,7 @@ STALE_DAYS = 7
 USE_X_FORWARDED_HOST = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
+# Process analysis financial starting date.
+# It should only contain the month and day using '<month>-<day>' format.
+FINANCIAL_STARTING_MONTH_DAY = "07-01"
