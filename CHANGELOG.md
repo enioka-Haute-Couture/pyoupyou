@@ -1,3 +1,6 @@
+# v1.21.0 (xxxx-xx-xx)
+- Process and interview analysis
+
 # v1.20.1 (2023-08-31)
 - Fix path locale and media
 
