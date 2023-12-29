@@ -2,6 +2,7 @@ import requests
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from interview.models import Process, Candidate, Document, Sources, Offer
 from ref.models import Subsidiary
@@ -10,6 +11,14 @@ from ref.models import Subsidiary
 class DocumentSerializer(serializers.Serializer):
     File = serializers.URLField()
     Name = serializers.CharField()
+
+
+class UrlFieldOrEmpty(serializers.URLField):
+    def run_validation(self, data=empty):
+        try:
+            return super().run_validation(data)
+        except serializers.ValidationError:
+            return ""
 
 
 class CognitoWebHookSerializer(serializers.Serializer):
@@ -44,7 +53,7 @@ class CognitoWebHookSerializer(serializers.Serializer):
     Name = serializers.CharField(max_length=200)
     Email = serializers.EmailField(allow_blank=True)
     Phone = serializers.CharField(max_length=20, allow_blank=True, allow_null=True, required=False)
-    Linkedin = serializers.URLField(allow_blank=True, allow_null=True, required=False)
+    Linkedin = UrlFieldOrEmpty(allow_blank=True, allow_null=True, required=False)
 
     # Process
     sources = serializers.IntegerField(allow_null=True)
