@@ -72,14 +72,16 @@ urlpatterns = [
     re_path(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),
     re_path(r"^create_account/$", views.create_account, name="create_acount"),
     re_path(r"^delete_account/(?P<trigramme>[a-z]{3})$", views.delete_account, name="delete_acount"),
-    re_path(r"^feed/pyoupyou_full.ics$", feeds.FullInterviewFeed(), name="calendar_full"),
+    re_path(r"^feed/(?P<token>.+)/pyoupyou_full.ics$", feeds.FullInterviewFeed(), name="calendar_full"),
     re_path(
-        r"^feed/subsidiary/(?P<subsidiary_id>\d+)/pyoupyou_interviews.ics$",
+        r"^feed/(?P<token>.+)/subsidiary/(?P<subsidiary_id>\d+)/pyoupyou_interviews.ics$",
         feeds.SubsidiaryInterviewFeed(),
         name="calendar_subsidiary",
     ),
     re_path(
-        r"^feed/user/(?P<user_id>\d+)/pyoupyou_interviews.ics$", feeds.ConsultantInterviewFeed(), name="calendar_user"
+        r"^feed/(?P<token>.+)/user/(?P<user_id>\d+)/pyoupyou_interviews.ics$",
+        feeds.ConsultantInterviewFeed(),
+        name="calendar_user",
     ),
     re_path(r"^select2/", include("django_select2.urls")),
     re_path(r"^search/", views.search, name="search"),
