@@ -15,7 +15,9 @@ class AbstractPyoupyouInterviewFeed(ICalFeed):
     timezone = "Europe/Paris"
 
     def __call__(self, request, *args, **kwargs):
-        if not request.user.is_authenticated or request.user.consultant.privilege != Consultant.PrivilegeLevel.ALL:
+        user = PyouPyouUser.objects.filter(token=kwargs["token"]).first()
+        del kwargs["token"]
+        if not user or not user.is_active or user.consultant.privilege != Consultant.PrivilegeLevel.ALL:
             return HttpResponse("Unauthenticated user", status=401)
         return super().__call__(request, *args, **kwargs)
 
@@ -71,7 +73,7 @@ class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
     def file_name(self, obj):
         return "pyoupyou_full.ics"
 
-    def get_object(self, request, subsidiary_id=None):
+    def get_object(self, request):
         return None
 
     def items(self, obj):

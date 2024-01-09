@@ -1071,7 +1071,7 @@ class PrivilegeLevelTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_ical_feed(self):
-        response = self.client.get(reverse("calendar_full"))
+        response = self.client.get(reverse("calendar_full", kwargs={"token": self.consultant.user.token}))
         self.assertEqual(response.status_code, 401)
 
 

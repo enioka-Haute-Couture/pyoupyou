@@ -1,3 +1,5 @@
+import secrets
+
 from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import User, PermissionsMixin
@@ -67,11 +69,15 @@ class PyouPyouUserManager(BaseUserManager):
         return self.get(trigramme__iexact=trigramme)
 
 
+def generate_token():
+    return secrets.token_urlsafe(25)
+
+
 class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
     trigramme = models.CharField(max_length=4, unique=True)
     full_name = models.CharField(_("full name"), max_length=50, blank=True)
     email = models.EmailField(_("email address"), blank=True)
-
+    token = models.CharField(max_length=50, blank=True, default=generate_token)  # urlsafe is number of bytes not char
     is_staff = models.BooleanField(
         _("staff status"), default=False, help_text=_("Designates whether the user can log into this admin site.")
     )
