@@ -9,7 +9,10 @@ class PyouPyouUserAdmin(UserAdmin):
     fieldsets = (
         (None, {"fields": ("trigramme", "password")}),
         (_("Personal info"), {"fields": ("full_name", "email")}),
-        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            _("Permissions"),
+            {"fields": ("is_active", "token", "is_staff", "is_superuser", "groups", "user_permissions")},
+        ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
 

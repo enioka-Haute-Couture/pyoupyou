@@ -73,13 +73,13 @@
                     <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"> <i class="fa fa-calendar" aria-hidden="true"> </i> <span class="caret"></span></a>
                         <ul class="dropdown-menu">
-                            <li> <a href='{% url "calendar_user" user_id=user.id %}'> {% trans "My interviews" %} </a> </li>
+                            <li> <a href='{% url "calendar_user" token=user.token user_id=user.id %}'> {% trans "My interviews" %} </a> </li>
                             <li role="separator" class="divider"></li>
                             {% for s in subsidiaries %}
-                                <li> <a href='{% url "calendar_subsidiary" subsidiary_id=s.id %}'> {{ s.name }} </a> </li>
+                                <li> <a href='{% url "calendar_subsidiary" token=user.token subsidiary_id=s.id %}'> {{ s.name }} </a> </li>
                             {% endfor %}
                             <li role="separator" class="divider"></li>
-                            <li><a href="{% url 'calendar_full' %}"> {% trans "All" %} </a></li>
+                            <li><a href="{% url 'calendar_full' token=user.token %}"> {% trans "All" %} </a></li>
                         </ul>
                     </li>
                     {% endif %}
