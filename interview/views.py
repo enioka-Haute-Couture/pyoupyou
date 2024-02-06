@@ -491,11 +491,6 @@ def new_candidate_POST_handler(
     duplicate_processes = None
     duplicates = None
 
-    # reusing already existing candidate
-    if past_candidate_id:
-        candidate_form = ProcessCandidateForm(instance=Candidate.objects.get(id=past_candidate_id))
-        candidate_form.full_clean()  # already valid form
-
     candidate = candidate_form.save(commit=False)
 
     # check for duplicates unless it has already been processed (re-used or ignored)
@@ -504,6 +499,10 @@ def new_candidate_POST_handler(
         duplicate_processes = Process.objects.distinct().filter(candidate__in=duplicates)
 
     if not duplicates:
+        # reusing already existing candidate, update anonymized value
+        if past_candidate_id:
+            candidate.anonymized = False
+
         candidate.save()
         log_action(True, candidate, request.user, new_candidate)
 
@@ -549,18 +548,12 @@ def new_candidate(request, past_candidate_id=None):
         interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
 
         #  clicked on "reuse this candidate"
-        if not "summit" in request.POST:
+        if "reuse-candidate" in request.POST and past_candidate_id:
             candidate = Candidate.objects.get(id=past_candidate_id)
-            if not candidate.name:
-                candidate.name = candidate_form.data["name"]
-            if candidate_form.data["email"]:
-                candidate.email = candidate_form.data["email"]
-            if candidate_form.data["phone"]:
-                candidate.phone = candidate_form.data["phone"]
-            candidate_form = ProcessCandidateForm(instance=candidate)
+            candidate_form = ProcessCandidateForm(data=request.POST, instance=candidate)
 
         # we want to try and save our candidate
-        elif candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
+        if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
             success, response = new_candidate_POST_handler(
                 request, candidate_form, process_form, interviewers_form, past_candidate_id=past_candidate_id
             )
