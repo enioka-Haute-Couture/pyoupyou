@@ -121,6 +121,7 @@ class Candidate(models.Model):
             self.name = ""
             self.email = ""
             self.phone = ""
+            self.linkedin_url = ""
 
             self.anonymized = True
 
