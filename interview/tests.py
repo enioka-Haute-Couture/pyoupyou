@@ -381,6 +381,7 @@ class AnonymizesCanditateTestCase(TestCase):
         self.p.candidate.name = "Nâme lAstName"
         self.p.candidate.email = "tesT@test.Com"
         self.p.candidate.phone = "12.34 56.78"
+        self.p.candidate.linkedin_url = "https://www.linkedin.com/in/name-lastname-83673963/"
         self.p.start_date = datetime.datetime.now() - datetime.timedelta(365)  # one year ago
 
         Document.objects.create(document_type="CV", content="", candidate=self.p.candidate)
@@ -408,6 +409,9 @@ class AnonymizesCanditateTestCase(TestCase):
 
         # phone
         self.assertEqual(self.p.candidate.phone, "")
+
+        # linkedin url
+        self.assertEqual(self.p.candidate.linkedin_url, "")
 
         self.assertEqual(0, Document.objects.filter(candidate=self.p.candidate).count())
 
