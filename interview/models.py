@@ -382,6 +382,13 @@ class Process(models.Model):
             candidate=self.candidate, for_subsidiary=_("for subsidiary"), subsidiary=self.subsidiary
         )
 
+    def anonymize(self):
+        """
+        Anonymize the candidate process data, removing its extra information
+        This is irreversible
+        """
+        self.other_informations = ""
+
     @property
     def is_active(self):
         if self.end_date is None:
@@ -595,6 +602,13 @@ class Interview(models.Model):
                 "slug_info": f"_{self.process.candidate.name_slug}-{self.interviewers_trigram_slug}-{self.rank}",
             },
         )
+
+    def anonymize(self):
+        """
+        Anonymize the candidate interview data, removing its notes/minutes
+        This is irreversible
+        """
+        self.minute = ""
 
     @property
     def planning_request_sent(self):

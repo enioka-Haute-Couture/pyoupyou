@@ -5,7 +5,7 @@ import logging
 from django.core.management import BaseCommand
 from django.utils.timezone import now
 
-from interview.models import Process
+from interview.models import Process, Candidate
 
 logger = logging.getLogger("pyoupyou.batch")
 
@@ -31,17 +31,25 @@ class Command(BaseCommand):
         )
         logger.info("Start batch anonymization {}".format(current_date))
 
-        closed_processes = (
-            Process.objects.filter(end_date__isnull=False)
-            .filter(end_date__lte=current_date)
-            .filter(state__in=Process.CLOSED_STATE_VALUES)
-            .select_related("candidate", "contract_type")
-            .filter(candidate__anonymized=False)
+        candidates_with_only_closed_process = (
+            Candidate.objects.filter(anonymized=False)
+            .prefetch_related("process_set")
+            .filter(process__end_date__isnull=False)
+            .filter(process__end_date__lte=current_date)
+            .exclude(process__state__in=Process.OPEN_STATE_VALUES)
         )
 
-        for proc in closed_processes:
-            logger.info("Anonymizing candidate {candidate_id}".format(candidate_id=proc.candidate.id))
-            proc.candidate.anonymize()
-            proc.candidate.save()
+        for candidate in candidates_with_only_closed_process:
+            logger.info("Anonymizing candidate {candidate_id}".format(candidate_id=candidate.id))
+            candidate.anonymize()
+            candidate.save()
+
+            for proc in candidate.process_set.all():
+                for interview in proc.interview_set.all():
+                    interview.anonymize()
+                    interview.save()
+
+                proc.anonymize()
+                proc.save()
 
         logger.info("End batch anonymization")
