@@ -8,6 +8,7 @@ import dateutil.relativedelta
 import pytz
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
+from django.core.management import call_command
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
@@ -372,21 +373,35 @@ class AnonymizesCanditateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
-        sub = SubsidiaryFactory()
-        self.consultantItw = Consultant.objects.create_consultant("ITW", "itw@mail.com", sub, "ITW")
-        self.consultantRestricted = Consultant.objects.create_consultant("RES", "res@mail.com", sub, "RES")
+        self.subsidiary = SubsidiaryFactory()
+        self.consultant = Consultant.objects.create_consultant("ITW", "itw@mail.com", self.subsidiary, "ITW")
 
-        self.p = ProcessFactory()
+        self.p = ProcessFactory(subsidiary=self.subsidiary)
 
+        self.p.other_informations = "Complementary information regarding candidate name lastname"
         self.p.candidate.name = "Nâme lAstName"
         self.p.candidate.email = "tesT@test.Com"
         self.p.candidate.phone = "12.34 56.78"
         self.p.candidate.linkedin_url = "https://www.linkedin.com/in/name-lastname-83673963/"
-        self.p.start_date = datetime.datetime.now() - datetime.timedelta(365)  # one year ago
+        self.p.start_date = datetime.datetime.now() - datetime.timedelta(730)  # two year ago
+        self.p.end_date = datetime.datetime.now() - datetime.timedelta(370)  # more than a year ago
 
         Document.objects.create(document_type="CV", content="", candidate=self.p.candidate)
 
         self.p.candidate.save()
+
+        # interview state is enforced in model using "is_new"
+        for i in range(5):
+            InterviewFactory(process=self.p)
+
+        # required to update the interviews states
+        for interview_i in self.p.interview_set.all():
+            interview_i.state = Interview.GO
+            interview_i.save()
+
+        # process state set to a "closed" value
+        self.p.state = Process.HIRED
+        self.p.save()
 
     def test_anonymize_candidate(self):
         self.p.candidate.anonymize()
@@ -413,6 +428,17 @@ class AnonymizesCanditateTestCase(TestCase):
         # linkedin url
         self.assertEqual(self.p.candidate.linkedin_url, "")
 
+        self.p.anonymize()
+        # process other information
+        self.assertEqual(self.p.other_informations, "")
+        self.p.save()
+
+        # process interview minutes
+        for interview_i in self.p.interview_set.all():
+            interview_i.anonymize()
+            self.assertEqual(interview_i.minute, "")
+            interview_i.save()
+
         self.assertEqual(0, Document.objects.filter(candidate=self.p.candidate).count())
 
         self.p.candidate.save()
@@ -434,6 +460,102 @@ class AnonymizesCanditateTestCase(TestCase):
         self.assertEqual(other_candidate2.anonymized_email(), email_hash.hexdigest())
         previous_candidate_anoymized = other_candidate2.find_duplicates()
         self.assertEqual(1, previous_candidate_anoymized.count())
+
+    def test_anonymize_cmd_with_date_success(self):
+        call_command("anonymize", date=str(datetime.datetime.now().date()))
+
+        anonymized_process = Process.objects.first()
+        self.assertTrue(anonymized_process.candidate.anonymized)
+        self.assertEqual(anonymized_process.candidate.name, "")
+        self.assertEqual(anonymized_process.candidate.email, "")
+        self.assertEqual(anonymized_process.candidate.phone, "")
+        self.assertEqual(anonymized_process.candidate.linkedin_url, "")
+        self.assertEqual(anonymized_process.other_informations, "")
+        for interview in anonymized_process.interview_set.all():
+            self.assertEqual(interview.minute, "")
+
+    def test_anonymize_cmd_with_default_success(self):
+        call_command("anonymize")
+
+        anonymized_process = Process.objects.first()
+        self.assertTrue(anonymized_process.candidate.anonymized)
+        self.assertEqual(anonymized_process.candidate.name, "")
+        self.assertEqual(anonymized_process.candidate.email, "")
+        self.assertEqual(anonymized_process.candidate.phone, "")
+        self.assertEqual(anonymized_process.candidate.linkedin_url, "")
+        self.assertEqual(anonymized_process.other_informations, "")
+        for interview in anonymized_process.interview_set.all():
+            self.assertEqual(interview.minute, "")
+
+    def test_anonymize_cmd_with_default_no_process_found(self):
+        # default process end date anonymization filter starts twelve months ago from the current date
+        self.p.end_date = datetime.datetime.now() - datetime.timedelta(10)
+        self.p.save()
+        call_command("anonymize")
+
+        anonymized_process = Process.objects.first()
+        self.assertFalse(anonymized_process.candidate.anonymized)
+        self.assertNotEquals(anonymized_process.candidate.name, "")
+        self.assertNotEquals(anonymized_process.candidate.email, "")
+        self.assertNotEquals(anonymized_process.candidate.phone, "")
+        self.assertNotEquals(anonymized_process.candidate.linkedin_url, "")
+        self.assertNotEquals(anonymized_process.other_informations, "")
+        for interview_i in anonymized_process.interview_set.all():
+            self.assertNotEquals(interview_i.minute, "")
+
+    def test_anonymize_cmd_with_default_one_process_found_out_of_two_then_ignore(self):
+        p2 = ProcessFactory(subsidiary=self.subsidiary)
+
+        # Adding a more recent process to the candidate should prevent anonymization
+        p2.other_informations = "Complementary information regarding candidate name lastname"
+        p2.candidate = self.p.candidate
+        p2.start_date = datetime.datetime.now() - datetime.timedelta(180)  # six month ago
+        p2.end_date = datetime.datetime.now() - datetime.timedelta(90)  # 3 month ago
+        p2.save()
+
+        call_command("anonymize")
+
+        candidate = Candidate.objects.first()
+        self.assertFalse(candidate.anonymized)
+        self.assertNotEquals(candidate.name, "")
+        self.assertNotEquals(candidate.email, "")
+        self.assertNotEquals(candidate.phone, "")
+        self.assertNotEquals(candidate.linkedin_url, "")
+
+    def test_reuse_anonymized_candidate(self):
+        call_command("anonymize")
+
+        anonymized_candidate = Candidate.objects.first()
+        self.assertTrue(anonymized_candidate.anonymized)
+
+        self.user = self.consultant.user
+        self.client.force_login(user=self.user)
+
+        response = self.client.post(
+            path=reverse(views.reuse_candidate, kwargs={"candidate_id": self.p.candidate.id}),
+            data={
+                "name": self.p.candidate.name,
+                "email": self.p.candidate.email,
+                "phone": self.p.candidate.phone,
+                "subsidiary": self.subsidiary.id,
+                "reuse-candidate": "",
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        reused_candidate = Candidate.objects.first()
+        self.assertFalse(reused_candidate.anonymized)
+        self.assertEqual(reused_candidate.id, self.p.candidate.id)
+        self.assertEquals(reused_candidate.name, self.p.candidate.name)
+        self.assertEquals(reused_candidate.email, self.p.candidate.email)
+        self.assertEquals(reused_candidate.phone, self.p.candidate.phone)
+        self.assertEquals(reused_candidate.linkedin_url, "")
+        self.assertEquals(reused_candidate.process_set.first().other_informations, "")
+        self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
+        for interview_i in reused_candidate.process_set.first().interview_set.all():
+            self.assertEquals(interview_i.minute, "")
 
 
 class HomeViewTestCase(TestCase):
@@ -753,7 +875,7 @@ class ProcessCreationViewTestCase(TestCase):
                 "offer": new_offer.id,
                 "email": "",
                 "phone": "",
-                "summit": "Enregistrer",
+                "reuse-candidate": "",
             },
             follow=True,
         )
