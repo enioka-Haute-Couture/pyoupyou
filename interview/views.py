@@ -550,7 +550,10 @@ def new_candidate(request, past_candidate_id=None):
         #  clicked on "reuse this candidate"
         if "reuse-candidate" in request.POST and past_candidate_id:
             candidate = Candidate.objects.get(id=past_candidate_id)
-            candidate_form = ProcessCandidateForm(data=request.POST, instance=candidate)
+            # prevent original field override on save call if the form values are blank
+            post_data = {key: (None if value == "" else value) for key, value in request.POST.copy().items()}
+            # Init form with the existing candidate
+            candidate_form = ProcessCandidateForm(data=post_data, instance=candidate)
 
         # we want to try and save our candidate
         if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
