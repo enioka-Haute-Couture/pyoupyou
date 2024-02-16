@@ -557,6 +557,62 @@ class AnonymizesCanditateTestCase(TestCase):
         for interview_i in reused_candidate.process_set.first().interview_set.all():
             self.assertEquals(interview_i.minute, "")
 
+    def test_duplicate_reuse_candidate_prevent_merge_empty_form_value(self):
+        self.user = self.consultant.user
+        self.client.force_login(user=self.user)
+
+        form_data_set = [
+            {
+                "name": self.p.candidate.name,
+                "email": "",
+                "phone": "",
+                "subsidiary": "",
+                "reuse-candidate": "",
+            },
+            {
+                "name": "",
+                "email": self.p.candidate.email,
+                "phone": "",
+                "subsidiary": "",
+                "reuse-candidate": "",
+            },
+            {
+                "name": "",
+                "email": "",
+                "phone": self.p.candidate.phone,
+                "subsidiary": "",
+                "reuse-candidate": "",
+            },
+            {
+                "name": "",
+                "email": self.p.candidate.email,
+                "phone": self.p.candidate.phone,
+                "subsidiary": "",
+                "reuse-candidate": "",
+            },
+        ]
+
+        for form_data in form_data_set:
+            response = self.client.post(
+                path=reverse(views.reuse_candidate, kwargs={"candidate_id": self.p.candidate.id}),
+                data=form_data,
+                follow=True,
+            )
+
+            self.assertEqual(response.status_code, 200)
+
+            reused_candidate = Candidate.objects.first()
+            self.assertFalse(reused_candidate.anonymized)
+            self.assertEqual(reused_candidate.id, self.p.candidate.id)
+            self.assertEquals(reused_candidate.name, self.p.candidate.name)
+            self.assertEquals(reused_candidate.email, self.p.candidate.email)
+            self.assertEquals(reused_candidate.phone, self.p.candidate.phone)
+            self.assertEquals(reused_candidate.linkedin_url, self.p.candidate.linkedin_url)
+            self.assertEquals(reused_candidate.process_set.first().other_informations, self.p.other_informations)
+            self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
+            for idx, interview_i in enumerate(reused_candidate.process_set.first().interview_set.all()):
+                self.assertEquals(interview_i.minute, self.p.interview_set.all()[idx].minute)
+
 
 class HomeViewTestCase(TestCase):
 
