@@ -856,6 +856,64 @@ class ProcessCreationViewTestCase(TestCase):
             p.get_absolute_url(),
         )
 
+    def test_edit_existing_candidate(self):
+        # log user in
+        self.client.force_login(user=self.user)
+
+        # create a new candidate
+        candidate_name = self.fake.name()
+        candidate_linkedin_url = "https://www.linkedin.com/in"
+        process_sub = self.subsidiary
+        offer = OfferFactory()
+        response_create_candidate = self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "linkedin_url": candidate_linkedin_url,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+                "new-candidate": True,  # bypass checks for already existing candidate
+            },
+            follow=True,
+        )
+
+        # assert the candidate was correctly created
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        self.assertIsNotNone(p)
+        self.assertRedirects(
+            response_create_candidate,
+            p.get_absolute_url(),
+        )
+
+        response_get_created_candidate_form = self.client.get(
+            reverse(views.edit_candidate, kwargs={"process_id": p.id})
+        )
+
+        # The candidate edition works
+        self.assertTemplateUsed(response_get_created_candidate_form, "interview/new_candidate.html")
+        self.assertEqual(candidate_name, response_get_created_candidate_form.context["candidate_form"]["name"].initial)
+
+        # update the existing candidate
+        empty_linkedin_url = ""
+        response_edit_candidate = self.client.post(
+            path=reverse(views.edit_candidate, kwargs={"process_id": p.id}),
+            data={
+                "name": candidate_name,
+                "linkedin_url": empty_linkedin_url,
+                "subsidiary": process_sub.id,
+                "offer": offer.id,
+                "summit": "Enregistrer",  # means having clicked on "Save" in the page
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response_edit_candidate.status_code, 200)
+        self.assertRedirects(response_edit_candidate, f"/process/{p.id}_{slugify(candidate_name)}/")
+        self.assertTemplateUsed(response_edit_candidate, "interview/process_detail.html")
+        self.assertTrue(candidate_name, response_edit_candidate.context["process"].candidate.name)
+        self.assertEqual(empty_linkedin_url, response_edit_candidate.context["process"].candidate.linkedin_url)
+
     def test_correct_display_of_existing_candidate(self):
         # log user in
         self.client.force_login(user=self.user)
