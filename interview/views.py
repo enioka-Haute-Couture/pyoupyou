@@ -59,6 +59,7 @@ from interview.forms import (
     CloseForm,
     OfferForm,
     InterviewersForm,
+    ProcessReuseCandidateForm,
 )
 from interview.serializers import CognitoWebHookSerializer
 from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
@@ -551,9 +552,9 @@ def new_candidate(request, past_candidate_id=None):
         if "reuse-candidate" in request.POST and past_candidate_id:
             candidate = Candidate.objects.get(id=past_candidate_id)
             # prevent original field override on save call if the form values are blank
-            post_data = {key: (None if value == "" else value) for key, value in request.POST.copy().items()}
+            post_data = {key: value for key, value in request.POST.copy().items() if value}
             # Init form with the existing candidate
-            candidate_form = ProcessCandidateForm(data=post_data, instance=candidate)
+            candidate_form = ProcessReuseCandidateForm(data=post_data, instance=candidate)
 
         # we want to try and save our candidate
         if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():

@@ -42,6 +42,19 @@ class ProcessCandidateForm(forms.ModelForm):
     helper.form_tag = False
 
 
+class ProcessReuseCandidateForm(ProcessCandidateForm):
+    def clean(self):
+        cleaned_data = super().clean()
+
+        for changed_data in self.changed_data:
+            # When reusing a candidate, data object keys for which a value if blank are removed
+            # Instance data override are kept if data changed but keys don't exist
+            if changed_data not in self.data and self.instance.__dict__[changed_data] is not None:
+                cleaned_data[changed_data] = self.instance.__dict__[changed_data]
+
+        return cleaned_data
+
+
 class SelectOrCreateSource(SourcesWidget):
     def render(self, *args, **kwargs):
         output = [super().render(*args, **kwargs)]
