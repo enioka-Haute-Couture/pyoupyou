@@ -369,7 +369,7 @@ class StatusAndNotificationTestCase(TestCase):
         mail.outbox = []
 
 
-class AnonymizesCanditateTestCase(TestCase):
+class AnonymizesCandidateTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -386,7 +386,8 @@ class AnonymizesCanditateTestCase(TestCase):
         self.p.start_date = datetime.datetime.now() - datetime.timedelta(730)  # two year ago
         self.p.end_date = datetime.datetime.now() - datetime.timedelta(370)  # more than a year ago
 
-        Document.objects.create(document_type="CV", content="", candidate=self.p.candidate)
+        # content is required to avoid process_detail.html exception on document.content.url
+        Document.objects.create(document_type="CV", content="empty_content", candidate=self.p.candidate)
 
         self.p.candidate.save()
 
@@ -566,28 +567,28 @@ class AnonymizesCanditateTestCase(TestCase):
                 "name": self.p.candidate.name,
                 "email": "",
                 "phone": "",
-                "subsidiary": "",
+                "subsidiary": self.subsidiary.id,
                 "reuse-candidate": "",
             },
             {
-                "name": "",
+                "name": self.p.candidate.name,
                 "email": self.p.candidate.email,
                 "phone": "",
-                "subsidiary": "",
+                "subsidiary": self.subsidiary.id,
                 "reuse-candidate": "",
             },
             {
-                "name": "",
+                "name": self.p.candidate.name,
                 "email": "",
                 "phone": self.p.candidate.phone,
-                "subsidiary": "",
+                "subsidiary": self.subsidiary.id,
                 "reuse-candidate": "",
             },
             {
-                "name": "",
+                "name": self.p.candidate.name,
                 "email": self.p.candidate.email,
                 "phone": self.p.candidate.phone,
-                "subsidiary": "",
+                "subsidiary": self.subsidiary.id,
                 "reuse-candidate": "",
             },
         ]
@@ -600,6 +601,8 @@ class AnonymizesCanditateTestCase(TestCase):
             )
 
             self.assertEqual(response.status_code, 200)
+
+            self.assertTemplateUsed(response, "interview/process_detail.html")
 
             reused_candidate = Candidate.objects.first()
             self.assertFalse(reused_candidate.anonymized)
