@@ -557,7 +557,7 @@ class Interview(models.Model):
         interviewers = ", ".join(i.user.trigramme for i in self.interviewers.all())
         return "#{rank} - {process} - {itws}".format(rank=self.rank, process=self.process, itws=interviewers)
 
-    def save(self, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
         is_new = self.id is None
 
         if self.rank is None:
@@ -575,11 +575,12 @@ class Interview(models.Model):
             and self.planned_date is not None
         ):
             self.state = self.PLANNED
-            self.trigger_notification()
+            if trigger_notification:
+                self.trigger_notification()
         elif self.state == self.PLANNED and self.planned_date is None:
             self.state = self.WAITING_PLANIFICATION
 
-        super(Interview, self).save(*args, **kwargs)
+        super(Interview, self).save(force_insert, force_update, using, update_fields)
         if is_new or (Interview.objects.filter(process=self.process).last() == self and self.process.is_open()):
             if self.state == self.WAITING_PLANIFICATION:
                 self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION
