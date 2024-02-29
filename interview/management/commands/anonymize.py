@@ -50,6 +50,6 @@ class Command(BaseCommand):
                     interview.save()
 
                 proc.anonymize()
-                proc.save()
+                proc.save(trigger_notification=False)
 
         logger.info("End batch anonymization")

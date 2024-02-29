@@ -335,7 +335,7 @@ class Process(models.Model):
         PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_processes"
     )
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
         is_new = False if self.id else True
         if is_new:
             self.last_state_change = now()
@@ -367,7 +367,8 @@ class Process(models.Model):
             for interview in self.interview_set.exclude(state__in=[Interview.GO, Interview.NO_GO]):
                 for interviewer in interview.interviewers.all():
                     self.responsible.add(interviewer)
-        self.trigger_notification(is_new)
+        if trigger_notification:
+            self.trigger_notification(is_new)
 
     def get_absolute_url(self):
         from django.urls import reverse
