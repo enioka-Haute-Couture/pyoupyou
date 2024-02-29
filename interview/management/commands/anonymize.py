@@ -47,7 +47,7 @@ class Command(BaseCommand):
             for proc in candidate.process_set.all():
                 for interview in proc.interview_set.all():
                     interview.anonymize()
-                    interview.save()
+                    interview.save(trigger_notification=False)
 
                 proc.anonymize()
                 proc.save(trigger_notification=False)
