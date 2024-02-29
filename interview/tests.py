@@ -376,6 +376,9 @@ class AnonymizesCandidateTestCase(TestCase):
         self.subsidiary = SubsidiaryFactory()
         self.consultant = Consultant.objects.create_consultant("ITW", "itw@mail.com", self.subsidiary, "ITW")
 
+        self.subsidiary.responsible = ConsultantFactory(company=self.subsidiary)
+        self.subsidiary.save()
+
         self.p = ProcessFactory(subsidiary=self.subsidiary)
 
         self.p.other_informations = "Complementary information regarding candidate name lastname"
@@ -403,6 +406,7 @@ class AnonymizesCandidateTestCase(TestCase):
         # process state set to a "closed" value
         self.p.state = Process.HIRED
         self.p.save()
+        mail.outbox = []
 
     def test_anonymize_candidate(self):
         self.p.candidate.anonymize()
@@ -475,6 +479,9 @@ class AnonymizesCandidateTestCase(TestCase):
         for interview in anonymized_process.interview_set.all():
             self.assertEqual(interview.minute, "")
 
+        self.assertEqual(len(mail.outbox), 0)
+        mail.outbox = []
+
     def test_anonymize_cmd_with_default_success(self):
         call_command("anonymize")
 
@@ -487,6 +494,9 @@ class AnonymizesCandidateTestCase(TestCase):
         self.assertEqual(anonymized_process.other_informations, "")
         for interview in anonymized_process.interview_set.all():
             self.assertEqual(interview.minute, "")
+
+        self.assertEqual(len(mail.outbox), 0)
+        mail.outbox = []
 
     def test_anonymize_cmd_with_default_no_process_found(self):
         # default process end date anonymization filter starts twelve months ago from the current date
