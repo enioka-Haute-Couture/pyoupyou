@@ -1,7 +1,8 @@
-# v1.21.0 (xxxx-xx-xx)
+# v1.21.0 (2024-03-14)
 - Process and interview analysis
 - Cognito: If url validation fail for linkedin save nothing instead of error
 - Add token based authentication for ics feed
+- Fix anonymisation
 
 # v1.20.1 (2023-08-31)
 - Fix path locale and media
