@@ -1795,6 +1795,7 @@ def processes_pivotable(request):
             }
         )
 
+    default_option = {_("process start fiscal year"): [current_financial_year_default_filter]}
     representations = [
         {
             "title": _("Candidates sources/subsidiaries"),
@@ -1803,6 +1804,7 @@ def processes_pivotable(request):
             "rendererName": "Stacked Bar Chart",
             "aggregatorName": "Count",
             "vals": [_("process start fiscal year")],
+            "options": default_option,
         },
         {
             "title": _("Processes per contract type"),
@@ -1811,6 +1813,34 @@ def processes_pivotable(request):
             "rendererName": "Stacked Bar Chart",
             "aggregatorName": "Count",
             "vals": [_("process start fiscal year")],
+            "options": default_option,
+        },
+        {
+            "title": _("Mean process length (for accepted process)"),
+            "rows": [_("subsidiary")],
+            "cols": [_("process start fiscal year")],
+            "rendererName": "Table",
+            "aggregatorName": "Average",
+            "vals": [_("process length")],
+            "options": default_option | {_("process state label"): [_("Candidate accepted our offer")]},
+        },
+        {
+            "title": _("Count process per interview's number"),
+            "rows": [_("contract type")],
+            "cols": [_("process itw count")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [_("process start fiscal year")],
+            "options": default_option,
+        },
+        {
+            "title": _("Candidat's source per subsidiary"),
+            "rows": [_("source category")],
+            "cols": [_("subsidiary")],
+            "rendererName": "Stacked Bar Chart",
+            "aggregatorName": "Count",
+            "vals": [_("process start fiscal year")],
+            "options": default_option,
         },
     ]
 
