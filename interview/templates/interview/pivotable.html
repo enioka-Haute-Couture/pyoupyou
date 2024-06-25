@@ -29,14 +29,6 @@
     // data set given to pivotable
     var data = {{ data|safe }};
 
-    // pivotable options
-    var options = {}
-    {% if current_financial_year_default_filter %}
-        let currentFinancialYearDefaultFilter = "{{ current_financial_year_default_filter | safe }}"
-        options = {"inclusions": {}}
-        options['inclusions']["{% trans 'process start fiscal year' %}"] = [currentFinancialYearDefaultFilter];
-    {% endif %}
-
     $(document).ready(function() {
         let rows = [];
         let cols = [];
