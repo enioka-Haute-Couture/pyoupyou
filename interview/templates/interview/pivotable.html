@@ -43,10 +43,15 @@
         // define chart dropdown suggestions
         {% for representation in representations %}
         	document.querySelector("#representation-{{ forloop.counter }}").addEventListener("click", () => {
+                let representationOptions = {"inclusions": {}};
+                {% for option, values in representation.options.items %}
+                    representationOptions["inclusions"]["{{ option }}"] = {{ values|safe }}
+                {% endfor %}
+                
                 document.querySelector("#chart-selector-value").dataset.value = "representation-{{ forloop.counter }}";
                 drawPivot(data, {{ representation.rows|safe }}, {{ representation.cols|safe }},
                     "{{ representation.rendererName|safe }}", "{{ representation.aggregatorName|safe }}",
-                    {{ representation.vals|safe }}, options, "{{ LANGUAGE_CODE }}");
+                    {{ representation.vals|safe }}, representationOptions, "{{ LANGUAGE_CODE }}");
             })
         {% endfor %}
 
