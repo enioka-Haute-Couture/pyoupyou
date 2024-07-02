@@ -1,3 +1,7 @@
+# v1.22.0 (2024-07-02)
+- Add new reports in process analysis: count process per interview numbers, candidates source per subsidiary
+- Add subsidiary model field: show the subsidiary by default in the report analysis
+
 # v1.21.0 (2024-03-14)
 - Process and interview analysis
 - Cognito: If url validation fail for linkedin save nothing instead of error
