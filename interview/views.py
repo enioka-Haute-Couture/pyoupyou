@@ -1795,7 +1795,10 @@ def processes_pivotable(request):
             }
         )
 
-    default_option = {_("process start fiscal year"): [current_financial_year_default_filter]}
+    default_option = {
+        _("process start fiscal year"): [current_financial_year_default_filter],
+        _("subsidiary"): list(Subsidiary.objects.filter(show_in_report_by_default=True).values_list("name", flat=True)),
+    }
     representations = [
         {
             "title": _("Candidates sources/subsidiaries"),

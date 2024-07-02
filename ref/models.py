@@ -18,6 +18,9 @@ class Subsidiary(models.Model):
     informed = models.ManyToManyField(
         "Consultant", blank=True, related_name="subsidiary_notifications", verbose_name=_("Informed consultants")
     )
+    show_in_report_by_default = models.BooleanField(
+        default=True, verbose_name=_("Show the subsidiary in the report analysis by default")
+    )
 
     @property
     def notification_emails(self):
