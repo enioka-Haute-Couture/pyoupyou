@@ -91,6 +91,13 @@ class Command(BaseCommand):
             for k in range(5):
                 subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
 
+            # we need at least one consultant which is both a superuser and staff to access the admin board
+            # note: superusers cannot be created with manage.py because they also need a consultant
+            admin = subsidiary_consultants[0].user
+            admin.is_superuser = True
+            admin.is_staff = True
+            admin.save()
+
             # set subsidiary's responsible
             subsidiary.responsible = subsidiary_consultants[0]
             subsidiary.save()
