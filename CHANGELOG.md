@@ -1,6 +1,8 @@
-# v1.22.0 (2024-07-02)
+# v1.22.0 (XXXX-XX-XX)
 - Add new reports in process analysis: count process per interview numbers, candidates source per subsidiary
 - Add subsidiary model field: show the subsidiary by default in the report analysis
+- Allow longer usernames
+- Added a user that is both staff and superuser to the dev set generation script
 
 # v1.21.0 (2024-03-14)
 - Process and interview analysis
