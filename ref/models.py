@@ -77,7 +77,7 @@ def generate_token():
 
 
 class PyouPyouUser(AbstractBaseUser, PermissionsMixin):
-    trigramme = models.CharField(max_length=4, unique=True)
+    trigramme = models.CharField(max_length=40, unique=True)
     full_name = models.CharField(_("full name"), max_length=50, blank=True)
     email = models.EmailField(_("email address"), blank=True)
     token = models.CharField(max_length=50, blank=True, default=generate_token)  # urlsafe is number of bytes not char
