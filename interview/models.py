@@ -109,15 +109,27 @@ class Candidate(models.Model):
         """
         if not self.anonymized:
             # remove the candidate's documents
+            # print(Document.objects.filter(candidate=self))
             for doc in Document.objects.filter(candidate=self):
+                print("anonymize candidate doc:", doc.content)
                 doc.content.delete()
+                print("deleted:", bool(doc.content))
             Document.objects.filter(candidate=self).delete()
+            # print(Document.objects.filter(candidate=self))
+
             # remove directory as well
-            path = settings.MEDIA_ROOT / f"CV/{self.id}_{self.name}"
-            try:
-                os.rmdir(path)
-            except FileNotFoundError:
-                print(f"directory {path} doesnt exist")
+            document_types = ["CV", "CL", "OT"]
+            dirname = f"{self.id}_{slugify(self.name)}"
+            for document_type in document_types:
+                # in theory there should always be a CV, CL, and OT folder, but just in case
+                doc_type_media = settings.MEDIA_ROOT / document_type
+                if document_type not in os.listdir(settings.MEDIA_ROOT):
+                    os.mkdir(doc_type_media)
+                    continue
+                if dirname in os.listdir(doc_type_media):
+                    # for filename in os.listdir(doc_type_media / dirname):
+                    #     os.remove(doc_type_media / dirname / filename)
+                    os.rmdir(doc_type_media / dirname)
 
             self.name = ""
             self.email = ""
@@ -178,7 +190,7 @@ class Candidate(models.Model):
 def document_path(instance, filename):
     # todo ensure uniqueness (if two documents have the same name we reach a problem)
     filename = filename.encode()
-    extension = filename.split(b".")[-1]
+    extension = filename.split(b".")[-1]  # does that work with .tar.gz?
     filename = str(slugify(instance.candidate.name)).encode() + ".".encode() + extension
 
     return "{}/{}_{}/{}".format(
@@ -632,6 +644,8 @@ class Interview(models.Model):
         This is irreversible
         """
         self.minute = ""
+        self.goal = ""
+        self.next_interview_goal = ""
 
     @property
     def planning_request_sent(self):
