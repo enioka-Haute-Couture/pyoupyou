@@ -245,6 +245,7 @@ class InterviewFactory(factory.django.DjangoModelFactory):
     minute_format = "md"
 
     # default
+    goal = factory.Faker("text")
     next_interview_goal = factory.Faker("text")
 
     planned_date = factory.fuzzy.FuzzyDateTime(date_minus_time_ago(years=2))
