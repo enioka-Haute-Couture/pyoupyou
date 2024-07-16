@@ -1,14 +1,16 @@
 import json
 
-import factory
 import datetime
 import hashlib
 from django.db.utils import IntegrityError
+import os
+
 import dateutil.relativedelta
 import pytz
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.core.management import call_command
+from django.core.files.base import ContentFile
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
@@ -27,7 +29,7 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
-from interview.models import Process, Document, Interview, Offer
+from interview.models import Process, Document, Interview, Offer, document_path
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from pyoupyou.middleware import ExternalCheckMiddleware
 from ref.factory import SubsidiaryFactory, PyouPyouUserFactory
@@ -387,7 +389,7 @@ class AnonymizesCandidateTestCase(TestCase):
         self.p.candidate.email = "tesT@test.Com"
         self.p.candidate.phone = "12.34 56.78"
         self.p.candidate.linkedin_url = "https://www.linkedin.com/in/name-lastname-83673963/"
-        self.p.start_date = datetime.datetime.now() - datetime.timedelta(730)  # two year ago
+        self.p.start_date = datetime.datetime.now() - datetime.timedelta(730)  # two years ago
         self.p.end_date = datetime.datetime.now() - datetime.timedelta(370)  # more than a year ago
 
         # content is required to avoid process_detail.html exception on document.content.url
@@ -410,6 +412,29 @@ class AnonymizesCandidateTestCase(TestCase):
         mail.outbox = []
 
     def test_anonymize_candidate(self):
+        Document.objects.create(
+            document_type="CV", content=ContentFile("cv content", "cv.txt"), candidate=self.p.candidate
+        )
+        Document.objects.create(
+            document_type="CV", content=ContentFile("cv content 2", "cv2.txt"), candidate=self.p.candidate
+        )
+        Document.objects.create(
+            document_type="CL", content=ContentFile("cl content", "cl.txt"), candidate=self.p.candidate
+        )
+        Document.objects.create(
+            document_type="OT", content=ContentFile("ot content", "ot.txt"), candidate=self.p.candidate
+        )
+        print("docs created", list(map(lambda doc: str(doc.content), Document.objects.filter(candidate=self.p.candidate))))
+        # we will also have to check that the containing folders are properly deleted
+        self.documents = Document.objects.filter(candidate=self.p.candidate)
+        self.folder_paths = set(
+            [settings.MEDIA_ROOT / document_path(doc, "test.txt").rsplit("/", 1)[0] for doc in self.documents]
+        )
+        for path in self.folder_paths:
+            self.assertTrue(os.path.exists(path))
+
+        # TODO: call anonymize only once on the candidate after refactoring
+        self.assertFalse(self.p.candidate.anonymized)
         self.p.candidate.anonymize()
         self.assertEqual(self.p.candidate.anonymized, True)
 
@@ -443,9 +468,15 @@ class AnonymizesCandidateTestCase(TestCase):
         for interview_i in self.p.interview_set.all():
             interview_i.anonymize()
             self.assertEqual(interview_i.minute, "")
+            self.assertEqual(interview_i.goal, "")
+            self.assertEqual(interview_i.next_interview_goal, "")
             interview_i.save()
 
+        # check documents are deleted
         self.assertEqual(0, Document.objects.filter(candidate=self.p.candidate).count())
+        # check folder deletion (cv, cl, ot)
+        for path in self.folder_paths:
+            self.assertFalse(os.path.exists(path))
 
         self.p.candidate.save()
 
