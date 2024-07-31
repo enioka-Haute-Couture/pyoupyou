@@ -1,4 +1,4 @@
-# v1.22.0 (XXXX-XX-XX)
+# v1.22.0 (2024-07-31)
 - Add new reports in process analysis: count process per interview numbers, candidates source per subsidiary
 - Add subsidiary model field: show the subsidiary by default in the report analysis
 - Allow longer usernames
