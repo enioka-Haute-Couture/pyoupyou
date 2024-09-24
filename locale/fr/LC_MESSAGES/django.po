@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-07-02 11:39+0200\n"
+"POT-Creation-Date: 2024-09-24 15:05+0200\n"
 "PO-Revision-Date: 2022-02-11 11:15+0100\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -124,7 +124,7 @@ msgstr "Le dernier intervieweur a interrompu le processus"
 msgid "Candidate declined our offer"
 msgstr "Le candidat a décliné notre offre"
 
-#: interview/models.py:260 interview/views.py:1832
+#: interview/models.py:260 interview/views.py:1828
 msgid "Candidate accepted our offer"
 msgstr "Le candidat a accepté notre offre"
 
@@ -386,7 +386,7 @@ msgstr "Bilan"
 msgid "Interviews analysis"
 msgstr "Analyse des entretiens"
 
-#: interview/templates/interview/base.html:61 interview/views.py:1860
+#: interview/templates/interview/base.html:61 interview/views.py:1856
 msgid "Processes analysis"
 msgstr "Analyse des processus"
 
@@ -744,8 +744,8 @@ msgid "Unknown"
 msgstr "Inconnu"
 
 #: interview/views.py:1649 interview/views.py:1677 interview/views.py:1685
-#: interview/views.py:1779 interview/views.py:1800 interview/views.py:1810
-#: interview/views.py:1827 interview/views.py:1846
+#: interview/views.py:1779 interview/views.py:1800 interview/views.py:1806
+#: interview/views.py:1823 interview/views.py:1842
 msgid "subsidiary"
 msgstr "Entité"
 
@@ -754,8 +754,8 @@ msgid "process start date"
 msgstr "Date de début du processus"
 
 #: interview/views.py:1651 interview/views.py:1783 interview/views.py:1799
-#: interview/views.py:1813 interview/views.py:1822 interview/views.py:1828
-#: interview/views.py:1840 interview/views.py:1849
+#: interview/views.py:1809 interview/views.py:1818 interview/views.py:1824
+#: interview/views.py:1836 interview/views.py:1845
 msgid "process start fiscal year"
 msgstr "Année fiscale de début de processus"
 
@@ -763,20 +763,20 @@ msgstr "Année fiscale de début de processus"
 msgid "process end date"
 msgstr "Fin du processus date"
 
-#: interview/views.py:1653 interview/views.py:1786 interview/views.py:1809
+#: interview/views.py:1653 interview/views.py:1786 interview/views.py:1805
 msgid "source"
 msgstr "source"
 
-#: interview/views.py:1654 interview/views.py:1787 interview/views.py:1845
+#: interview/views.py:1654 interview/views.py:1787 interview/views.py:1841
 msgid "source category"
-msgstr "Nom de la source"
+msgstr "Catégorie de la source"
 
 #: interview/views.py:1655 interview/views.py:1788
 msgid "offer"
 msgstr "Offre"
 
-#: interview/views.py:1656 interview/views.py:1789 interview/views.py:1818
-#: interview/views.py:1836
+#: interview/views.py:1656 interview/views.py:1789 interview/views.py:1814
+#: interview/views.py:1832
 msgid "contract type"
 msgstr "Type de contrat"
 
@@ -788,11 +788,11 @@ msgstr "Date de démarrage"
 msgid "contract duration"
 msgstr "Durée du contrat"
 
-#: interview/views.py:1659 interview/views.py:1792 interview/views.py:1832
+#: interview/views.py:1659 interview/views.py:1792 interview/views.py:1828
 msgid "process state label"
 msgstr "Status du processus"
 
-#: interview/views.py:1660 interview/views.py:1793 interview/views.py:1837
+#: interview/views.py:1660 interview/views.py:1793 interview/views.py:1833
 msgid "process itw count"
 msgstr "Nombre d'entretiens du processus"
 
@@ -804,7 +804,7 @@ msgstr "Moyenne du nombre de jours entre les entretiens"
 msgid "itw state label"
 msgstr "Status de l'entretien"
 
-#: interview/views.py:1664 interview/views.py:1701 interview/views.py:1819
+#: interview/views.py:1664 interview/views.py:1701 interview/views.py:1815
 msgid "interview rank"
 msgstr "Numéro d'entretien"
 
@@ -861,31 +861,31 @@ msgstr "Durée entre les entretiens"
 msgid "process id"
 msgstr "Identifiant du processus"
 
-#: interview/views.py:1782 interview/views.py:1810 interview/views.py:1819
+#: interview/views.py:1782 interview/views.py:1806 interview/views.py:1815
 msgid "process start year month"
 msgstr "Date de début du processus année / mois"
 
-#: interview/views.py:1785 interview/views.py:1831
+#: interview/views.py:1785 interview/views.py:1827
 msgid "process length"
 msgstr "Durée du processus"
 
-#: interview/views.py:1808
+#: interview/views.py:1804
 msgid "Candidates sources/subsidiaries"
 msgstr "Candidats par sources et entités"
 
-#: interview/views.py:1817
+#: interview/views.py:1813
 msgid "Processes per contract type"
 msgstr "Processus par types de contrats"
 
-#: interview/views.py:1826
+#: interview/views.py:1822
 msgid "Mean process length (for accepted process)"
 msgstr "Durée moyenne d'un processus (pour un candidat ayant accepté l'offre)"
 
-#: interview/views.py:1835
+#: interview/views.py:1831
 msgid "Count process per interview's number"
 msgstr "Nombre de processus par numéro d'entretien"
 
-#: interview/views.py:1844
+#: interview/views.py:1840
 msgid "Candidat's source per subsidiary"
 msgstr "Sources des candidats par filiale"
 
