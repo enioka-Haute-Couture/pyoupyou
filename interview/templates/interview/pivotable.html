@@ -2,6 +2,14 @@
 {% load i18n %}
 {% load static %}
 
+{% block title %}
+    {% if "processes" in request.path %}
+        {% trans "Process analysis" %}  
+    {% elif "interview" in request.path %}
+        {% trans "Interview analysis" %}  
+    {% endif %}
+{% endblock %}
+
 {% block more_css %}
     {% include "interview/_pivotable_header.html" %}
 {%  endblock  %}
