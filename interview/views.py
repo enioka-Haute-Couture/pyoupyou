@@ -89,9 +89,11 @@ def log_action(added, object, user, view):
         object_id=object.pk,
         object_repr=str(object),
         action_flag=ADDITION if added else CHANGE,
-        change_message=f"{object} has been Added through {view.__name__}"
-        if added
-        else f"{object} has been updated through {view.__name__}",
+        change_message=(
+            f"{object} has been Added through {view.__name__}"
+            if added
+            else f"{object} has been updated through {view.__name__}"
+        ),
     )
 
 
@@ -1232,9 +1234,11 @@ def active_sources(request):
 
     sources_filter = ActiveSourcesFilter(
         request_get,
-        queryset=Sources.objects.all()
-        if subsidiary is None
-        else Sources.objects.filter(process__subsidiary=subsidiary).distinct(),
+        queryset=(
+            Sources.objects.all()
+            if subsidiary is None
+            else Sources.objects.filter(process__subsidiary=subsidiary).distinct()
+        ),
     )
     sources_qs = sources_filter.qs
 
@@ -1361,9 +1365,11 @@ def activity_summary(request):
     )
     interview_filter = InterviewSummaryFilter(
         request.GET,
-        queryset=Interview.objects.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
-        if subsidiary_filter.form.cleaned_data["subsidiary"]
-        else Interview.objects.all(),
+        queryset=(
+            Interview.objects.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
+            if subsidiary_filter.form.cleaned_data["subsidiary"]
+            else Interview.objects.all()
+        ),
     )
 
     # Processes started in the timespan
