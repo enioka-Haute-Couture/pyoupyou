@@ -586,14 +586,10 @@ msgid "Offers: "
 msgstr "Offres : "
 
 #: interview/templates/interview/pivotable.html:7
-#, fuzzy
-#| msgid "Processes"
 msgid "Process analysis"
-msgstr "Processus"
+msgstr "Analyse des processus"
 
 #: interview/templates/interview/pivotable.html:9
-#, fuzzy
-#| msgid "Interviews analysis"
 msgid "Interview analysis"
 msgstr "Analyse des entretiens"
 
