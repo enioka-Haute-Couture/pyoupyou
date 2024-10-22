@@ -29,6 +29,8 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from interview.models import Process, Document, Interview, Offer, document_path
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from pyoupyou.middleware import ExternalCheckMiddleware
@@ -781,6 +783,67 @@ class ProcessCreationViewTestCase(TestCase):
         self.fake = faker.Faker()
 
         self.tz = pytz.timezone("Europe/Paris")
+
+    def test_multiple_fileupload_oncreate(self):
+        self.client.force_login(user=self.user)
+        name = "Jean-Eudes"
+        document_count = 5
+        files = [
+            SimpleUploadedFile(f"testfile_{k}.txt", b"File content", content_type="text/plain")
+            for k in range(document_count)
+        ]
+        SimpleUploadedFile(f"myfile2.txt", b"File content 2", content_type="text/plain")
+
+        response = self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+                "cv": files,
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        candidate = Candidate.objects.get(name=name)
+        documents = Document.objects.filter(candidate=candidate)
+
+        files_names = documents.values_list("document_type").first()[0]
+        self.assertEqual(files_names, Document.DOCUMENT_TYPE[0][0])  # CV
+        self.assertEqual(document_count, documents.count())
+
+    def test_delete_file(self):
+        self.client.force_login(user=self.user)
+        name = "Jean-Ferdinand"
+        document_count = 3
+        files = [
+            SimpleUploadedFile(f"testfile_{k}.txt", b"File content", content_type="text/plain")
+            for k in range(document_count)
+        ]
+
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+                "cv": files,
+            },
+        )
+        candidate = Candidate.objects.get(name=name)
+        documents = Document.objects.filter(candidate=candidate)
+        self.assertEqual(document_count, documents.count())
+
+        for document in documents:
+            doc_id = document.id
+            self.client.post(
+                path=reverse(views.delete_document_ajax),
+                data={"document_id": doc_id},
+            )
+            document_count -= 1
+            self.assertEqual(document_count, Document.objects.filter(candidate=candidate).count())
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
