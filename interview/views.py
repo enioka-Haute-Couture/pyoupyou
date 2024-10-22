@@ -1061,7 +1061,7 @@ def export_interviews_tsv(request):
     for interview in interviews:
         interviewers = ""
         for i in interview.interviewers.all():
-            interviewers += i.user.trigramme + "_"
+            interviewers += i.trigramme + "_"
         interviewers = interviewers[:-1]
 
         if interview.process.id not in processes_length:
@@ -1746,7 +1746,7 @@ def interviews_pivotable(request):
         .select_related("candidate")
         .select_related("subsidiary")
         .select_related("offer__subsidiary")
-        .prefetch_related("interview_set__kind_of_interview", "interview_set__interviewers__user")
+        .prefetch_related("interview_set__kind_of_interview", "interview_set__interviewers")
         .annotate(interview_last_planned_date=Max("interview__planned_date"))
     )
 
@@ -1791,7 +1791,7 @@ def interviews_pivotable(request):
         for idx, interview in enumerate(process.interview_set.all()):
             interviewers = ""
             for i in interview.interviewers.all():
-                interviewers += i.user.trigramme + "_"
+                interviewers += i.trigramme + "_"
             interviewers = interviewers[:-1]
 
             # Compute time elapsed since last event (previous interview or beginning of process)
@@ -1911,7 +1911,7 @@ def processes_pivotable(request):
         .select_related("candidate")
         .select_related("subsidiary")
         .select_related("offer__subsidiary")
-        .prefetch_related("interview_set__kind_of_interview", "interview_set__interviewers__user")
+        .prefetch_related("interview_set__kind_of_interview", "interview_set__interviewers")
         .annotate(interview_last_planned_date=Max("interview__planned_date"))
     )
 
