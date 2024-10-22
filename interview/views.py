@@ -736,6 +736,19 @@ def delete_document_minute_ajax(request):
 
 
 @login_required
+@require_http_methods(["POST"])
+def delete_document_ajax(request):
+    document_id = request.POST.get("document_id")
+    try:
+        document = Document.objects.get(id=document_id)
+        document.delete()
+    except Document.DoesNotExist:
+        return JsonResponse({"error": "Not found"})
+
+    return JsonResponse({})
+
+
+@login_required
 @require_http_methods(["GET"])
 def minute(request, interview_id, slug_info=None):
     try:
@@ -899,9 +912,12 @@ def edit_candidate(request, process_id):
             candidate_form.id = candidate.id
             candidate = candidate_form.save()
             log_action(False, candidate, request.user, edit_candidate)
-            content = request.FILES.get("cv", None)
+
+            content = request.FILES.getlist("cv", None)
+            print(content)
             if content:
-                Document.objects.create(document_type="CV", content=content, candidate=candidate)
+                for doc in content:
+                    Document.objects.create(document_type="CV", content=doc, candidate=candidate)
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
