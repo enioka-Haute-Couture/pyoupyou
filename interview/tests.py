@@ -27,6 +27,8 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 from interview.models import Process, Document, Interview, Offer
 from interview.views import process, minute_edit, minute, interview, close_process, reopen_process
 from pyoupyou.middleware import ExternalCheckMiddleware
@@ -754,6 +756,32 @@ class ProcessCreationViewTestCase(TestCase):
         self.fake = faker.Faker()
 
         self.tz = pytz.timezone("Europe/Paris")
+
+    def test_multiple_fileupload_oncreate(self):
+        self.client.force_login(user=self.user)
+        name = "Jean-Eudes"
+        nombre_documents = 5
+        files = [SimpleUploadedFile(f"testfile_{k}.txt",
+                                    b"File content",
+                                    content_type="text/plain")
+                for k in range(nombre_documents)] 
+        SimpleUploadedFile(f"myfile2.txt",b"File content 2",content_type="text/plain") 
+        
+        response = self.client.post(
+                path=reverse(views.new_candidate),
+                data={
+                    "name": name,
+                    "subsidiary": self.subsidiary.id,
+                    "summit": "Enregistrer",
+                    "new-candidate": True,
+                    "cv":files
+                    },
+                )
+
+        self.assertEqual(response.status_code, 302)
+        candidate = Candidate.objects.get(name=name)
+        documents = Document.objects.filter(candidate=candidate)
+        self.assertEqual(nombre_documents,documents.count())
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
