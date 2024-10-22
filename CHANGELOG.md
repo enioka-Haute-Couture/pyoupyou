@@ -1,3 +1,6 @@
+# v1.23.2 (XXXX-XX-XX)
+- Allow multiple fileupload when creating/editing candidate
+
 # v1.23.1 (2025-02-23)
 - Improve kanban view
   - fix legend

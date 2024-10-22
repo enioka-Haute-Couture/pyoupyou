@@ -60,6 +60,11 @@ urlpatterns = [
         views.delete_document_minute_ajax,
         name="delete-document-minute",
     ),
+    re_path(
+        r"^delete_document$",
+        views.delete_document_ajax,
+        name="delete-document",
+    ),
     re_path(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
     re_path(r"^reports/active-sources/$", views.active_sources, name="active-sources"),
     re_path(r"^reports/offers/$", views.offers, name="offers"),
