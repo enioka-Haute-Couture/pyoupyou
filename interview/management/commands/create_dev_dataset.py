@@ -22,8 +22,7 @@ from interview.factory import (
     InterviewFactory,
 )
 from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process, Sources
-from ref.factory import SubsidiaryFactory, PyouPyouUserFactory, ConsultantFactory
-from ref.models import Consultant
+from ref.factory import SubsidiaryFactory, PyouPyouUserFactory
 from interview.factory import (
     date_minus_time_ago,
     date_random_plus_minus_time,
@@ -89,11 +88,11 @@ class Command(BaseCommand):
             # create consultants for this subsidiary
             subsidiary_consultants = []
             for k in range(5):
-                subsidiary_consultants.append(ConsultantFactory(company=subsidiary))
+                subsidiary_consultants.append(PyouPyouUserFactory(company=subsidiary))
 
             # we need at least one consultant which is both a superuser and staff to access the admin board
             # note: superusers cannot be created with manage.py because they also need a consultant
-            admin = subsidiary_consultants[0].user
+            admin = subsidiary_consultants[0]
             admin.is_superuser = True
             admin.is_staff = True
             admin.save()

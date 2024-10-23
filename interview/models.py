@@ -19,7 +19,7 @@ from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 
 from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
-from ref.models import Consultant, Subsidiary, PyouPyouUser
+from ref.models import Subsidiary, PyouPyouUser
 
 CharField.register_lookup(Lower)
 
@@ -219,22 +219,18 @@ class ProcessManager(models.Manager):
         q = (
             super()
             .get_queryset()
-            .filter(
-                Q(start_date__gte=user.date_joined)
-                | Q(responsible__in=[user.consultant])
-                | Q(interview__interviewers__user=user)
-            )
+            .filter(Q(start_date__gte=user.date_joined) | Q(responsible__in=[user]) | Q(interview__interviewers=user))
             .distinct()
         )
-        if user.consultant.is_external:
-            q = q.filter(sources=user.consultant.limited_to_source)
+        if user.is_external:
+            q = q.filter(sources=user.limited_to_source)
         return q
 
     def for_table(self, user):
         qs = (
             self.for_user(user)
             .select_related("subsidiary", "candidate", "contract_type")
-            .prefetch_related("responsible__user")
+            .prefetch_related("responsible")
             .annotate(current_rank=Count("interview", distinct=True))
         )
         return qs
@@ -311,7 +307,7 @@ class Process(models.Model):
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
     contract_start_date = models.DateField(null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.SET_NULL)
-    responsible = models.ManyToManyField(Consultant, blank=True)
+    responsible = models.ManyToManyField(PyouPyouUser, blank=True)
     state = models.CharField(
         max_length=3, choices=PROCESS_STATE, verbose_name=_("Closed reason"), default=WAITING_INTERVIEWER_TO_BE_DESIGNED
     )
@@ -323,7 +319,7 @@ class Process(models.Model):
     other_informations = models.TextField(verbose_name=_("Other informations"), blank=True)
 
     creator = models.ForeignKey(
-        Consultant,
+        PyouPyouUser,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
@@ -456,20 +452,22 @@ class Process(models.Model):
 
             # add subsidiary responsible to recipient list
             if self.subsidiary.responsible:
-                recipient_list.append(self.subsidiary.responsible.user.email)
+                recipient_list.append(self.subsidiary.responsible.email)
 
             # add users subscribed to offer's notification
+
             if self.offer:
                 recipient_list = recipient_list + [user.email for user in self.offer.subscribers.all()]
 
             recipient_list = recipient_list + [user.email for user in self.subscribers.all()]
 
+            # not sure about line 465 about the merge conflict...
             mail.send_mail(
                 subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
             )
 
     def get_all_interviewers_for_process(self):
-        return PyouPyouUser.objects.filter(consultant__interview__process=self)
+        return PyouPyouUser.objects.filter(interview__process=self)
 
 
 class InterviewKind(models.Model):
@@ -484,11 +482,11 @@ class InterviewManager(models.Manager):
         q = (
             super(InterviewManager, self)
             .get_queryset()
-            .filter(Q(process__start_date__gte=user.date_joined) | Q(interviewers__in=[user.consultant]))
+            .filter(Q(process__start_date__gte=user.date_joined) | Q(interviewers__in=[user]))
             .distinct()
         )
-        if user.consultant.is_external:
-            q = q.filter(process__sources=user.consultant.limited_to_source)
+        if user.is_external:
+            q = q.filter(process__sources=user.limited_to_source)
         return q
 
     def for_table(self, user):
@@ -502,7 +500,7 @@ class InterviewManager(models.Manager):
                 "kind_of_interview",
                 "process__offer__subsidiary",
             )
-            .prefetch_related("interviewers__user")
+            .prefetch_related("interviewers")
         )
         return qs
 
@@ -542,7 +540,7 @@ class Interview(models.Model):
     state = models.CharField(max_length=3, choices=ITW_STATE, verbose_name=_("next state"))
     rank = models.IntegerField(verbose_name=_("Rank"), blank=True, null=True)
     planned_date = models.DateTimeField(verbose_name=_("Planned date"), blank=True, null=True)
-    interviewers = models.ManyToManyField(Consultant)
+    interviewers = models.ManyToManyField(PyouPyouUser)
 
     minute = models.TextField(verbose_name=_("Minute"), blank=True)
     minute_format = models.CharField(max_length=3, choices=MINUTE_FORMAT, default=MINUTE_FORMAT[0][0])
@@ -554,7 +552,7 @@ class Interview(models.Model):
     )
 
     def __str__(self):
-        interviewers = ", ".join(i.user.trigramme for i in self.interviewers.all())
+        interviewers = ", ".join(i.trigramme for i in self.interviewers.all())
         return "#{rank} - {process} - {itws}".format(rank=self.rank, process=self.process, itws=interviewers)
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
@@ -639,19 +637,21 @@ class Interview(models.Model):
     @property
     def interviewers_str(self):
         if self.id:
-            return ", ".join(i.user.get_full_name() for i in self.interviewers.all())
+            return ", ".join(i.get_full_name() for i in self.interviewers.all())
         return ""
 
     @property
     def interviewers_trigram_slug(self):
         if self.id:
-            return "-".join(i.user.trigramme for i in self.interviewers.all())
+            return "-".join(i.trigramme for i in self.interviewers.all())
         return ""
 
     def trigger_notification(self):
         recipient_list = self.process.subsidiary.notification_emails
+        if self.process.subsidiary.responsible:
+            recipient_list.append(self.process.subsidiary.responsible.email)
         if self.id:
-            recipient_list = recipient_list + [i.user.email for i in self.interviewers.all()]
+            recipient_list = recipient_list + [i.email for i in self.interviewers.all()]
 
         subject = None
         body_template = None

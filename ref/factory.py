@@ -17,6 +17,7 @@ class PyouPyouUserFactory(factory.django.DjangoModelFactory):
     full_name = factory.Faker("name")
     trigramme = factory.LazyAttribute(lambda n: n.full_name[0:1].upper() + n.full_name.split(" ")[1][0:2].upper())
     email = factory.LazyAttribute(lambda u: u.trigramme.lower() + "@mail.com")
+    company = factory.Iterator(Subsidiary.objects.all())
 
     date_joined = factory.fuzzy.FuzzyDateTime(
         start_dt=datetime.datetime(2010, 1, 1, tzinfo=test_tz), end_dt=datetime.datetime(2020, 1, 1, tzinfo=test_tz)
@@ -38,11 +39,3 @@ class SubsidiaryFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker("company")
     code = factory.LazyAttribute(lambda n: compute_subsidiary_code(n.name))
-
-
-class ConsultantFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = "ref.Consultant"
-
-    user = factory.SubFactory(PyouPyouUserFactory)
-    company = factory.Iterator(Subsidiary.objects.all())
