@@ -1,12 +1,19 @@
-// https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
-function dropHandler(ev) {
-    // Prevent default behavior (Prevent file from being opened)
+// https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API
+
+document.addEventListener('dragover', function(ev) {
+    ev.preventDefault();  // must handle dragover event to catch 'drop' event
+});
+
+document.addEventListener('drop', function(ev) {
     ev.preventDefault();
+    dropHandler(ev);
+});
+
+function dropHandler(ev) {
 
     if (ev.dataTransfer.items) {
         // Use DataTransferItemList interface to access the file(s)
         [...ev.dataTransfer.items].forEach((item, i) => {
-            // If dropped items aren't files, reject them
             if (item.kind === 'file') {
                 const file = item.getAsFile();
                 addFileToList(file, file.name)
@@ -20,20 +27,6 @@ function dropHandler(ev) {
     }
 }
 
-function dragOverHandler(ev) {
-    // Prevent default behavior (Prevent file from being opened)
-    ev.preventDefault();
-}
-
-// https://stackoverflow.com/questions/5632629/how-to-change-a-file-inputs-filelist-programmatically
-function getFiles(input){
-    const files = new Array(input.files.length)
-    for(let i = 0; i < input.files.length; i++) {
-        files[i] = input.files.item(i)
-    }
-    return files
-}
-
 function setFiles(input, files){
     const dataTransfer = new DataTransfer()
     for(const file of files)
@@ -41,26 +34,24 @@ function setFiles(input, files){
     input.files = dataTransfer.files
 }
 
+// https://www.w3schools.com/howto/howto_js_close_list_items.asp
 function addFileToList(file, filename) {
 
-    // https://www.w3schools.com/howto/howto_js_close_list_items.asp
-    let li = document.createElement("li")
-    li.setAttribute("class", "file-li")
-    li.innerHTML = file.name
     let cross = document.createElement("span")
-    cross.innerHTML = "x"
+    cross.textContent = "x"
     cross.setAttribute("class", "close")
 
     cross.addEventListener("click", (event) => {
-        event.preventDefault()
-        for (let i = 0; i < curr_files.length; i++) {
-            if (curr_files[i].name === filename) {
-                curr_files.splice(i, 1)
-            }
-        }
+        event.preventDefault();
+        curr_files = curr_files.filter(file => file.name !== filename)
         event.target.parentElement.remove()
         setFiles(document.getElementById("input-btn-id"), curr_files)
-    })
+    });
+
+
+    let li = document.createElement("li")
+    li.setAttribute("class", "file-li")
+    li.textContent = file.name
 
     li.appendChild(cross)
     document.getElementById("file-list-id").appendChild(li)
@@ -72,7 +63,7 @@ let curr_files = []
 
 //TODO: translations
 document.getElementById("input-btn-id").addEventListener("change", () => {
-    for (const file of getFiles(document.getElementById("input-btn-id"))) {
+    for (const file of Array.from(document.getElementById("input-btn-id").files)) {
         addFileToList(file, file.name)
     }
 }, false)
