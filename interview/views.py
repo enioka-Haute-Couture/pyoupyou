@@ -502,7 +502,6 @@ def new_candidate_POST_handler(
     duplicates = None
 
     candidate = candidate_form.save(commit=False)
-
     # check for duplicates unless it has already been processed (re-used or ignored)
     if not ("new-candidate" in request.POST) and not past_candidate_id:
         duplicates = candidate.find_duplicates()
@@ -516,9 +515,11 @@ def new_candidate_POST_handler(
         candidate.save()
         log_action(True, candidate, request.user, new_candidate)
 
-        content = request.FILES.getlist("cv", [])
-        for file in content:
-            Document.objects.create(document_type="CV", content=file, candidate=candidate)
+        content = request.FILES.getlist("candidate_documents", [])
+        doctypes = request.POST.getlist("doctypes", [])
+
+        for (file, doctype) in zip(content, doctypes):
+            Document.objects.create(document_type=doctype, content=file, candidate=candidate)
 
         process = process_form.save(commit=False)
         process.candidate = candidate
@@ -592,6 +593,8 @@ def new_candidate(request, past_candidate_id=None):
 
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
+
+    doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
     return render(
         request,
         "interview/new_candidate.html",
@@ -604,6 +607,7 @@ def new_candidate(request, past_candidate_id=None):
             "duplicates": duplicate_processes,
             "candidate": candidate,
             "subsidiaries": Subsidiary.objects.all(),
+            "document_types": doctypes,
         },
     )
 
@@ -913,11 +917,10 @@ def edit_candidate(request, process_id):
             candidate = candidate_form.save()
             log_action(False, candidate, request.user, edit_candidate)
 
-            content = request.FILES.getlist("cv", None)
-            print(content)
-            if content:
-                for doc in content:
-                    Document.objects.create(document_type="CV", content=doc, candidate=candidate)
+            content = request.FILES.getlist("candidate_documents", [])
+            doctypes = request.POST.getlist("doctypes", [])
+            for (doc, doctype) in zip(content, doctypes):
+                Document.objects.create(document_type=doctype, content=doc, candidate=candidate)
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()
@@ -933,6 +936,8 @@ def edit_candidate(request, process_id):
     if request.user.is_external:
         process_form.fields.pop("sources")
 
+    doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
+
     data = {
         "process": process,
         "candidate_form": candidate_form,
@@ -941,6 +946,7 @@ def edit_candidate(request, process_id):
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
         "documents": Document.objects.filter(candidate=candidate),
+        "document_types": doctypes,
     }
     return render(request, "interview/new_candidate.html", data)
 
