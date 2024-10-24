@@ -678,6 +678,10 @@ msgstr "Se désabonner des notifications de cette offre"
 msgid "Unsubscribe to this process' notifications"
 msgstr "Se désabonner des notifications de ce processus"
 
+#: interview/templates/interview/upload_file_template.html:8
+msgid "Add files"
+msgstr "Ajouter des fichiers"
+
 #: interview/views.py:104
 msgid "Process state"
 msgstr "Status du processus"
