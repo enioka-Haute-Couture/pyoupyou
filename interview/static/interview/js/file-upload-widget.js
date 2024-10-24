@@ -1,5 +1,3 @@
-// https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API
-
 document.addEventListener('dragover', function(ev) {
     ev.preventDefault();  // must handle dragover event to catch 'drop' event
 });
@@ -10,7 +8,6 @@ document.addEventListener('drop', function(ev) {
 });
 
 function dropHandler(ev) {
-
     if (ev.dataTransfer.items) {
         // Use DataTransferItemList interface to access the file(s)
         [...ev.dataTransfer.items].forEach((item, i) => {
@@ -34,9 +31,8 @@ function setFiles(input, files){
     input.files = dataTransfer.files
 }
 
-// https://www.w3schools.com/howto/howto_js_close_list_items.asp
 function addFileToList(file, filename) {
-
+   
     let cross = document.createElement("span")
     cross.textContent = "x"
     cross.setAttribute("class", "close")
@@ -48,20 +44,34 @@ function addFileToList(file, filename) {
         setFiles(document.getElementById("input-btn-id"), curr_files)
     });
 
+    const doctypes = JSON.parse(document.getElementById('doctypes').textContent);
+    let select = document.createElement("select")
 
+    for (const doctype of doctypes){
+    let docTypeOption = document.createElement("option")
+    docTypeOption.value = doctype
+    docTypeOption.textContent = doctype
+    docTypeOption.setAttribute("class", "drop-down-menu")
+    select.appendChild(docTypeOption)
+    };
+
+    select.setAttribute("class", "file-type-select")
+    select.setAttribute("name", "doctypes");  // Add the 'name' attribute for form submission
+    
     let li = document.createElement("li")
     li.setAttribute("class", "file-li")
     li.textContent = file.name
 
-    li.appendChild(cross)
+    li.appendChild(select)  // Append the dropdown to the list item
+    li.appendChild(cross)   // Append the close (remove) button
     document.getElementById("file-list-id").appendChild(li)
+
     curr_files.push(file)
     setFiles(document.getElementById("input-btn-id"), curr_files)
 }
 
 let curr_files = []
 
-//TODO: translations
 document.getElementById("input-btn-id").addEventListener("change", () => {
     for (const file of Array.from(document.getElementById("input-btn-id").files)) {
         addFileToList(file, file.name)
