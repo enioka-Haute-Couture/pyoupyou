@@ -11,7 +11,7 @@ from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Consultant, Interview, Candidate, Process, Sources, Offer
 from interview.widgets import UploadFilesWidget
-
+from django.utils.translation import gettext_lazy as _
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
@@ -38,7 +38,7 @@ class ProcessCandidateForm(forms.ModelForm):
         exclude = ("anonymized", "anonymized_hashed_name", "anonymized_hashed_email")
 
     candidate_documents = forms.FileField(
-        label="Documents (CV / Lettre de motivation / Autre)", required=False, widget=UploadFilesWidget()
+        label=_("Upload documents (CV / Cover Letter / Other)"), required=False, widget=UploadFilesWidget()
     )
 
     helper = FormHelper()
