@@ -878,6 +878,7 @@ class ProcessCreationViewTestCase(TestCase):
         candidate = Candidate.objects.get(name=name)
         documents = Document.objects.filter(candidate=candidate)
         self.assertEqual(document_count, documents.count())
+        self.assertEqual(documents.count(), len(chosen_doctypes))
 
         for (document, doctype) in zip(documents, chosen_doctypes):
             self.assertEqual(document.document_type, doctype)

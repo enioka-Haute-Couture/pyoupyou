@@ -44,17 +44,18 @@ function addFileToList(file, filename) {
         setFiles(document.getElementById("input-btn-id"), curr_files)
     });
 
-    const doctypes = JSON.parse(document.getElementById('doctypes').textContent);
+
+    const fromViewDoctypesObject = JSON.parse(document.getElementById('doctypes').textContent);
+    const docTypesMap = new Map(Object.entries(fromViewDoctypesObject));
+
     let select = document.createElement("select")
-
-    for (const doctype of doctypes){
-    let docTypeOption = document.createElement("option")
-    docTypeOption.value = doctype
-    docTypeOption.textContent = doctype
-    docTypeOption.setAttribute("class", "drop-down-menu")
-    select.appendChild(docTypeOption)
-    };
-
+    docTypesMap.forEach((value,key,map) => {
+        let docTypeOption = document.createElement("option")
+        docTypeOption.value = key
+        docTypeOption.textContent = value
+        docTypeOption.setAttribute("class", "drop-down-menu")
+        select.appendChild(docTypeOption)
+        })
     select.setAttribute("class", "file-type-select")
     select.setAttribute("name", "doctypes");  // Add the 'name' attribute for form submission
     
