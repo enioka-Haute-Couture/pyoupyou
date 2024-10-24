@@ -4,6 +4,7 @@ import datetime
 import hashlib
 from django.db.utils import IntegrityError
 import os
+import random
 
 import dateutil.relativedelta
 import pytz
@@ -783,6 +784,8 @@ class ProcessCreationViewTestCase(TestCase):
         self.fake = faker.Faker()
 
         self.tz = pytz.timezone("Europe/Paris")
+        seed = 72775
+        random.seed(seed)
 
     def test_multiple_fileupload_oncreate(self):
         self.client.force_login(user=self.user)
@@ -793,6 +796,8 @@ class ProcessCreationViewTestCase(TestCase):
             for k in range(document_count)
         ]
         SimpleUploadedFile(f"myfile2.txt", b"File content 2", content_type="text/plain")
+        all_doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
+        chosen_doctypes = random.sample(all_doctypes, counts=[document_count] * len(all_doctypes), k=document_count)
 
         response = self.client.post(
             path=reverse(views.new_candidate),
@@ -801,7 +806,8 @@ class ProcessCreationViewTestCase(TestCase):
                 "subsidiary": self.subsidiary.id,
                 "summit": "Enregistrer",
                 "new-candidate": True,
-                "cv": files,
+                "candidate_documents": files,
+                "doctypes": chosen_doctypes,
             },
         )
 
@@ -821,6 +827,8 @@ class ProcessCreationViewTestCase(TestCase):
             SimpleUploadedFile(f"testfile_{k}.txt", b"File content", content_type="text/plain")
             for k in range(document_count)
         ]
+        all_doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
+        chosen_doctypes = random.sample(all_doctypes, counts=[document_count] * len(all_doctypes), k=document_count)
 
         self.client.post(
             path=reverse(views.new_candidate),
@@ -829,7 +837,8 @@ class ProcessCreationViewTestCase(TestCase):
                 "subsidiary": self.subsidiary.id,
                 "summit": "Enregistrer",
                 "new-candidate": True,
-                "cv": files,
+                "candidate_documents": files,
+                "doctypes": chosen_doctypes,
             },
         )
         candidate = Candidate.objects.get(name=name)
@@ -844,6 +853,34 @@ class ProcessCreationViewTestCase(TestCase):
             )
             document_count -= 1
             self.assertEqual(document_count, Document.objects.filter(candidate=candidate).count())
+
+    def test_match_filetype(self):
+        self.client.force_login(user=self.user)
+        name = "Jean-Martin"
+        document_count = 5
+        files = [
+            SimpleUploadedFile(f"testfile_{k}.txt", b"File content", content_type="text/plain")
+            for k in range(document_count)
+        ]
+        all_doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
+        chosen_doctypes = random.sample(all_doctypes, counts=[document_count] * len(all_doctypes), k=document_count)
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+                "candidate_documents": files,
+                "doctypes": chosen_doctypes,
+            },
+        )
+        candidate = Candidate.objects.get(name=name)
+        documents = Document.objects.filter(candidate=candidate)
+        self.assertEqual(document_count, documents.count())
+
+        for (document, doctype) in zip(documents, chosen_doctypes):
+            self.assertEqual(document.document_type, doctype)
 
     def test_process_creation_not_logged_in(self):
         response = self.client.get(self.url)
