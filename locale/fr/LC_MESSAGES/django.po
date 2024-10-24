@@ -679,7 +679,6 @@ msgid "Unsubscribe to this process' notifications"
 msgstr "Se désabonner des notifications de ce processus"
 
 #: interview/templates/interview/upload_file_template.html:8
-#| msgid "Add Offer"
 msgid "Add files"
 msgstr "Ajouter des fichiers"
 
