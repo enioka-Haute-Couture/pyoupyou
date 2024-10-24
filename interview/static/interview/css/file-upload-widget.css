@@ -11,11 +11,20 @@
     margin-top: -1px; /* Prevent double borders */
     background-color: #f6f6f6;
     padding: 12px;
-    text-decoration: none;
-    font-size: 18px;
+    font-family: Helvetica;
+    font-weight: 700;
+    font-size: 14px;
     color: black;
     display: block;
     position: relative;
+}
+
+.file-type-select {
+    position: absolute;
+    right: 60px;
+    font-family: Helvetica;
+    font-weight: 700;
+    font-size: 14px;
 }
 
 .close {
@@ -32,6 +41,9 @@
 }
 
 .input-btn-class {
-    background: lightgray;
-    border: 2px solid;
+    background: rgb(242, 252, 255);
+    border: 1px solid;
+}
+.input-btn-class:hover {
+    cursor: pointer;
 }
