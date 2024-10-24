@@ -96,9 +96,7 @@
                         <dd>
                     <ul>
                     {% for d in documents %}
-
-                        <li> <a href="{{ d.content.url }}" > {{ d.verbose_type }}</a></li>
-                    
+                        <li> <a href="{{ d.content.url }}" > {{ d.get_document_type_display }}</a></li>
                     {% endfor %}
                     </ul>
                 </dd>
@@ -157,7 +155,7 @@
             <div class="bs-callout">
                 <div class="panel panel-primary">
                     <div class="panel-heading">
-                        <div class="panel-title">{% trans 'Others process' %}</div>
+                        <div class="panel-title">{% trans 'Other processes' %}</div>
                     </div>
                     {% render_table others_process %}
                 </div>

@@ -273,7 +273,7 @@ def process(request, process_id, slug_info=None):
 
     doc_type_verbose_map = dict(Document.DOCUMENT_TYPE)
     for d in documents:
-        setattr(d, 'verbose_type', doc_type_verbose_map[d.document_type]) 
+        setattr(d, "verbose_type", doc_type_verbose_map[d.document_type])
 
     context = {
         "process": process,
@@ -599,7 +599,7 @@ def new_candidate(request, past_candidate_id=None):
     source_form = SourceForm(prefix="source")
     offer_form = OfferForm(prefix="offer")
 
-    doctypes =dict(Document.DOCUMENT_TYPE)
+    doctypes = dict(Document.DOCUMENT_TYPE)
     return render(
         request,
         "interview/new_candidate.html",
@@ -941,7 +941,7 @@ def edit_candidate(request, process_id):
     if request.user.is_external:
         process_form.fields.pop("sources")
 
-    doctypes =dict(Document.DOCUMENT_TYPE)
+    doctypes = dict(Document.DOCUMENT_TYPE)
 
     data = {
         "process": process,

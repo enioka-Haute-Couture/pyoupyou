@@ -190,7 +190,7 @@ def document_path(instance, filename):
 
 
 class Document(models.Model):
-    DOCUMENT_TYPE = (("CV", "CV"), ("CL", "Cover Letter"), ("OT", "Others"))
+    DOCUMENT_TYPE = (("CV", "CV"), ("CL", "Cover Letter"), ("OT", "Other"))
 
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"), on_delete=models.CASCADE)
@@ -309,7 +309,7 @@ class Process(models.Model):
     )
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
-    contract_start_date = models.DateField(null=True, blank=True)
+    contract_start_date = models.DateField(verbose_name=_("Contract start date"), null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.SET_NULL)
     responsible = models.ManyToManyField(PyouPyouUser, blank=True)
     state = models.CharField(
