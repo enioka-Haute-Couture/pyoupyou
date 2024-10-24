@@ -75,9 +75,9 @@
         {% if documents %}
             <ul>
                 {% for d in documents %}
-                    <li>
+                    <li style="margin-bottom: 10px;">
                         <a href="{{ d.content.url }}" > {{ d.content.name }} </a>
-                        <a class="btn btn-danger document-delete-button" id="{{ d.id }}"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Delete this document" %}</a>
+                        <a class="btn btn-danger document-delete-button" id="{{ d.id }}" style="padding: 2px 8px; height: 24px; font-size: 14px;"><i class="fa fa-envelope-open" aria-hidden="true" ></i> {% trans "Delete this document" %}</a>
                     </li>
                 {% endfor %}
             </ul>
