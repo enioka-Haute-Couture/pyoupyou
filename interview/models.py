@@ -309,7 +309,7 @@ class Process(models.Model):
     )
     salary_expectation = models.IntegerField(verbose_name=_("Salary expectation (k€)"), null=True, blank=True)
     contract_duration = models.PositiveIntegerField(verbose_name=_("Contract duration in month"), null=True, blank=True)
-    contract_start_date = models.DateField(null=True, blank=True)
+    contract_start_date = models.DateField(verbose_name=_("Contract start date"), null=True, blank=True)
     sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.SET_NULL)
     responsible = models.ManyToManyField(Consultant, blank=True)
     state = models.CharField(
