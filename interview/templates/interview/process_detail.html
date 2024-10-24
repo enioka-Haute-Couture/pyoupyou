@@ -96,7 +96,9 @@
                         <dd>
                     <ul>
                     {% for d in documents %}
-                        <li> <a href="{{ d.content.url }}" > {{ d.document_type }}</a>
+
+                        <li> <a href="{{ d.content.url }}" > {{ d.verbose_type }}</a></li>
+                    
                     {% endfor %}
                     </ul>
                 </dd>
