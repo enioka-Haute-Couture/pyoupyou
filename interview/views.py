@@ -262,10 +262,6 @@ def process(request, process_id, slug_info=None):
 
     documents = process.candidate.document_set.all()
 
-    doc_type_verbose_map = dict(Document.DOCUMENT_TYPE)
-    for d in documents:
-        setattr(d, "verbose_type", doc_type_verbose_map[d.document_type])
-
     context = {
         "process": process,
         "documents": documents,
@@ -740,19 +736,6 @@ def delete_document_minute_ajax(request):
 
 
 @login_required
-@require_http_methods(["POST"])
-def delete_document_ajax(request):
-    document_id = request.POST.get("document_id")
-    try:
-        document = Document.objects.get(id=document_id)
-        document.delete()
-    except Document.DoesNotExist:
-        return JsonResponse({"error": "Not found"})
-
-    return JsonResponse({})
-
-
-@login_required
 @require_http_methods(["GET"])
 def minute(request, interview_id, slug_info=None):
     try:
@@ -921,6 +904,10 @@ def edit_candidate(request, process_id):
             doctypes = request.POST.getlist("doctypes", [])
             for (doc, doctype) in zip(content, doctypes):
                 Document.objects.create(document_type=doctype, content=doc, candidate=candidate)
+            ids_documents_to_delete = request.POST.getlist("documents_to_delete", [])
+            related_documents = Document.objects.filter(candidate=candidate)  # security
+            for doc_id in ids_documents_to_delete:
+                related_documents.get(id=int(doc_id)).delete()
             process_form.id = process.id
             process = process_form.save(commit=False)
             process.save()

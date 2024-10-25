@@ -13,6 +13,7 @@ from interview.models import Consultant, Interview, Candidate, Process, Sources,
 from interview.widgets import UploadFilesWidget
 from django.utils.translation import gettext_lazy as _
 
+
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
     model = Consultant
     queryset = Consultant.objects.filter(user__is_active=True)
