@@ -75,9 +75,15 @@
         {% if documents %}
             <ul>
                 {% for d in documents %}
-                    <li style="margin-bottom: 10px;">
+                    <li style="margin-bottom: 10px;" id ='list_element_{{d.id}}'>
                         <a href="{{ d.content.url }}" > {{ d.content.name }} </a>
-                        <a class="btn btn-danger document-delete-button" id="{{ d.id }}" style="padding: 2px 8px; height: 24px; font-size: 14px;"><i class="fa fa-envelope-open" aria-hidden="true" ></i> {% trans "Delete this document" %}</a>
+                        <input type="hidden" id="maybe_delete_{{d.id}}" value = "{{ d.id }} "> </input>
+                        <a class="btn btn-danger document-delete-button" 
+                            id={{ d.id }}
+                            style="padding: 2px 8px; height: 24px; font-size: 14px;">
+                            <i class="fa fa-envelope-open" aria-hidden="true" ></i> 
+                            {% trans "Delete this document" %}
+                        </a>
                     </li>
                 {% endfor %}
             </ul>
@@ -153,33 +159,12 @@
 
 <script>
     $(function () {
-        $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-                    // Only send the token to relative URLs i.e. locally.
-                    xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-                }
-            }
-        });
-
-        function delete_document(id) {
-           $.ajax({
-               url: "/delete_document",
-               type: "POST",
-               data: { "document_id" : id },
-               success: function (json) {
-                   $("#" + id).parent().addClass("hidden")
-                   console.log("document " + id + " deleted!")
-               },
-               error: function (json) {
-                   console.error(json)
-               }
-            });
-        }
-
         $(".document-delete-button").each(function() {
+            const id = $(this).attr("id");
             $(this).on('click', (event) => {
-                delete_document(event.target.id)
+                document.getElementById('maybe_delete_'+id).setAttribute("name","documents_to_delete");
+                document.getElementById('list_element_'+id).style.display = 'none'
+
             });
         })
     });
