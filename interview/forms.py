@@ -10,6 +10,8 @@ from crispy_forms.layout import Layout, Div, Submit, Column, Field
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Consultant, Interview, Candidate, Process, Sources, Offer
+from interview.widgets import UploadFilesWidget
+from django.utils.translation import gettext_lazy as _
 
 
 class MultipleConsultantWidget(ModelSelect2MultipleWidget):
@@ -36,7 +38,9 @@ class ProcessCandidateForm(forms.ModelForm):
         helper = FormHelper()
         exclude = ("anonymized", "anonymized_hashed_name", "anonymized_hashed_email")
 
-    cv = forms.FileField(label="CV (pour une candidature)", required=False)
+    candidate_documents = forms.FileField(
+        label=_("Upload documents (CV / Cover Letter / Other)"), required=False, widget=UploadFilesWidget()
+    )
 
     helper = FormHelper()
     helper.form_tag = False
