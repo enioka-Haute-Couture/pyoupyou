@@ -75,16 +75,13 @@
         {% if documents %}
             <ul>
                 {% for d in documents %}
-                    <li style="margin-bottom: 10px;" id ='list_element_{{d.id}}'>
-                        <a href="{{ d.content.url }}" > {{ d.content.name }} </a>
-                        <input type="hidden" id="maybe_delete_{{d.id}}" value = "{{ d.id }} "> </input>
-                        <a class="btn btn-danger document-delete-button" 
-                            id={{ d.id }}
-                            style="padding: 2px 8px; height: 24px; font-size: 14px;">
-                            <i class="fa fa-envelope-open" aria-hidden="true" ></i> 
-                            {% trans "Delete this document" %}
-                        </a>
-                    </li>
+                <li style="margin-bottom: 10px; display: flex; justify-content: space-between;" id="list_element_{{d.id}}">
+                    <a href="{{ d.content.url }}">{{ d.content.name }}</a>
+                    <div style="gap: 5px; color: red; font-size: 14px;font-weight: bold;">
+                        <input type="checkbox" id="maybe_delete_{{d.id}}" name="documents_to_delete" value="{{ d.id }}" />
+                        {% trans "Delete this document" %}
+                    </div>
+                </li> 
                 {% endfor %}
             </ul>
         {% endif %}
@@ -156,18 +153,5 @@
 </div>
 
 {{document_types|json_script:"doctypes"}}
-
-<script>
-    $(function () {
-        $(".document-delete-button").each(function() {
-            const id = $(this).attr("id");
-            $(this).on('click', (event) => {
-                document.getElementById('maybe_delete_'+id).setAttribute("name","documents_to_delete");
-                document.getElementById('list_element_'+id).style.display = 'none'
-
-            });
-        })
-    });
-</script>
 
 {% endblock %}
