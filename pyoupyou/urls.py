@@ -80,7 +80,7 @@ urlpatterns = [
     ),
     re_path(
         r"^feed/(?P<token>.+)/user/(?P<user_id>\d+)/pyoupyou_interviews.ics$",
-        feeds.ConsultantInterviewFeed(),
+        feeds.PyouPyouUserInterviewFeed(),
         name="calendar_user",
     ),
     re_path(r"^select2/", include("django_select2.urls")),

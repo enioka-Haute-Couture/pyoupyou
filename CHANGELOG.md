@@ -1,5 +1,6 @@
 # v1.23.0 (XXXX-XX-XX)
 - Simplify user model by moving Consultant information over to user instead 
+- Replace all references to 'consultant' with pyoupyou user instead
 
 # v1.22.0 (2024-07-31)
 - Add new reports in process analysis: count process per interview numbers, candidates source per subsidiary

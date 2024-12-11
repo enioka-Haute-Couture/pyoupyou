@@ -47,12 +47,12 @@ def negative_end_process(process, itw, next_planned_date):
     return process, itw
 
 
-def get_available_consultants_for_itw(subsidiary, all_itw_given_process):
-    # retrieve available consultants that have not yet been involved in the process
+def get_available_pyoupyou_users_for_itw(subsidiary, all_itw_given_process):
+    # retrieve available pyoupyou_users that have not yet been involved in the process
     possible_interviewer = PyouPyouUser.objects.filter(company=subsidiary).exclude(
         id__in=list(all_itw_given_process.values_list("interviewers", flat=True))
     )
-    # if all consultants were already involved in the process, choose one at random
+    # if all pyoupyou_users were already involved in the process, choose one at random
     if not possible_interviewer:
         possible_interviewer = PyouPyouUser.objects.filter(company=subsidiary)
 
@@ -197,8 +197,8 @@ class ProcessFactory(factory.django.DjangoModelFactory):
                 # by default all process end negatively
                 process, itw = negative_end_process(process=process, itw=itw, next_planned_date=next_planned_date)
 
-            # retrieve consultants to do the itw
-            possible_interviewer = get_available_consultants_for_itw(
+            # retrieve pyoupyou_users to do the itw
+            possible_interviewer = get_available_pyoupyou_users_for_itw(
                 subsidiary=process.subsidiary, all_itw_given_process=all_itw
             )
 

@@ -13,13 +13,13 @@ from interview.models import Interview, Candidate, Process, Sources, Offer
 from ref.models import PyouPyouUser
 
 
-class MultipleConsultantWidget(ModelSelect2MultipleWidget):
+class MultiplePyouPyouUserWidget(ModelSelect2MultipleWidget):
     model = PyouPyouUser
     queryset = PyouPyouUser.objects.filter(is_active=True)
     search_fields = ["trigramme__icontains", "full_name__icontains"]
 
 
-class SingleConsultantWidget(ModelSelect2Widget):
+class SinglePyouPyouUserWidget(ModelSelect2Widget):
     model = PyouPyouUser
     queryset = PyouPyouUser.objects.filter(is_active=True)
     search_fields = ["trigramme__icontains", "full_name__icontains"]
@@ -125,7 +125,7 @@ class InterviewersForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ["interviewers", "planned_date", "kind_of_interview", "prequalification"]
-        widgets = {"interviewers": MultipleConsultantWidget}
+        widgets = {"interviewers": MultiplePyouPyouUserWidget}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -151,7 +151,7 @@ class InterviewFormEditInterviewers(forms.ModelForm):
         model = Interview
         fields = ["interviewers", "kind_of_interview", "goal", "prequalification"]
         widgets = {
-            "interviewers": MultipleConsultantWidget,
+            "interviewers": MultiplePyouPyouUserWidget,
             "goal": forms.Textarea(attrs={"placeholder": _("Add a goal only if it differs")}),
         }
 
