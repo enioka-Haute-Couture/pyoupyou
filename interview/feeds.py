@@ -81,9 +81,9 @@ class FullInterviewFeed(AbstractPyoupyouInterviewFeed):
         return Interview.objects.filter(planned_date__gte=last_month).order_by("-planned_date")
 
 
-class ConsultantInterviewFeed(AbstractPyoupyouInterviewFeed):
+class PyouPyouUserInterviewFeed(AbstractPyoupyouInterviewFeed):
     """
-    A simple event calendar for a given Consultant
+    A simple event calendar for a given PyouPyouUser
     """
 
     timezone = "Europe/Paris"
