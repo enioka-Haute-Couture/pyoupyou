@@ -85,20 +85,20 @@ class Command(BaseCommand):
             subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i), code="SU{no}".format(no=i))
             generate_basic_data(subsidiary)
 
-            # create consultants for this subsidiary
-            subsidiary_consultants = []
+            # create pyoupyou_users for this subsidiary
+            subsidiary_pyoupyou_users = []
             for k in range(5):
-                subsidiary_consultants.append(PyouPyouUserFactory(company=subsidiary))
+                subsidiary_pyoupyou_users.append(PyouPyouUserFactory(company=subsidiary))
 
-            # we need at least one consultant which is both a superuser and staff to access the admin board
-            # note: superusers cannot be created with manage.py because they also need a consultant
-            admin = subsidiary_consultants[0]
+            # we need at least one pyoupyou_user which is both a superuser and staff to access the admin board
+            # note: superusers cannot be created with manage.py because they also need a pyoupyou_user
+            admin = subsidiary_pyoupyou_users[0]
             admin.is_superuser = True
             admin.is_staff = True
             admin.save()
 
             # set subsidiary's responsible
-            subsidiary.responsible = subsidiary_consultants[0]
+            subsidiary.responsible = subsidiary_pyoupyou_users[0]
             subsidiary.save()
 
             # create offers for this subsidiary

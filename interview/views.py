@@ -89,9 +89,11 @@ def log_action(added, object, user, view):
         object_id=object.pk,
         object_repr=str(object),
         action_flag=ADDITION if added else CHANGE,
-        change_message=f"{object} has been Added through {view.__name__}"
-        if added
-        else f"{object} has been updated through {view.__name__}",
+        change_message=(
+            f"{object} has been Added through {view.__name__}"
+            if added
+            else f"{object} has been updated through {view.__name__}"
+        ),
     )
 
 
@@ -630,7 +632,7 @@ def interview(request, process_id=None, interview_id=None, action=None):
             return ret
 
         if request.user.is_external:
-            # set interviewer to be external consultant
+            # set interviewer to be external pyoupyou_user
             tmp = request.POST.copy()
             tmp["interviewers"] = request.user.id
             request.POST = tmp
@@ -838,14 +840,14 @@ def create_account(request):
             if parse_date(data["date_joined"]) is None:
                 return JsonResponse({"error": "ISO 8601 for date format"}, status=400)
             extra_fields["date_joined"] = data["date_joined"]
-        consultant = PyouPyouUser.objects.create_user(
+        pyoupyou_user = PyouPyouUser.objects.create_user(
             trigramme=data["trigramme"].lower(),
             email=data["email"],
             company=subsidiary,
             full_name=data["name"],
             **extra_fields,
         )
-        return JsonResponse({"consultant": consultant.__str__()})
+        return JsonResponse({"pyoupyou_user": pyoupyou_user.__str__()})
     except:
         return JsonResponse({"error": "user already register"}, status=400)
 
@@ -1010,7 +1012,7 @@ def export_processes_tsv(request):
 @login_required
 @require_http_methods(["GET"])
 def export_interviews_tsv(request):
-    consultants = PyouPyouUser.objects.filter(is_active=True).select_related("user").select_related("company")
+    pyoupyou_users = PyouPyouUser.objects.filter(is_active=True).select_related("user").select_related("company")
     interviews = (
         Interview.objects.for_user(request.user)
         .select_related("process")
@@ -1019,7 +1021,7 @@ def export_interviews_tsv(request):
         .select_related("process__candidate")
         .select_related("process__subsidiary")
         .select_related("process__offer")
-        .prefetch_related(Prefetch("interviewers", queryset=consultants))
+        .prefetch_related(Prefetch("interviewers", queryset=pyoupyou_users))
     )
 
     ret = []
@@ -1210,11 +1212,11 @@ def interviewers_load(request):
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
 
     if subsidiary:
-        consultants_qs = PyouPyouUser.objects.filter(company=subsidiary)
+        pyoupyou_user_qs = PyouPyouUser.objects.filter(company=subsidiary)
     else:
-        consultants_qs = PyouPyouUser.objects.all()
+        pyoupyou_user_qs = PyouPyouUser.objects.all()
     data = []
-    for c in consultants_qs.filter(is_active=True).order_by("company", "full_name"):
+    for c in pyoupyou_user_qs.filter(is_active=True).order_by("company", "full_name"):
         load = _interviewer_load(c)
         data.append(
             {
@@ -1408,9 +1410,11 @@ def active_sources(request):
 
     sources_filter = ActiveSourcesFilter(
         request_get,
-        queryset=Sources.objects.all()
-        if subsidiary is None
-        else Sources.objects.filter(process__subsidiary=subsidiary).distinct(),
+        queryset=(
+            Sources.objects.all()
+            if subsidiary is None
+            else Sources.objects.filter(process__subsidiary=subsidiary).distinct()
+        ),
     )
     sources_qs = sources_filter.qs
 
@@ -1537,9 +1541,11 @@ def activity_summary(request):
     )
     interview_filter = InterviewSummaryFilter(
         request.GET,
-        queryset=Interview.objects.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
-        if subsidiary_filter.form.cleaned_data["subsidiary"]
-        else Interview.objects.all(),
+        queryset=(
+            Interview.objects.filter(process__subsidiary=subsidiary_filter.form.cleaned_data["subsidiary"])
+            if subsidiary_filter.form.cleaned_data["subsidiary"]
+            else Interview.objects.all()
+        ),
     )
 
     # Processes started in the timespan
