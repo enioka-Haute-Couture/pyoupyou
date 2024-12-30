@@ -86,6 +86,7 @@ urlpatterns = [
     re_path(r"^select2/", include("django_select2.urls")),
     re_path(r"^search/", views.search, name="search"),
     re_path(r"^gantt/", views.gantt, name="gantt"),
+    re_path(r"^kanban/", views.kanban, name="kanban"),
 ]
 
 if settings.DEBUG:
