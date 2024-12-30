@@ -714,6 +714,14 @@ msgstr "Embauches"
 msgid "Declined offers"
 msgstr "Refus par le candidat"
 
+#: interview/templates/interview/kanban.html:19
+msgid "Process advancement"
+msgstr "Avancement des processus"
+
+#: interview/templates/interview/kanban.html:38
+msgid "Step"
+msgstr "Étape"
+
 #: interview/templates/interview/summary.html:150
 msgid "processes"
 msgstr "Processus"
