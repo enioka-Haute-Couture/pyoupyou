@@ -2042,3 +2042,51 @@ def processes_pivotable(request):
             "representations": representations,
         },
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def kanban(request):
+    subsidiary_filter = get_global_filter(request)
+    subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
+    if subsidiary:
+        processes = Process.objects.filter(state__in=Process.OPEN_STATE_VALUES, subsidiary=subsidiary)
+    else:
+        processes = Process.objects.filter(state__in=Process.OPEN_STATE_VALUES)
+
+    processes_by_rank = []
+
+    # TODO Add more color
+
+    ROSE = "#F2DEDE"  # Action needed
+    WHITE = "#FFF"  # Waiting for candidate / interview
+    GREEN = "#51CB76"
+    DEFAULT_BGCOLOR = WHITE
+
+    color_mapping = {
+        Process.WAITING_INTERVIEW_PLANIFICATION: ROSE,
+        Process.WAITING_INTERVIEW_PLANIFICATION_RESPONSE: WHITE,
+        Process.WAITING_ITW_MINUTE: WHITE,
+        Process.INTERVIEW_IS_PLANNED: WHITE,
+        Process.OPEN: GREEN,
+        Process.WAITING_INTERVIEWER_TO_BE_DESIGNED: ROSE,
+        Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS: ROSE,
+        Process.JOB_OFFER: GREEN,
+    }
+
+    for p in processes:
+        p.color = color_mapping.get(p.state, DEFAULT_BGCOLOR)
+        p.url = p.get_absolute_url()
+        rank = len(Interview.objects.filter(process=p))
+        if rank >= len(processes_by_rank):
+            for _ in range(len(processes_by_rank), rank + 1):
+                processes_by_rank.append([])  # init columns
+        processes_by_rank[rank].append(p)
+
+    return render(
+        request,
+        "interview/kanban.html",
+        {
+            "data": processes_by_rank,
+        },
+    )
