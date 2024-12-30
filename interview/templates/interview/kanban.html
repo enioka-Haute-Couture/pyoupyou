@@ -1,0 +1,46 @@
+{% extends 'interview/base.html' %} {% load i18n %} {% load crispy_forms_tags %}
+{% block title%} Kanban {% endblock %}
+{% block more_css %} {% endblock %} {% block content %}
+<div class="container">
+  <div class="panel panel-primary">
+    <div class="panel-heading">{% trans "Process advancement" %}</div>
+    <div style="display: flex; gap: 20px">
+      {% for value_list in data %}
+      <div
+        style="
+          flex: 1;
+          border: 1px solid #ccc;
+          padding: 10px;
+          border-radius: 6px;
+          background-color: #f9f9f9;
+        "
+      >
+        <h2
+          style="
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+          "
+        >
+          {% trans "Step" %} {{ forloop.counter0 }}
+        </h2>
+        {% for item in value_list %}
+        <div
+          style="
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            background-color: {{item.color}};
+          "
+        >
+          <a href="{{item.url}}"> {{ item }}</a>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
