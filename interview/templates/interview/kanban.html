@@ -1,11 +1,20 @@
-{% extends 'interview/base.html' %} {% load i18n %} {% load crispy_forms_tags %}
+{% extends 'interview/base.html' %} 
+{% load i18n %} 
+{% load crispy_forms_tags %}
+
 {% block title%} Kanban {% endblock %}
-{% block more_css %} {% endblock %} {% block content %}
+
+{% block more_css %} {% endblock %}
+{% block content %}
+
 <div class="container">
-  <form class="form-inline" method="get">
+  <div class="forms" style="display: flex;">
+    <form class="form-inline" method="get">
     {{ filter.form|crispy }}
     <input class="btn btn-default" type="submit" value="Filter" />
   </form>
+</div>
+
   <div class="panel panel-primary">
     <div class="panel-heading">{% trans "Process advancement" %}</div>
     <div style="display: flex; gap: 20px">

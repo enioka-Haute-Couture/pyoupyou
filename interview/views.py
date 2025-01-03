@@ -48,6 +48,7 @@ from interview.filters import (
     InterviewSummaryFilter,
     InterviewListFilter,
     ActiveSourcesFilter,
+    KanbanProcessFilter,
 )
 from interview.forms import (
     ProcessCandidateForm,
@@ -2056,7 +2057,7 @@ def kanban(request):
         filter_kwargs["subsidiary"] = subsidiary
     processes = Process.objects.filter(**filter_kwargs)
 
-    processfilter = ProcessFilter(request.GET, queryset=processes)
+    processfilter = KanbanProcessFilter(request.GET, queryset=processes)
 
     processes_by_rank = [[] for _ in range(DEFAULT_MIN_STEPS)]
 
