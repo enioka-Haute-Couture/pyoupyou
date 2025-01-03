@@ -2092,11 +2092,12 @@ def kanban(request):
         custom_process_string = f"{p.candidate}:{contract_type_name}:{p.subsidiary}"
         processes_by_rank[rank].append(custom_process_string)
 
+    counters = [len(processes_list) for processes_list in processes_by_rank ] 
     return render(
         request,
         "interview/kanban.html",
         {
-            "data": processes_by_rank,
+            "data": zip (processes_by_rank, counters),
             "filter":processfilter
 
         },
