@@ -5,11 +5,11 @@
   <form class="form-inline" method="get">
     {{ filter.form|crispy }}
     <input class="btn btn-default" type="submit" value="Filter" />
-</form>
+  </form>
   <div class="panel panel-primary">
     <div class="panel-heading">{% trans "Process advancement" %}</div>
     <div style="display: flex; gap: 20px">
-      {% for value_list in data %}
+      {% for value_list, counter in data %}
       <div
         style="
           flex: 1;
@@ -19,15 +19,16 @@
           background-color: #f9f9f9;
         "
       >
-        <h2
+        <div
           style="
             text-align: center;
             border-bottom: 1px solid #ccc;
             padding-bottom: 5px;
           "
         >
-          {% trans "Step" %} {{ forloop.counter0 }}
-        </h2>
+          <h2>{% trans "Step" %} {{ forloop.counter0 }}</h2>
+          <h3>Total : {{counter}} </h3>
+        </div>
         {% for item in value_list %}
         <div
           style="
