@@ -2088,8 +2088,11 @@ def kanban(request):
                 # init columns if more are needed
                 processes_by_rank.append([])
 
+        # process::contract_type nullable in database
         contract_type_name = p.contract_type.name if hasattr(p.contract_type, "name") else ""
-        custom_process_string = f"{p.candidate}:{contract_type_name}:{p.subsidiary}"
+        custom_process_string = ":".join(
+            str(information) for information in [p.candidate, contract_type_name, p.subsidiary] if information != ""
+        )
         p.text = custom_process_string
         processes_by_rank[rank].append(p)
 
