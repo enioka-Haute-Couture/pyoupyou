@@ -2051,7 +2051,7 @@ def kanban(request):
     DEFAULT_MIN_STEPS = 5
     subsidiary_filter = get_global_filter(request)
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
-    
+
     filter_kwargs = {"state__in": Process.OPEN_STATE_VALUES}
     if subsidiary is not None:
         filter_kwargs["subsidiary"] = subsidiary
@@ -2060,7 +2060,6 @@ def kanban(request):
     processfilter = KanbanProcessFilter(request.GET, queryset=processes)
 
     processes_by_rank = [[] for _ in range(DEFAULT_MIN_STEPS)]
-
 
     # TODO Add more color
 
@@ -2087,19 +2086,16 @@ def kanban(request):
         if rank >= len(processes_by_rank):
             for _ in range(len(processes_by_rank), rank + 1):
                 # init columns if more are needed
-                processes_by_rank.append([])  
+                processes_by_rank.append([])
 
         contract_type_name = p.contract_type.name if hasattr(p.contract_type, "name") else ""
         custom_process_string = f"{p.candidate}:{contract_type_name}:{p.subsidiary}"
-        processes_by_rank[rank].append(custom_process_string)
+        p.text = custom_process_string
+        processes_by_rank[rank].append(p)
 
-    counters = [len(processes_list) for processes_list in processes_by_rank ] 
+    counters = [len(processes_list) for processes_list in processes_by_rank]
     return render(
         request,
         "interview/kanban.html",
-        {
-            "data": zip (processes_by_rank, counters),
-            "filter":processfilter
-
-        },
+        {"data": zip(processes_by_rank, counters), "filter": processfilter},
     )
