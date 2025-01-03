@@ -2047,14 +2047,19 @@ def processes_pivotable(request):
 @login_required
 @require_http_methods(["GET"])
 def kanban(request):
+    DEFAULT_MIN_STEPS = 5
     subsidiary_filter = get_global_filter(request)
     subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
-    if subsidiary:
-        processes = Process.objects.filter(state__in=Process.OPEN_STATE_VALUES, subsidiary=subsidiary)
-    else:
-        processes = Process.objects.filter(state__in=Process.OPEN_STATE_VALUES)
+    
+    filter_kwargs = {"state__in": Process.OPEN_STATE_VALUES}
+    if subsidiary is not None:
+        filter_kwargs["subsidiary"] = subsidiary
+    processes = Process.objects.filter(**filter_kwargs)
 
-    processes_by_rank = []
+    processfilter = ProcessFilter(request.GET, queryset=processes)
+
+    processes_by_rank = [[] for _ in range(DEFAULT_MIN_STEPS)]
+
 
     # TODO Add more color
 
@@ -2074,19 +2079,25 @@ def kanban(request):
         Process.JOB_OFFER: GREEN,
     }
 
-    for p in processes:
+    for p in processfilter.qs:
         p.color = color_mapping.get(p.state, DEFAULT_BGCOLOR)
         p.url = p.get_absolute_url()
         rank = len(Interview.objects.filter(process=p))
         if rank >= len(processes_by_rank):
             for _ in range(len(processes_by_rank), rank + 1):
-                processes_by_rank.append([])  # init columns
-        processes_by_rank[rank].append(p)
+                # init columns if more are needed
+                processes_by_rank.append([])  
+
+        contract_type_name = p.contract_type.name if hasattr(p.contract_type, "name") else ""
+        custom_process_string = f"{p.candidate}:{contract_type_name}:{p.subsidiary}"
+        processes_by_rank[rank].append(custom_process_string)
 
     return render(
         request,
         "interview/kanban.html",
         {
             "data": processes_by_rank,
+            "filter":processfilter
+
         },
     )
