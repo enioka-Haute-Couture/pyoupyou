@@ -1,59 +1,63 @@
-{% extends 'interview/base.html' %} 
-{% load i18n %} 
+{% extends 'interview/base.html' %}
+{% load static %}
+{% load i18n %}
 {% load crispy_forms_tags %}
-
-{% block title%} Kanban {% endblock %}
-
-{% block more_css %} {% endblock %}
+{% block title%} Kanban {% endblock %} 
+{% block more_css %}
+<link rel="stylesheet" href="{% static 'interview/css/kanban.css' %}" />
+{% endblock %}
 {% block content %}
 
 <div class="container">
-  <div class="forms" style="display: flex;">
-    <form class="form-inline" method="get">
-    {{ filter.form|crispy }}
-    <input class="btn btn-default" type="submit" value="Filter" />
-  </form>
-</div>
+    <div class="forms" style="display: flex">
+      <form class="form-inline" method="get">
+        {{ filter.form|crispy }}
+        <input class="btn btn-default" type="submit" value="Filter" />
+      </form>
+  </div>
 
-  <div class="panel panel-primary">
-    <div class="panel-heading">{% trans "Process advancement" %}</div>
-    <div style="display: flex; gap: 20px">
-      {% for value_list, counter in data %}
-      <div
-        style="
-          flex: 1;
-          border: 1px solid #ccc;
-          padding: 10px;
-          border-radius: 6px;
-          background-color: #f9f9f9;
-        "
-      >
-        <div
-          style="
-            text-align: center;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
-          "
-        >
-          <h2>{% trans "Step" %} {{ forloop.counter0 }}</h2>
-          <h3>Total : {{counter}} </h3>
+  <div class="panel panel-primary" style="margin-top: 10px;">
+    <div class="panel-heading" >{% trans "Process advancement" %}</div>
+    <div class="cols-container">
+      {% for process_list, counter in data %}
+      <div class="columns-wrap">
+        <div class="columns">
+          {% if forloop.counter0 == 0 %}
+          <h5>{% trans "No ITW" %} ({{counter}})</h5>
+          {%else%}
+          <h5 style="white-space: nowrap">
+            {% trans "Interview" %} {{ forloop.counter0 }} ({{counter}})
+          </h5>
+          {%endif%}
         </div>
-        {% for item in value_list %}
-        <div
-          style="
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            margin: 10px 0;
-            padding: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            background-color: {{item.color}};
-          "
-        >
-          <a href="{{item.url}}"> {{ item.text }}</a>
-        </div>
+        {% for p in process_list %}
+        <a href="{{p.url}}">
+          <div class="process-card" style="background-color: {{p.color}}">
+            <div
+              class="color-band"
+              style="background-color: {{p.band_color}}"
+            ></div>
+            <div style="font-size:15px;">{{p.name}} ({{p.subsidiary.code}})</div>
+            <h6>• {{p.date}}</h6>
+            {% for responsible in p.resp%}
+            <h6>• {{responsible}}</h6>
+            {%endfor%}
+          </div>
+        </a>
         {% endfor %}
       </div>
       {% endfor %}
+    </div>
+  </div>
+  
+  <div class="legend" >
+    <div class="legend-item-box">
+      {%for key, value in legend.items %}
+      <div class="legend-item" style="position: relative;">
+        <div class="color-legend" style="background-color: {{key}};"></div> 
+        <div style="margin-left: 5px;">{{value}}</div> 
+      </div>
+      {%endfor%}
     </div>
   </div>
 </div>
