@@ -27,6 +27,7 @@ CharField.register_lookup(Lower)
 class ContractType(models.Model):
     name = models.CharField(_("Name"), max_length=200)
     has_duration = models.BooleanField(default=False)
+    color = models.CharField(max_length=7, null=True, blank=True, default="#FFFFFF")
 
     def __str__(self):
         return self.name

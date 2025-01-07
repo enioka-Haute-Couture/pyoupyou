@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 from interview.models import Interview, Sources, SourcesCategory, ContractType, InterviewKind, Process
 from ref.factory import SubsidiaryFactory
 from ref.models import Subsidiary, PyouPyouUser
-
+from django.conf import settings
 
 test_tz = pytz.timezone("Europe/Paris")
 
@@ -78,6 +78,7 @@ class ContractTypeFactory(factory.django.DjangoModelFactory):
 
     # name = "Default Contract Type"
     name = factory.Faker("text", max_nb_chars=20)
+    color = factory.Iterator([color[0] for color in settings.DEFAULT_BANDCOLORS])
 
 
 class SourcesCategoryFactory(factory.django.DjangoModelFactory):

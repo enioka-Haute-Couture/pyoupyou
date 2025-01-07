@@ -54,3 +54,15 @@ SEEKUBE_SOURCE_ID = 5
 SECRET_ANON_SALT = "dev-salt"
 
 FORM_WEB_HOOK_PREFIX = "dev"
+
+DEFAULT_BANDCOLORS = (
+    ("#FF0000", "RED"),
+    ("#008000", "GREEN"),
+    ("#0000FF", "BLUE"),
+    ("#87CEFA", "CYAN"),
+    ("#FFFF00", "YELLOW"),
+    ("#000000", "BLACK"),
+    ("#FFFFFF", "WHITE"),
+    ("#D3D3D3", "GREY"),
+    ("#90EE90", "LIGHTGREEN"),
+)
