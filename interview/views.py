@@ -63,7 +63,17 @@ from interview.forms import (
     ProcessReuseCandidateForm,
 )
 from interview.serializers import CognitoWebHookSerializer
-from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
+from interview.models import (
+    Process,
+    Document,
+    Interview,
+    Sources,
+    SourcesCategory,
+    Candidate,
+    Offer,
+    DocumentInterview,
+    ContractType,
+)
 from ref.filters import SubsidiaryFilter
 from ref.models import PyouPyouUser, Subsidiary
 
@@ -2056,49 +2066,46 @@ def kanban(request):
     if subsidiary is not None:
         filter_kwargs["subsidiary"] = subsidiary
     processes = Process.objects.filter(**filter_kwargs)
-
     processfilter = KanbanProcessFilter(request.GET, queryset=processes)
-
     processes_by_rank = [[] for _ in range(DEFAULT_MIN_STEPS)]
 
-    # TODO Add more color
-
-    ROSE = "#F2DEDE"  # Action needed
-    WHITE = "#FFF"  # Waiting for candidate / interview
-    GREEN = "#51CB76"
-    DEFAULT_BGCOLOR = WHITE
-
-    color_mapping = {
-        Process.WAITING_INTERVIEW_PLANIFICATION: ROSE,
-        Process.WAITING_INTERVIEW_PLANIFICATION_RESPONSE: WHITE,
-        Process.WAITING_ITW_MINUTE: WHITE,
-        Process.INTERVIEW_IS_PLANNED: WHITE,
-        Process.OPEN: GREEN,
-        Process.WAITING_INTERVIEWER_TO_BE_DESIGNED: ROSE,
-        Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS: ROSE,
-        Process.JOB_OFFER: GREEN,
-    }
+    WHITE = "#FFFFFF"
 
     for p in processfilter.qs:
-        p.color = color_mapping.get(p.state, DEFAULT_BGCOLOR)
+        p.color = WHITE
         p.url = p.get_absolute_url()
-        rank = len(Interview.objects.filter(process=p))
+        related_itw = Interview.objects.filter(process=p)
+        rank = len(related_itw)
+
         if rank >= len(processes_by_rank):
-            for _ in range(len(processes_by_rank), rank + 1):
+            for k in range(len(processes_by_rank), rank + 1):
                 # init columns if more are needed
                 processes_by_rank.append([])
 
-        # process::contract_type nullable in database
-        contract_type_name = p.contract_type.name if hasattr(p.contract_type, "name") else ""
-        custom_process_string = ":".join(
-            str(information) for information in [p.candidate, contract_type_name, p.subsidiary] if information != ""
-        )
-        p.text = custom_process_string
+        try:
+            planned_date = related_itw.latest("planned_date").planned_date.date()
+        except:
+            # itw is None or planned_date is None
+            planned_date = "No date"
+
+        p.band_color = WHITE
+        if p.contract_type is not None:
+            p.band_color = p.contract_type.color
+
+        p.name = p.candidate.name
+        p.sub_code = p.subsidiary.code
+        p.date = planned_date
+        p.resp = p.responsible.all()
         processes_by_rank[rank].append(p)
+
+    legend = {}
+    contract_types = ContractType.objects.all()
+    for contract_type in contract_types:
+        legend[contract_type.color] = contract_type.name
 
     counters = [len(processes_list) for processes_list in processes_by_rank]
     return render(
         request,
         "interview/kanban.html",
-        {"data": zip(processes_by_rank, counters), "filter": processfilter},
+        {"data": zip(processes_by_rank, counters), "filter": processfilter, "legend": legend},
     )

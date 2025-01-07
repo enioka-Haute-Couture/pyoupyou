@@ -1058,6 +1058,10 @@ msgstr ""
 msgid "Authority level"
 msgstr "Niveau d'autorisation"
 
+#: interview/views.py
+msgid "No contract type"
+msgstr "Pas de type de contrat"
+
 #~ msgid "Show/Hide Total"
 #~ msgstr "Afficher/cacher le total"
 
