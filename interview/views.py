@@ -1284,6 +1284,10 @@ def search(request):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.is_external)
 def gantt(request):
+    cmap = {}
+    for contract_type in ContractType.objects.all():
+        cmap[contract_type.name] = contract_type.color
+
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = timezone.now().date()
     processes = Process.objects.filter(state__in=state_filter).select_related("contract_type", "candidate")
@@ -1341,7 +1345,7 @@ def gantt(request):
             process["Finish"] = max_end_date
 
     fig = ff.create_gantt(
-        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True
+        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True, colors=cmap
     )
     fig.layout.update(
         {
