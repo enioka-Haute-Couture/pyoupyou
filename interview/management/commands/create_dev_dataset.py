@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
 from django.core.management import call_command
 from factory.faker import faker
-
+from django.conf import settings
 from interview.factory import (
     OfferFactory,
     ProcessFactory,
@@ -48,9 +48,10 @@ def generate_basic_data(subsidiary):
             InterviewKindFactory(name="Interview Kind {no}".format(no=i))
 
     # generate ContractType
+    COLORS = [color[0] for color in settings.DEFAULT_BANDCOLORS]
     if not ContractType.objects.exists():
         for i in range(1, 5):
-            ContractTypeFactory(name="Contract Type {no}".format(no=i))
+            ContractTypeFactory(name="Contract Type {no}".format(no=i), color=COLORS[i % len(COLORS)])
 
     # generate SourcesCategory
     source_categories = SourcesCategory.objects.all()
