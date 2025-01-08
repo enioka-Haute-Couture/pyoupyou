@@ -11,7 +11,6 @@ from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
 from django.core.management import call_command
 from factory.faker import faker
-from django.conf import settings
 from interview.factory import (
     OfferFactory,
     ProcessFactory,
@@ -40,6 +39,18 @@ For now 2 subsidiaries
                 an average of 3 itw per process
 """
 
+DEFAULT_BANDCOLORS = (
+    ("#FF0000", "RED"),
+    ("#008000", "GREEN"),
+    ("#0000FF", "BLUE"),
+    ("#87CEFA", "CYAN"),
+    ("#FFFF00", "YELLOW"),
+    ("#000000", "BLACK"),
+    ("#FFFFFF", "WHITE"),
+    ("#D3D3D3", "GREY"),
+    ("#90EE90", "LIGHTGREEN"),
+)
+
 
 def generate_basic_data(subsidiary):
     # generate InterviewKind
@@ -48,7 +59,7 @@ def generate_basic_data(subsidiary):
             InterviewKindFactory(name="Interview Kind {no}".format(no=i))
 
     # generate ContractType
-    COLORS = [color[0] for color in settings.DEFAULT_BANDCOLORS]
+    COLORS = [color[0] for color in DEFAULT_BANDCOLORS]
     if not ContractType.objects.exists():
         for i in range(1, 5):
             ContractTypeFactory(name="Contract Type {no}".format(no=i), color=COLORS[i % len(COLORS)])
