@@ -379,6 +379,13 @@ msgstr "Tous les entretiens"
 msgid "Arrival planning"
 msgstr "Suivi des arrivées"
 
+#: interview/templates/interview/kanban.html:27
+msgid "Interview %(iter)s (%(total)s)"
+msgstr "Entretien %(iter)s (%(total)s)"
+
+msgid "No ITW (%(total)s)"
+msgstr "No ITW (%(total)s)"
+
 #: interview/templates/interview/base.html:58
 #: interview/templates/interview/offers.html:8
 #: interview/templates/interview/offers.html:22
