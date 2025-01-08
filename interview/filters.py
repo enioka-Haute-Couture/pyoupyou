@@ -12,6 +12,12 @@ class ProcessFilter(django_filters.FilterSet):
         fields = ["contract_type"]
 
 
+class KanbanProcessFilter(django_filters.FilterSet):
+    class Meta:
+        model = Process
+        fields = ["contract_type", "sources", "offer"]
+
+
 class ProcessSummaryFilter(django_filters.FilterSet):
     last_state_change = django_filters.DateFromToRangeFilter(label="Date")
 

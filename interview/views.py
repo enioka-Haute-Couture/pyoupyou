@@ -48,6 +48,7 @@ from interview.filters import (
     InterviewSummaryFilter,
     InterviewListFilter,
     ActiveSourcesFilter,
+    KanbanProcessFilter,
 )
 from interview.forms import (
     ProcessCandidateForm,
@@ -62,7 +63,17 @@ from interview.forms import (
     ProcessReuseCandidateForm,
 )
 from interview.serializers import CognitoWebHookSerializer
-from interview.models import Process, Document, Interview, Sources, SourcesCategory, Candidate, Offer, DocumentInterview
+from interview.models import (
+    Process,
+    Document,
+    Interview,
+    Sources,
+    SourcesCategory,
+    Candidate,
+    Offer,
+    DocumentInterview,
+    ContractType,
+)
 from ref.filters import SubsidiaryFilter
 from ref.models import PyouPyouUser, Subsidiary
 
@@ -1273,6 +1284,10 @@ def search(request):
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.is_external)
 def gantt(request):
+    cmap = {}
+    for contract_type in ContractType.objects.all():
+        cmap[contract_type.name] = contract_type.color
+
     state_filter = Process.OPEN_STATE_VALUES + [Process.JOB_OFFER, Process.HIRED]
     today = timezone.now().date()
     processes = Process.objects.filter(state__in=state_filter).select_related("contract_type", "candidate")
@@ -1330,7 +1345,7 @@ def gantt(request):
             process["Finish"] = max_end_date
 
     fig = ff.create_gantt(
-        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True
+        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True, colors=cmap
     )
     fig.layout.update(
         {
@@ -2041,4 +2056,60 @@ def processes_pivotable(request):
             "title": _("Processes analysis"),
             "representations": representations,
         },
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def kanban(request):
+    DEFAULT_MIN_STEPS = 5
+    subsidiary_filter = get_global_filter(request)
+    subsidiary = subsidiary_filter.form.cleaned_data.get("subsidiary", None)
+
+    filter_kwargs = {"state__in": Process.OPEN_STATE_VALUES}
+    if subsidiary is not None:
+        filter_kwargs["subsidiary"] = subsidiary
+    processes = Process.objects.filter(**filter_kwargs)
+    processfilter = KanbanProcessFilter(request.GET, queryset=processes)
+    processes_by_rank = [[] for _ in range(DEFAULT_MIN_STEPS)]
+
+    WHITE = "#FFFFFF"
+
+    for p in processfilter.qs:
+        p.color = WHITE
+        p.url = p.get_absolute_url()
+        related_itw = Interview.objects.filter(process=p)
+        rank = len(related_itw)
+
+        if rank >= len(processes_by_rank):
+            for k in range(len(processes_by_rank), rank + 1):
+                # init columns if more are needed
+                processes_by_rank.append([])
+
+        try:
+            planned_date = related_itw.latest("planned_date").planned_date.date()
+        except:
+            # itw is None or planned_date is None
+            planned_date = "No date"
+
+        p.band_color = WHITE
+        if p.contract_type is not None:
+            p.band_color = p.contract_type.color
+
+        p.name = p.candidate.name
+        p.sub_code = p.subsidiary.code
+        p.date = planned_date
+        p.resp = p.responsible.all()
+        processes_by_rank[rank].append(p)
+
+    legend = {}
+    contract_types = ContractType.objects.all()
+    for contract_type in contract_types:
+        legend[contract_type.color] = contract_type.name
+
+    counters = [len(processes_list) for processes_list in processes_by_rank]
+    return render(
+        request,
+        "interview/kanban.html",
+        {"data": zip(processes_by_rank, counters), "filter": processfilter, "legend": legend},
     )

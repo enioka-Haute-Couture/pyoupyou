@@ -10,7 +10,6 @@ from interview.models import Interview, Sources, SourcesCategory, ContractType, 
 from ref.factory import SubsidiaryFactory
 from ref.models import Subsidiary, PyouPyouUser
 
-
 test_tz = pytz.timezone("Europe/Paris")
 
 

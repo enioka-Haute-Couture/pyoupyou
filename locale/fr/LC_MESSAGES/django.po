@@ -379,6 +379,13 @@ msgstr "Tous les entretiens"
 msgid "Arrival planning"
 msgstr "Suivi des arrivées"
 
+#: interview/templates/interview/kanban.html:27
+msgid "Interview %(iter)s (%(total)s)"
+msgstr "Entretien %(iter)s (%(total)s)"
+
+msgid "No ITW (%(total)s)"
+msgstr "No ITW (%(total)s)"
+
 #: interview/templates/interview/base.html:58
 #: interview/templates/interview/offers.html:8
 #: interview/templates/interview/offers.html:22
@@ -713,6 +720,14 @@ msgstr "Embauches"
 #: interview/templates/interview/summary.html:132
 msgid "Declined offers"
 msgstr "Refus par le candidat"
+
+#: interview/templates/interview/kanban.html:19
+msgid "Process advancement"
+msgstr "Avancement des processus"
+
+#: interview/templates/interview/kanban.html:38
+msgid "Step"
+msgstr "Étape"
 
 #: interview/templates/interview/summary.html:150
 msgid "processes"
@@ -1049,6 +1064,10 @@ msgstr ""
 #: ref/models.py:148
 msgid "Authority level"
 msgstr "Niveau d'autorisation"
+
+#: interview/views.py
+msgid "No contract type"
+msgstr "Pas de type de contrat"
 
 #~ msgid "Show/Hide Total"
 #~ msgstr "Afficher/cacher le total"
