@@ -12,7 +12,7 @@ from django.core.management import call_command
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from interview.models import Candidate
+from interview.models import Candidate, ResponsibleRule
 from django.utils.text import slugify
 from factory.faker import faker
 
@@ -255,7 +255,7 @@ class StatusAndNotificationTestCase(TestCase):
         i1.save()
         self.assertEqual(i1.state, Interview.WAIT_INFORMATION)
         self.assertEqual(Process.objects.get(id=p.id).state, Process.WAITING_ITW_MINUTE)
-        self.assertEqual(list(p.responsible.all()), [interviewer])
+        self.assertEqual(list(p.responsible.all()), [interviewer, p.compute_responsable()])
 
         # After Go/No Go
         # Process state will be: WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS
@@ -815,6 +815,27 @@ class ProcessCreationViewTestCase(TestCase):
             response,
             p.get_absolute_url(),
         )
+
+    def test_form_correct_responsible(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        responsible = PyouPyouUserFactory(company=self.subsidiary)
+        ResponsibleRule.objects.create(responsible =responsible, subsidiary=self.subsidiary,)
+        candidate_name = self.fake.name()
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",  
+                "new-candidate": True,
+            },
+            follow=True,
+        )
+        self.assertNotEqual(self.subsidiary.responsible,responsible)
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        p.save()
+        self.assertEqual(p.responsible.first(),responsible)
+        ResponsibleRule.objects.first().delete()
 
     def test_form_submit_with_full_data(self):
         # log user in

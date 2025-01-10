@@ -341,14 +341,18 @@ class Process(models.Model):
             if old.state != self.state:
                 self.last_state_change = now()
         super().save(force_insert, force_update, using, update_fields)
+        self.responsible.clear()
+        default_responsible = self.compute_responsable()
+
         if self.state in (
             Process.WAITING_INTERVIEWER_TO_BE_DESIGNED,
             Process.WAITING_NEXT_INTERVIEWER_TO_BE_DESIGNED_OR_END_OF_PROCESS,
             Process.JOB_OFFER,
         ):
             self.responsible.clear()
-            if self.subsidiary.responsible:
-                self.responsible.add(self.subsidiary.responsible)
+            if default_responsible is not None:
+                self.responsible.add(default_responsible)
+
         if self.state in (Process.CANDIDATE_DECLINED, Process.HIRED):
             self.responsible.clear()
         if self.state in (
@@ -366,6 +370,24 @@ class Process(models.Model):
                     self.responsible.add(interviewer)
         if trigger_notification:
             self.trigger_notification(is_new)
+
+    def compute_responsable(self):
+        """returns all matching responsible"""
+
+        # we use null as wildcard in rules table
+        rule_to_apply = (
+            ResponsibleRule.objects.filter(
+                Q(sources=self.sources) | Q(sources__isnull=True),
+                Q(subsidiary=self.subsidiary) | Q(subsidiary__isnull=True),
+                Q(contract_type=self.contract_type) | Q(contract_type__isnull=True),
+                Q(offer=self.offer) | Q(offer__isnull=True),
+            )
+            .order_by("-priority")
+            .first()
+        )
+        if rule_to_apply is not None:
+            return rule_to_apply.responsible
+        return self.subsidiary.responsible
 
     def get_absolute_url(self):
         from django.urls import reverse
@@ -719,3 +741,15 @@ def interview_m2m_changed(sender, **kwargs):
         instance.process.save()
         # trigger notification
         instance.trigger_notification()
+
+
+class ResponsibleRule(models.Model):
+    responsible = models.ForeignKey(PyouPyouUser, on_delete=models.CASCADE)
+
+    # if anything is deleted the rule becomes invalid so it gets deleted
+    # null is wildcard
+    subsidiary = models.ForeignKey(Subsidiary, on_delete=models.CASCADE)
+    sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.CASCADE)
+    contract_type = models.ForeignKey(ContractType, null=True, blank=True, on_delete=models.CASCADE)
+    offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.CASCADE)
+    priority = models.IntegerField(default=0)
