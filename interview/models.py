@@ -615,7 +615,7 @@ class Interview(models.Model):
         return self.planned_date is not None or self.state == self.WAITING_PLANIFICATION_RESPONSE
 
     def toggle_planning_request(self):
-        if self.state == self.WAITING_PLANIFICATION:
+        if self.state in [self.WAITING_PLANIFICATION, self.DRAFT]:
             self.state = self.WAITING_PLANIFICATION_RESPONSE
         elif self.state == self.WAITING_PLANIFICATION_RESPONSE:
             self.state = self.WAITING_PLANIFICATION
