@@ -746,7 +746,6 @@ def interview_m2m_changed(sender, **kwargs):
 class ResponsibleRule(models.Model):
     responsible = models.ForeignKey(PyouPyouUser, on_delete=models.CASCADE)
 
-    # if anything is deleted the rule becomes invalid so it gets deleted
     # null is wildcard
     subsidiary = models.ForeignKey(Subsidiary, on_delete=models.CASCADE)
     sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.CASCADE)
