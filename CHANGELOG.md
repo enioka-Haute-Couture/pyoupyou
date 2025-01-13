@@ -1,6 +1,7 @@
 # v1.23.0 (XXXX-XX-XX)
 - Simplify user model by moving Consultant information over to user instead 
 - Page title is now set according to page/contents
+- Process responsible can now be determined via rules set in admin panel
 
 # v1.22.0 (2024-07-31)
 - Add new reports in process analysis: count process per interview numbers, candidates source per subsidiary

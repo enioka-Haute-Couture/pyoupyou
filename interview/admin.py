@@ -13,7 +13,7 @@ from interview.models import (
     Sources,
     Offer,
     InterviewKind,
-    ResponsibleRule
+    ResponsibleRule,
 )
 
 
@@ -97,7 +97,8 @@ class InterviewKindAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
     search_fields = ("name",)
 
+
 @admin.register(ResponsibleRule)
 class ResponsibleRuleAdmin(admin.ModelAdmin):
-    list_display = ("id", "responsible", "subsidiary", "contract_type", "sources","offer")
+    list_display = ("id", "responsible", "subsidiary", "contract_type", "sources", "offer")
     search_fields = ("name",)
