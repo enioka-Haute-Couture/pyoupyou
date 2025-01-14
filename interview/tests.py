@@ -3,7 +3,7 @@ import json
 import factory
 import datetime
 import hashlib
-
+from django.db.utils import IntegrityError
 import dateutil.relativedelta
 import pytz
 from django.contrib.sessions.middleware import SessionMiddleware
@@ -12,7 +12,7 @@ from django.core.management import call_command
 from django.test import TestCase, RequestFactory
 from django.urls import reverse
 
-from interview.models import Candidate
+from interview.models import Candidate, ResponsibleRule
 from django.utils.text import slugify
 from factory.faker import faker
 
@@ -815,6 +815,86 @@ class ProcessCreationViewTestCase(TestCase):
             response,
             p.get_absolute_url(),
         )
+
+    def test_form_correct_responsible(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        responsible = PyouPyouUserFactory(company=self.subsidiary)
+        contract_type = ContractTypeFactory()
+
+        ResponsibleRule.objects.create(responsible=responsible, subsidiary=self.subsidiary, contract_type=contract_type)
+        candidate_name = self.fake.name()
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+                "contract_type": contract_type.id,
+            },
+            follow=True,
+        )
+        self.assertNotEqual(self.subsidiary.responsible, responsible)
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        p.save()
+        self.assertEqual(p.responsible.first(), responsible)
+        ResponsibleRule.objects.first().delete()
+
+    def test_rule_priority(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        responsible = PyouPyouUserFactory(company=self.subsidiary)
+        not_responsible = PyouPyouUserFactory(company=self.subsidiary)
+
+        ResponsibleRule.objects.create(responsible=not_responsible, subsidiary=self.subsidiary, priority=5)
+        ResponsibleRule.objects.create(responsible=responsible, subsidiary=self.subsidiary, priority=15)
+        candidate_name = self.fake.name()
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": self.subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+            },
+            follow=True,
+        )
+        self.assertNotEqual(self.subsidiary.responsible, responsible)
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        p.save()
+        self.assertEqual(p.responsible.first(), responsible)
+        ResponsibleRule.objects.all().delete()
+        self.assertEqual(0, ResponsibleRule.objects.all().count())
+
+    def test_no_rule_matching(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        wrong_responsible = PyouPyouUserFactory(company=self.subsidiary)
+
+        other_subsidiary = SubsidiaryFactory()
+        responsible = PyouPyouUserFactory(company=other_subsidiary)
+        other_subsidiary.responsible = responsible
+        other_subsidiary.save()
+
+        ResponsibleRule.objects.create(responsible=wrong_responsible, subsidiary=self.subsidiary, priority=15)
+
+        candidate_name = self.fake.name()
+        self.client.post(
+            path=reverse(views.new_candidate),
+            data={
+                "name": candidate_name,
+                "subsidiary": other_subsidiary.id,
+                "summit": "Enregistrer",
+                "new-candidate": True,
+            },
+            follow=True,
+        )
+        p = Process.objects.filter(candidate__name=candidate_name).first()
+        p.save()
+        self.assertEqual(p.responsible.first(), responsible)
+        ResponsibleRule.objects.all().delete()
+        self.assertEqual(0, ResponsibleRule.objects.all().count())
+
+    def test_rules_not_null(self):
+        self.assertRaises(IntegrityError, lambda: ResponsibleRule.objects.create(responsible=self.pyoupyou_user))
 
     def test_form_submit_with_full_data(self):
         # log user in
