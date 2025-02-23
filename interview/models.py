@@ -3,6 +3,7 @@
 import datetime
 import os
 import hashlib
+import shutil
 import unicodedata
 import itertools
 
@@ -102,35 +103,21 @@ class Candidate(models.Model):
     def __str__(self):
         return ("{name}").format(name=self.name)
 
+    def delete_all_documents(self):
+        dirname = f"{self.id}_{slugify(self.name)}"
+        for document_type in [dt[0] for dt in Document.DOCUMENT_TYPE]:
+            doc_type_media = settings.MEDIA_ROOT / document_type
+            shutil.rmtree(doc_type_media / dirname, ignore_errors=True)
+        self.document_set.all().delete()
+
     def anonymize(self):
         """
         Anonymize the candidate data, removing its documents
         This is irreversible
         """
         if not self.anonymized:
-            # remove the candidate's documents
-            # print(Document.objects.filter(candidate=self))
-            for doc in Document.objects.filter(candidate=self):
-                print("anonymize candidate doc:", doc.content)
-                doc.content.delete()
-                print("deleted:", bool(doc.content))
-            Document.objects.filter(candidate=self).delete()
-            # print(Document.objects.filter(candidate=self))
-
-            # remove directory as well
-            document_types = ["CV", "CL", "OT"]
-            dirname = f"{self.id}_{slugify(self.name)}"
-            for document_type in document_types:
-                # in theory there should always be a CV, CL, and OT folder, but just in case
-                doc_type_media = settings.MEDIA_ROOT / document_type
-                if document_type not in os.listdir(settings.MEDIA_ROOT):
-                    os.mkdir(doc_type_media)
-                    continue
-                if dirname in os.listdir(doc_type_media):
-                    # for filename in os.listdir(doc_type_media / dirname):
-                    #     os.remove(doc_type_media / dirname / filename)
-                    os.rmdir(doc_type_media / dirname)
-
+            # remove candidates documents
+            self.delete_all_documents()
             self.name = ""
             self.email = ""
             self.phone = ""
