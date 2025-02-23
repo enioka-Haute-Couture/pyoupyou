@@ -433,10 +433,9 @@ class AnonymizesCandidateTestCase(TestCase):
         for path in self.folder_paths:
             self.assertTrue(os.path.exists(path))
 
-        # TODO: call anonymize only once on the candidate after refactoring
         self.assertFalse(self.p.candidate.anonymized)
         self.p.candidate.anonymize()
-        self.assertEqual(self.p.candidate.anonymized, True)
+        self.assertTrue(self.p.candidate.anonymized)
 
         # name
         name_hash = hashlib.sha256()
