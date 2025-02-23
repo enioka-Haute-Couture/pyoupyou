@@ -507,13 +507,13 @@ class AnonymizesCandidateTestCase(TestCase):
 
         anonymized_process = Process.objects.first()
         self.assertFalse(anonymized_process.candidate.anonymized)
-        self.assertNotEquals(anonymized_process.candidate.name, "")
-        self.assertNotEquals(anonymized_process.candidate.email, "")
-        self.assertNotEquals(anonymized_process.candidate.phone, "")
-        self.assertNotEquals(anonymized_process.candidate.linkedin_url, "")
-        self.assertNotEquals(anonymized_process.other_informations, "")
+        self.assertNotEqual(anonymized_process.candidate.name, "")
+        self.assertNotEqual(anonymized_process.candidate.email, "")
+        self.assertNotEqual(anonymized_process.candidate.phone, "")
+        self.assertNotEqual(anonymized_process.candidate.linkedin_url, "")
+        self.assertNotEqual(anonymized_process.other_informations, "")
         for interview_i in anonymized_process.interview_set.all():
-            self.assertNotEquals(interview_i.minute, "")
+            self.assertNotEqual(interview_i.minute, "")
 
     def test_anonymize_cmd_with_default_one_process_found_out_of_two_then_ignore(self):
         p2 = ProcessFactory(subsidiary=self.subsidiary)
@@ -529,10 +529,10 @@ class AnonymizesCandidateTestCase(TestCase):
 
         candidate = Candidate.objects.first()
         self.assertFalse(candidate.anonymized)
-        self.assertNotEquals(candidate.name, "")
-        self.assertNotEquals(candidate.email, "")
-        self.assertNotEquals(candidate.phone, "")
-        self.assertNotEquals(candidate.linkedin_url, "")
+        self.assertNotEqual(candidate.name, "")
+        self.assertNotEqual(candidate.email, "")
+        self.assertNotEqual(candidate.phone, "")
+        self.assertNotEqual(candidate.linkedin_url, "")
 
     def test_reuse_anonymized_candidate(self):
         call_command("anonymize")
@@ -560,14 +560,14 @@ class AnonymizesCandidateTestCase(TestCase):
         reused_candidate = Candidate.objects.first()
         self.assertFalse(reused_candidate.anonymized)
         self.assertEqual(reused_candidate.id, self.p.candidate.id)
-        self.assertEquals(reused_candidate.name, self.p.candidate.name)
-        self.assertEquals(reused_candidate.email, self.p.candidate.email)
-        self.assertEquals(reused_candidate.phone, self.p.candidate.phone)
-        self.assertEquals(reused_candidate.linkedin_url, "")
-        self.assertEquals(reused_candidate.process_set.first().other_informations, "")
+        self.assertEqual(reused_candidate.name, self.p.candidate.name)
+        self.assertEqual(reused_candidate.email, self.p.candidate.email)
+        self.assertEqual(reused_candidate.phone, self.p.candidate.phone)
+        self.assertEqual(reused_candidate.linkedin_url, "")
+        self.assertEqual(reused_candidate.process_set.first().other_informations, "")
         self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
         for interview_i in reused_candidate.process_set.first().interview_set.all():
-            self.assertEquals(interview_i.minute, "")
+            self.assertEqual(interview_i.minute, "")
 
     def test_duplicate_reuse_candidate_prevent_merge_empty_form_value(self):
         self.user = self.pyoupyou_user
@@ -618,14 +618,14 @@ class AnonymizesCandidateTestCase(TestCase):
             reused_candidate = Candidate.objects.first()
             self.assertFalse(reused_candidate.anonymized)
             self.assertEqual(reused_candidate.id, self.p.candidate.id)
-            self.assertEquals(reused_candidate.name, self.p.candidate.name)
-            self.assertEquals(reused_candidate.email, self.p.candidate.email)
-            self.assertEquals(reused_candidate.phone, self.p.candidate.phone)
-            self.assertEquals(reused_candidate.linkedin_url, self.p.candidate.linkedin_url)
-            self.assertEquals(reused_candidate.process_set.first().other_informations, self.p.other_informations)
+            self.assertEqual(reused_candidate.name, self.p.candidate.name)
+            self.assertEqual(reused_candidate.email, self.p.candidate.email)
+            self.assertEqual(reused_candidate.phone, self.p.candidate.phone)
+            self.assertEqual(reused_candidate.linkedin_url, self.p.candidate.linkedin_url)
+            self.assertEqual(reused_candidate.process_set.first().other_informations, self.p.other_informations)
             self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
             for idx, interview_i in enumerate(reused_candidate.process_set.first().interview_set.all()):
-                self.assertEquals(interview_i.minute, self.p.interview_set.all()[idx].minute)
+                self.assertEqual(interview_i.minute, self.p.interview_set.all()[idx].minute)
 
 
 class HomeViewTestCase(TestCase):
@@ -735,8 +735,8 @@ class HomeViewTestCase(TestCase):
 
         subsidiary_processes = subsidiary_processes_table.data
         self.assertEqual(len(subsidiary_processes), 1)
-        self.assertNotEquals(p1.id, subsidiary_processes[0].id)
-        self.assertNotEquals(p2.id, subsidiary_processes[0].id)
+        self.assertNotEqual(p1.id, subsidiary_processes[0].id)
+        self.assertNotEqual(p2.id, subsidiary_processes[0].id)
 
 
 class ProcessCreationViewTestCase(TestCase):
