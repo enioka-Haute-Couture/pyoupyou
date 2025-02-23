@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(
                 blank=True,
                 related_name="subsidiary_notifications",
-                to="ref.PyouPyouUser",
+                to="ref.Consultant",
                 verbose_name="Informed consultants",
             ),
         ),

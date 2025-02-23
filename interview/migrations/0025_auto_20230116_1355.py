@@ -5,6 +5,18 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def fill_interviewers_and_creator_and_responsible_new(apps, schema_editor):
+    Interview = apps.get_model("interview", "Interview")
+    for interview in Interview.objects.all():
+        interview.interviewers_new.set([consultant.user for consultant in interview.interviewers.all()])
+        interview.save()
+
+    for process in apps.get_model("interview", "Process").objects.filter(creator__isnull=False):
+        process.creator_new = process.creator.user
+        process.responsible_new.set([consultant.user for consultant in process.responsible.all()])
+        process.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -13,14 +25,19 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
+        migrations.AddField(
             model_name="interview",
-            name="interviewers",
+            name="interviewers_new",
             field=models.ManyToManyField(to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="process",
-            name="creator",
+            name="responsible_new",
+            field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name="process",
+            name="creator_new",
             field=models.ForeignKey(
                 blank=True,
                 null=True,
@@ -30,9 +47,20 @@ class Migration(migrations.Migration):
                 verbose_name="Process creator",
             ),
         ),
-        migrations.AlterField(
+        migrations.RunPython(fill_interviewers_and_creator_and_responsible_new),
+        migrations.RemoveField(
+            model_name="interview",
+            name="interviewers",
+        ),
+        migrations.RemoveField(
+            model_name="process",
+            name="creator",
+        ),
+        migrations.RemoveField(
             model_name="process",
             name="responsible",
-            field=models.ManyToManyField(blank=True, to=settings.AUTH_USER_MODEL),
         ),
+        migrations.RenameField(model_name="process", old_name="creator_new", new_name="creator"),
+        migrations.RenameField(model_name="interview", old_name="interviewers_new", new_name="interviewers"),
+        migrations.RenameField(model_name="process", old_name="responsible_new", new_name="responsible"),
     ]
