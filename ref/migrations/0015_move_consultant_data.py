@@ -15,7 +15,8 @@ def transfer_consultant_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("ref", "0014_subsidiary_show_in_report_by_default"),
+        ("interview", "0028_merge_20241021_1741"),
+        ("ref", "0012_merge_20241021_1741"),
     ]
 
     operations = [

@@ -5,7 +5,7 @@ from django.db import migrations
 
 def copy_field(apps, schema):
     PyouPyouUser = apps.get_model("ref", "PyouPyouUser")
-    for user in PyouPyouUser.objects.all():
+    for user in PyouPyouUser.objects.filter(consultant__isnull=False):
         user.company = user.consultant.company
         user.privilege = user.consultant.privilege
         user.limited_to_source = user.consultant.limited_to_source
