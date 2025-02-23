@@ -424,7 +424,7 @@ class AnonymizesCandidateTestCase(TestCase):
         Document.objects.create(
             document_type="OT", content=ContentFile("ot content", "ot.txt"), candidate=self.p.candidate
         )
-        print("docs created", list(map(lambda doc: str(doc.content), Document.objects.filter(candidate=self.p.candidate))))
+
         # we will also have to check that the containing folders are properly deleted
         self.documents = Document.objects.filter(candidate=self.p.candidate)
         self.folder_paths = set(
