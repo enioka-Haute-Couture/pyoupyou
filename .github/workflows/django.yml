@@ -14,21 +14,21 @@ jobs:
     env:
       PYOUPYOU_ENV: dev
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry==1.5.1
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'poetry'
-      - run: poetry install
+      - name: Install the project
+        run: uv sync --dev
       - name: Check migrations
-        run: poetry run ./manage.py makemigrations --check
+        run: uv run ./manage.py makemigrations --check
       - name: Check coding style (black)
-        run: poetry run black --check .
+        run: uv run black --check .
       - name: Check requirements.txt is up to date
         run: |
-          poetry export --without-hashes -f requirements.txt|diff requirements.txt -
+          uv export --format requirements-txt --no-header --no-dev --no-hashes --frozen|diff requirements.txt -
   test:
     runs-on: ubuntu-latest
     env:
@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ["3.11", "3.12", "3.13"]
     services:
       mariadb:
         image: mariadb:latest
@@ -45,16 +45,14 @@ jobs:
           MYSQL_DATABASE: pyoupyou
         ports: [ '3306:3306' ]
     steps:
-      - uses: actions/checkout@v3
-      - name: Install poetry
-        run: pipx install poetry==1.5.1
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
-      - run: poetry install --no-interaction
+      - run: uv sync --dev --group=mysql
       - name: test
         run: |
           cp pyoupyou/settings/local.py.ci pyoupyou/settings/local.py
-          poetry run pip install mysqlclient
-          poetry run coverage run ./manage.py test
+          uv run coverage run ./manage.py test

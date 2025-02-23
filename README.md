@@ -9,24 +9,24 @@ http://www.gnu.org/licenses/agpl-3.0.html
 
 ## Dependencies
 
-- Python ~= 3.9
-- poetry == 1.4.0
+- Python ~= 3.11
+- uv
 
 ## Dev environment
 
 ```
-poetry install --with dev
+uv sync --dev
 ```
 
 ## Prod environment
 
 ```
-- poetry install
+uv sync
 ```
 
 # Contribute
 
-To contribute do Pull Request against this repository (https://github.com/pyoupyou/pyoupyou)
+To contribute do Pull Request against this repository (https://github.com/enioka-Haute-Couture/pyoupyou)
 
 In order to create a branch from an issue use github name suggestion <issue-id>-issue-name
 
@@ -45,8 +45,8 @@ To format string using format will be prefered over the % syntax. In order to fa
 # Setup dev
 
 ```
-# Switch to poetry
-poetry shell
+# Switch to virtualenv (created with uv sync)
+source .venv/bin/activate
 
 # set environment to dev, will load settings in pyoupyou/settings/dev.py
 export PYOUPYOU_ENV=dev
@@ -76,15 +76,16 @@ https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 ## Install dependencies, collect static and migrate database
 
 ```
-# install dependencies
-export PIPENV_VENV_IN_PROJECT=true # To create virtualenv on the project folder under .venv
-poetry install
+# install dependencies using uv sync or pip install -r requirements.txt
+
+# activate env
+source .venv/bin/activate
 
 # collect static files
-PYOUPYOU_ENV="prod" poetry run ./manage.py collectstatic
+PYOUPYOU_ENV="prod" ./manage.py collectstatic
 
 # migrate database
-PYOUPYOU_ENV="prod" poetry run ./manage.py migrate
+PYOUPYOU_ENV="prod" ./manage.py migrate
 
 ```
 

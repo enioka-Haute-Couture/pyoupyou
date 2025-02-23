@@ -1,43 +1,48 @@
+[project]
+name = "pyoupyou"
+version = "1.23.0"
+description = "ATS"
+authors = [
+    { name = "Benjamin Port", email = "benjamin.port@enioka.com" },
+    { name = "Arnaud Chirat", email = "arnaud.chirat@enioka.com" },
+    { name = "Thomas Cordival", email = "thomas.cordival@enioka.com" },
+    { name = "Arnaud Baradat", email = "arnaud.baradat@enioka.com" },
+]
+requires-python = ">= 3.11, <3.14"
+readme = "README.md"
+dependencies = [
+    "django-bootstrap-static>=3.3.7,<3.4",
+    "django-crispy-forms==1.14.0",
+    "django-select2==8.3.0",
+    "django-extensions==3.2.3",
+    "django-tables2==2.7.5",
+    "django-ical==1.9.2",
+    "django-bleach==3.1.0",
+    "django-split-settings==1.2.0",
+    "requests==2.32.3",
+    "django-filter==25.1",
+    "plotly==4.8.2",
+    "numpy>=2.2.3",
+    "pytz==2025.1",
+    "pandas>=2.2.3",
+    "django==5.1.6",
+    "urllib3==2.3.0",
+    "markdown-it-py==3.0.0",
+    "djangorestframework>=3.14.0,<4",
+]
+
 [tool.black]
 line-length = 120
 
-[tool.poetry]
-name = "pyoupyou"
-version = "1.19.0"
-description = "ATS"
-authors = [
-    "Benjamin Port <benjamin.port@enioka.com>",
-    "Arnaud Chirat <arnaud.chirat@enioka.com>",
-    "Thomas Cordival <thomas.cordival@enioka.com>",
-    "Arnaud Baradat <arnaud.baradat@enioka.com>",
+[dependency-groups]
+dev = [
+    "black==22.8.0",
+    "django-debug-toolbar==4.1.0",
+    "factory-boy==3.1.0",
+    "tzlocal",
+    "coverage",
+    "django-debug-toolbar-user-panel==2.0.0",
 ]
-readme = "README.md"
-
-[tool.poetry.dependencies]
-python = ">= 3.9, <3.12"
-django-bootstrap-static = ">=3.3.7,<3.4"
-django-crispy-forms = "==1.14.0"
-django-select2 = "==8.1.2"
-django-extensions = "==3.2.3"
-django-tables2 = "==2.6.0"
-django-ical = "==1.9.2"
-django-bleach = "==3.1.0"
-django-split-settings = "==1.2.0"
-requests = '==2.31.0 '
-django-filter = "==23.2"
-plotly = "==4.8.2"
-numpy = "==1.24.1"
-pytz = "==2023.3"
-pandas = "==1.5.3"
-django = "==4.2.4"
-urllib3 = "==1.26.16"
-markdown-it-py = "3.0.0"
-djangorestframework = "^3.14.0"
-
-[tool.poetry.group.dev.dependencies]
-black = "==22.8.0"
-django-debug-toolbar = "==4.1.0"
-factory-boy = "==3.1.0"
-tzlocal = "*"
-coverage = "*"
-django-debug-toolbar-user-panel = "==2.0.0"
+mysql = [
+    "mysqlclient>=2.2.7",
+]
