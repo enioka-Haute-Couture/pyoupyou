@@ -166,6 +166,10 @@ class Candidate(models.Model):
     def display_name(self):
         return self.name if not self.anonymized else _("anonymized")
 
+    def delete(self, **kwargs):
+        self.delete_all_documents()
+        super().delete(**kwargs)
+
     @property
     def name_slug(self):
         return slugify(self.name)
