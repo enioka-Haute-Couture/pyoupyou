@@ -1665,6 +1665,8 @@ class ImportCognitoFormTestCase(TestCase):
 
         documents = Document.objects.filter(candidate=candidate)
         self.assertEqual(documents.count(), 2)
+        # clean up documents
+        candidate.delete_all_documents()
 
     def test_given_form_least_data(self):
         self.client.force_login(self.pyoupyou_user)
