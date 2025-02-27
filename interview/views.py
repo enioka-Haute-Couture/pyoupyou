@@ -2078,19 +2078,17 @@ def kanban(request):
     for p in processfilter.qs:
         p.color = WHITE
         p.url = p.get_absolute_url()
-        related_itw = Interview.objects.filter(process=p)
-        rank = len(related_itw)
+        itw = Interview.objects.filter(process=p).last()
 
-        if rank >= len(processes_by_rank):
-            for k in range(len(processes_by_rank), rank + 1):
+        if itw and itw.rank >= len(processes_by_rank):
+            for k in range(len(processes_by_rank), itw.rank + 1):
                 # init columns if more are needed
                 processes_by_rank.append([])
 
-        try:
-            planned_date = related_itw.latest("planned_date").planned_date.date()
-        except:
-            # itw is None or planned_date is None
-            planned_date = "No date"
+        if itw and itw.planned_date:
+            planned_date = itw.planned_date.date()
+        else:
+            planned_date = _("Not planned")
 
         p.band_color = WHITE
         if p.contract_type is not None:
@@ -2099,13 +2097,13 @@ def kanban(request):
         p.name = p.candidate.name
         p.sub_code = p.subsidiary.code
         p.date = planned_date
-        p.resp = p.responsible.all()
-        processes_by_rank[rank].append(p)
+        p.resp = itw.interviewers.all() if itw else ""
+        processes_by_rank[itw.rank if itw else 0].append(p)
 
     legend = {}
     contract_types = ContractType.objects.all()
     for contract_type in contract_types:
-        legend[contract_type.color] = contract_type.name
+        legend[contract_type.name] = contract_type.color
 
     counters = [len(processes_list) for processes_list in processes_by_rank]
     return render(
