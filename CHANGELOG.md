@@ -1,3 +1,11 @@
+# v1.23.1 (2025-02-23)
+- Improve kanban view
+  - fix legend
+  - use interview information instead of process one for responsible
+  - prequalification = itw 0 + add prequalification color on card
+  - full page width for kanban
+  - improve filter, only not archived source and offer. For offer filter on subsidiary
+
 # v1.23.0 (2025-02-23)
 - Simplify user model by moving Consultant information over to user instead 
 - Page title is now set according to page/contents
