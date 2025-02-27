@@ -58,6 +58,7 @@
 
 .legend-item{
     display: flex;
+    align-items: center;
 }
 
 .color-legend {
@@ -67,6 +68,7 @@
     margin-left: 10px;
     border: 1px solid black;
     border-radius: 100%;
+    aspect-ratio: 1 / 1;
 }
 
 .form-inline {
