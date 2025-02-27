@@ -1,3 +1,6 @@
+# v1.23.1 (2025-02-23)
+- Improve kanban view
+
 # v1.23.0 (2025-02-23)
 - Simplify user model by moving Consultant information over to user instead 
 - Page title is now set according to page/contents

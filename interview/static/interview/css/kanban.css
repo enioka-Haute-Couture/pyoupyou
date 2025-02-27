@@ -58,15 +58,17 @@
 
 .legend-item{
     display: flex;
+    align-items: center;
 }
 
 .color-legend {
     position: relative;
-    left: 0px;
-    bottom: 0px;
-    height: 100%;
-    width: 10px;
+    height: 15px;
+    width: 15px;
     margin-left: 10px;
+    border: 1px solid black;
+    border-radius: 100%;
+    aspect-ratio: 1 / 1;
 }
 
 .form-inline {
