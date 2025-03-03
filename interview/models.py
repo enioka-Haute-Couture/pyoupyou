@@ -104,11 +104,12 @@ class Candidate(models.Model):
         return ("{name}").format(name=self.name)
 
     def delete_all_documents(self):
-        dirname = f"{self.id}_{slugify(self.name)}"
-        for document_type in [dt[0] for dt in Document.DOCUMENT_TYPE]:
-            doc_type_media = settings.MEDIA_ROOT / document_type
-            shutil.rmtree(doc_type_media / dirname, ignore_errors=True)
-        self.document_set.all().delete()
+        if self.id:
+            dirname = f"{self.id}_{slugify(self.name)}"
+            for document_type in [dt[0] for dt in Document.DOCUMENT_TYPE]:
+                doc_type_media = settings.MEDIA_ROOT / document_type
+                shutil.rmtree(doc_type_media / dirname, ignore_errors=True)
+            self.document_set.all().delete()
 
     def anonymize(self):
         """
