@@ -60,9 +60,35 @@ python manage.py flush
 # Generate dev dataset
 python manage.py create_dev_dataset
 
+# Create a superuser, for instance call it "root"
+python manage.py createsuperuser
+
+# Force every dev dataset generate users to have same password than root
+sqlite3 "db.sqlite3" "update ref_pyoupyouuser set password = (select password from ref_pyoupyouuser where trigramme='root');"
+
+# Allow connection from everywhere (by default Django restricts to 127.0.0.1)
+echo "ALLOWED_HOSTS = ['*']" >> pyoupyou/settings/dev.py
+
 # launch the dev server
 python manage.py runserver
 # pyoupyou is now launched at http://127.0.0.1:8000/
+
+# if you want pyoupyou to be reachable from elsewhere (e.g. if you run it in a container)
+python manage.py runserver 0.0.0.0:8000
+
+```
+# Setup dev env within a docker container
+If you wan't to install and run a dev/demo pyoupyou instance within a docker
+container (for instance to avoid messing your computer with python dependencies)
+these commands before before uv sync and setup dev procedure are the way to go:
+```
+docker run -ti -p 8000:8000 debian:12.10-slim
+apt update
+apt upgrade
+apt install git pip vim sqlite3
+pip install uv --break-system-packages
+git clone https://github.com/enioka-Haute-Couture/pyoupyou.git
+cd pyoupyou
 ```
 
 # Setup prod
