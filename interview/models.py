@@ -11,7 +11,7 @@ from django.conf import settings
 from django.core import mail
 from django.db import models
 from django.db.models import Q, CharField, Count
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import m2m_changed
 from django.db.models.functions import Lower
 from django.dispatch import receiver
 from django.template.loader import render_to_string
@@ -474,23 +474,25 @@ class Process(models.Model):
         if subject and body_template:
             url = os.path.join(settings.SITE_HOST, self.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"process": self, "url": url})
-            recipient_list = self.subsidiary.notification_emails
-
-            # add subsidiary responsible to recipient list
-            if self.subsidiary.responsible:
-                recipient_list.append(self.subsidiary.responsible.email)
-
-            # add users subscribed to offer's notification
-
-            if self.offer:
-                recipient_list = recipient_list + [user.email for user in self.offer.subscribers.all()]
-
-            recipient_list = recipient_list + [user.email for user in self.subscribers.all()]
 
             # not sure about line 465 about the merge conflict...
             mail.send_mail(
-                subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
+                subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=self.recipient_list()
             )
+
+    def recipient_list(self):
+        recipients = self.subsidiary.notification_emails
+        # add subsidiary responsible to recipient list
+        if self.subsidiary.responsible and self.subsidiary.responsible.is_active:
+            recipients.append(self.subsidiary.responsible.email)
+
+        # add users subscribed to offer's notification
+        if self.offer:
+            recipients += [user.email for user in self.offer.subscribers.filter(is_active=True)]
+
+        recipients += [user.email for user in self.subscribers.filter(is_active=True)]
+
+        return set(recipients)
 
     def get_all_interviewers_for_process(self):
         return PyouPyouUser.objects.filter(interview__process=self)
@@ -675,12 +677,6 @@ class Interview(models.Model):
         return ""
 
     def trigger_notification(self):
-        recipient_list = self.process.subsidiary.notification_emails
-        if self.process.subsidiary.responsible:
-            recipient_list.append(self.process.subsidiary.responsible.email)
-        if self.id:
-            recipient_list = recipient_list + [i.email for i in self.interviewers.all()]
-
         subject = None
         body_template = None
         if self.state == Interview.WAITING_PLANIFICATION:
@@ -695,17 +691,17 @@ class Interview(models.Model):
             url = os.path.join(settings.SITE_HOST, self.process.get_absolute_url().lstrip("/"))
             body = render_to_string(body_template, {"interview": self, "url": url})
 
-            # add users subscribed to process offer's notification
-            if self.process.offer:
-                recipient_list = recipient_list + [user.email for user in self.process.offer.subscribers.all()]
-
-            recipient_list = recipient_list + [
-                user.email for user in self.process.subscribers.all()
-            ]  # users who subscribed to process' notifications
-
             mail.send_mail(
-                subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=set(recipient_list)
+                subject=subject, message=body, from_email=settings.MAIL_FROM, recipient_list=self.recipient_list()
             )
+
+    def recipient_list(self):
+        recipients = self.process.recipient_list()
+
+        if self.id:
+            recipients += [i.email for i in self.interviewers.filter(is_active=True)]
+
+        return set(recipients)
 
     def get_goal(self):
         if self.goal:
