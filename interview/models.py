@@ -388,7 +388,7 @@ class Process(models.Model):
             .order_by("-priority")
             .first()
         )
-        if rule_to_apply is not None:
+        if rule_to_apply is not None and rule_to_apply.responsible.is_active:
             return rule_to_apply.responsible
         return self.subsidiary.responsible
 
@@ -485,6 +485,9 @@ class Process(models.Model):
         # add subsidiary responsible to recipient list
         if self.subsidiary.responsible and self.subsidiary.responsible.is_active:
             recipients.append(self.subsidiary.responsible.email)
+
+        # Add responsible based on rule
+        recipients.append(self.compute_responsable().email)
 
         # add users subscribed to offer's notification
         if self.offer:
