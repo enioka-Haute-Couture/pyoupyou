@@ -24,8 +24,8 @@ class Subsidiary(models.Model):
 
     @property
     def notification_emails(self):
-        res = [email for email in self.informed.all().values_list("email", flat=True)]
-        if self.responsible:
+        res = [email for email in self.informed.filter(is_active=True).values_list("email", flat=True)]
+        if self.responsible and self.responsible.is_active:
             res.append(self.responsible.email)
         return res
 
