@@ -14,6 +14,7 @@ from ref.models import PyouPyouUser
 from interview.widgets import UploadFilesWidget
 from django.utils.translation import gettext_lazy as _
 
+
 class MultiplePyouPyouUserWidget(ModelSelect2MultipleWidget):
     model = PyouPyouUser
     queryset = PyouPyouUser.objects.filter(is_active=True)
