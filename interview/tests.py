@@ -786,7 +786,7 @@ class ProcessCreationViewTestCase(TestCase):
         self.tz = pytz.timezone("Europe/Paris")
 
     def test_multiple_fileupload_oncreate(self):
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.pyoupyou_user)
         name = "Jean-Eudes"
         document_count = 5
         files = [
@@ -819,7 +819,7 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertEqual(document_count, documents.count())
 
     def test_delete_file(self):
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.pyoupyou_user)
         name = "Jean-Ferdinand"
         document_count = 3
         files = [
@@ -861,7 +861,7 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertEqual(0, Document.objects.filter(candidate=candidate).count())
 
     def test_match_filetype(self):
-        self.client.force_login(user=self.user)
+        self.client.force_login(user=self.pyoupyou_user)
         name = "Jean-Martin"
         document_count = 5
         files = [
