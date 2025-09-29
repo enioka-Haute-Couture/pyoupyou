@@ -253,10 +253,12 @@ class Process(models.Model):
     HIRED = "HI"
     OTHER = "NO"
     JOB_OFFER = "JO"
+    PROFILE_NOT_RELEVANT = "NR"
 
     CLOSED_STATE = (
         (NO_GO, _("Last interviewer interupt process")),
         (CANDIDATE_DECLINED, _("Candidate declined our offer")),
+        (PROFILE_NOT_RELEVANT, _("Candidate profile not aligned with job offer")),
         (HIRED, _("Candidate accepted our offer")),
         (OTHER, _("Closed - other reason")),
     )
@@ -295,6 +297,7 @@ class Process(models.Model):
         HIRED,
         OTHER,
         JOB_OFFER,
+        PROFILE_NOT_RELEVANT,
     ]
     CLOSED_STATE_VALUES = [s[0] for s in CLOSED_STATE]
     OPEN_STATE_VALUES = list(set(ALL_STATE_VALUES) - set(CLOSED_STATE_VALUES))
