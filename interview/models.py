@@ -508,7 +508,7 @@ class InterviewManager(models.Manager):
         q = (
             super(InterviewManager, self)
             .get_queryset()
-            .filter(Q(process__start_date__gte=user.date_joined) | Q(interviewers__in=[user]))
+            .filter(Q(process__start_date__gte=user.date_joined) | Q(process__interview__interviewers=user))
             .distinct()
         )
         if user.is_external:
