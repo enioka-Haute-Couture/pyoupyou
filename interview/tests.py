@@ -204,6 +204,52 @@ class AccessRestrictionUserTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class AccessRestrictionCrossUserMinuteVisibilityTestCase(TestCase):
+    def setUp(self):
+        self.sub = SubsidiaryFactory()
+        self.old_user = PyouPyouUser.objects.create_user("OLD", "old@mail.com", "OLD", company=self.sub)
+        self.old_user.date_joined = datetime.datetime(2016, 1, 1, tzinfo=datetime.timezone.utc)
+        self.old_user.save()
+
+        self.process = ProcessFactory(subsidiary=self.sub)
+        self.process.start_date = datetime.datetime(2016, 10, 10, tzinfo=datetime.timezone.utc)
+        self.process.save()
+
+        self.old_itw = InterviewFactory(process=self.process)
+        self.old_itw.interviewers.set([self.old_user])
+        self.old_itw.minute = "Compte rendu ancien"
+        self.old_itw.save()
+
+    def test_new_assigned_user_can_view_previous_minute(self):
+        new_user = PyouPyouUser.objects.create_user("NEW1", "new1@mail.com", "NEW1", company=self.sub)
+        new_user.date_joined = datetime.datetime(2017, 1, 1, tzinfo=datetime.timezone.utc)
+        new_user.save()
+
+        future_itw = InterviewFactory(process=self.process)
+        future_itw.interviewers.set([new_user])
+        future_itw.save()
+
+        self.client.force_login(new_user)
+        url = reverse(
+            views.minute, kwargs={"interview_id": self.old_itw.id, "slug_info": self.process.candidate.name_slug}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Compte rendu ancien")
+
+    def test_new_unassigned_user_cannot_view_previous_minute(self):
+        new_user = PyouPyouUser.objects.create_user("NEW2", "new2@mail.com", "NEW2", company=self.sub)
+        new_user.date_joined = datetime.datetime(2017, 1, 1, tzinfo=datetime.timezone.utc)
+        new_user.save()
+
+        self.client.force_login(new_user)
+        url = reverse(
+            views.minute, kwargs={"interview_id": self.old_itw.id, "slug_info": self.process.candidate.name_slug}
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
 class StatusAndNotificationTestCase(TestCase):
     def test_status_and_notification(self):
         subsidiary = SubsidiaryFactory()

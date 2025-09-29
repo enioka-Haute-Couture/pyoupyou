@@ -2,6 +2,7 @@
 - Implemented cache busting for prod by using ManifestStaticFilesStorage to handle static files
 - Changed pivotable and js/css dependencies to static loading instead of cdn
 - Allow multiple file uploads when creating/editing candidate
+- Users involved in a process can now view all related interviews and minutes, regardless of when the process started
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
