@@ -1277,6 +1277,64 @@ class ProcessCreationViewTestCase(TestCase):
         self.assertEqual(empty_linkedin_url, response_edit_candidate.context["process"].candidate.linkedin_url)
 
 
+class NoMailToDeactivatedUsersTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.active_interviewer = PyouPyouUserFactory(
+            email="active_itw@example.com", is_active=True, company=self.subsidiary
+        )
+        self.inactive_interviewer = PyouPyouUserFactory(
+            email="inactive_itw@example.com", is_active=False, company=self.subsidiary
+        )
+        self.subsidiary.save()
+
+    def test_no_mail_sent_to_deactivated_interviewer(self):
+        mail.outbox = []
+        process = ProcessFactory(subsidiary=self.subsidiary)
+        interview = InterviewFactory(process=process)
+        interview.interviewers.add(self.active_interviewer)
+        interview.interviewers.add(self.inactive_interviewer)
+        interview.planned_date = datetime.datetime.now() + datetime.timedelta(days=1)
+        interview.save()
+        all_recipients = []
+        for message in mail.outbox:
+            all_recipients.extend(message.to)
+        self.assertIn("active_itw@example.com", all_recipients)
+        self.assertNotIn("inactive_itw@example.com", all_recipients)
+
+
+class MailToResponsibleBasedOnRulesTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.subsidiary.save()
+        self.active_responsible = PyouPyouUserFactory(
+            email="active_resp@example.com", is_active=True, company=self.subsidiary
+        )
+        self.subsidiary.responsible = self.active_responsible
+        self.subsidiary.save()
+        self.source_linkedin = SourcesFactory(name="LinkedIn")
+        self.contract_cdi = ContractTypeFactory(name="CDI")
+
+    def test_mail_sent_to_responsible_from_rule(self):
+        from interview.models import ResponsibleRule
+
+        rule = ResponsibleRule.objects.create(
+            responsible=self.active_responsible,
+            subsidiary=self.subsidiary,
+            sources=self.source_linkedin,
+            contract_type=self.contract_cdi,
+            priority=100,
+        )
+        mail.outbox = []
+        process = ProcessFactory(
+            subsidiary=self.subsidiary, sources=self.source_linkedin, contract_type=self.contract_cdi
+        )
+        all_recipients = []
+        for message in mail.outbox:
+            all_recipients.extend(message.to)
+        self.assertIn("active_resp@example.com", all_recipients)
+
+
 class ProcessDetailsViewTestCase(TestCase):
     def setUp(self):
         # create a process
