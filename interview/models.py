@@ -487,7 +487,9 @@ class Process(models.Model):
             recipients.append(self.subsidiary.responsible.email)
 
         # Add responsible based on rule
-        recipients.append(self.compute_responsable().email)
+        computed_responsible = self.compute_responsable()
+        if computed_responsible is not None:
+            recipients.append(computed_responsible.email)
 
         # add users subscribed to offer's notification
         if self.offer:
@@ -702,7 +704,7 @@ class Interview(models.Model):
         recipients = self.process.recipient_list()
 
         if self.id:
-            recipients += [i.email for i in self.interviewers.filter(is_active=True)]
+            recipients.update(i.email for i in self.interviewers.filter(is_active=True))
 
         return set(recipients)
 
