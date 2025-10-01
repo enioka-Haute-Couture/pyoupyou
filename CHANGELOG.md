@@ -5,6 +5,7 @@
 - Users involved in a process can now view all related interviews and minutes, regardless of when the process started
 - Ensure we don't send mail to deactivated user
 - Send mail to process responsible when based on rules
+- Add new closed state CLOSED_STATE: PROFILE_NOT_RELEVANT
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
