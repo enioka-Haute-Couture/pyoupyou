@@ -58,12 +58,16 @@ def generate_basic_data(subsidiary):
         for i in range(1, 5):
             InterviewKindFactory(
                 name="Interview Kind {no}".format(no=i),
-                email_subject="Interview Kind {no} on {{{{date.date}}}} at {{{{date.time}}}} ({{{{candidate_name}}}})".format(no=i),
+                email_subject="Interview Kind {no} on {{{{date.date}}}} at {{{{date.time}}}} ({{{{candidate_name}}}})".format(
+                    no=i
+                ),
                 email_template="""Hello,
 Your Interview Kind {no} will take place {{{{date.date}}}} at {{{{date.time}}}}.
 We look forward to meeting you.
 Sincerely,
-{{{{subsidiary}}}} recruiter""".format(no=i),
+{{{{subsidiary}}}} recruiter""".format(
+                    no=i
+                ),
             )
 
     # generate ContractType

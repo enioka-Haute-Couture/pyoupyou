@@ -124,4 +124,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # It should only contain the month and day using '<month>-<day>' format.
 FINANCIAL_STARTING_MONTH_DAY = "07-01"
 
-SEND_PLANNING_EMAIL = True # TODO: Change back to False for merge
+SEND_PLANNING_EMAIL = False

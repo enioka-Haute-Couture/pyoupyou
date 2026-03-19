@@ -142,6 +142,7 @@ class InterviewersForm(forms.ModelForm):
 
 class InterviewFormPlan(forms.ModelForm):
     planning_email_option = forms.BooleanField(required=False, initial=True, label=_("Send planning email"))
+
     class Meta:
         model = Interview
         fields = ["planned_date", "kind_of_interview"]
@@ -156,8 +157,7 @@ class InterviewFormPlan(forms.ModelForm):
     layout_fields = ["planned_date", "kind_of_interview"]
     if settings.SEND_PLANNING_EMAIL:
         layout_fields.append("planning_email_option")
-    helper.layout = Layout(
-        Div(Column(*layout_fields), css_class="relative"))
+    helper.layout = Layout(Div(Column(*layout_fields), css_class="relative"))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
