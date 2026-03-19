@@ -9,11 +9,13 @@ import itertools
 
 from django.conf import settings
 from django.core import mail
+from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.db.models import Q, CharField, Count
 from django.db.models.signals import m2m_changed
 from django.db.models.functions import Lower
 from django.dispatch import receiver
+from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import now
@@ -508,6 +510,8 @@ class Process(models.Model):
 
 class InterviewKind(models.Model):
     name = models.CharField(max_length=255)
+    email_subject = models.TextField(verbose_name=_("Email subject"), blank=True)
+    email_template = models.TextField(verbose_name=_("Email template"), blank=True)
 
     def __str__(self):
         return self.name
@@ -718,6 +722,32 @@ class Interview(models.Model):
             return Interview.objects.filter(process=self.process).get(rank=self.rank - 1).next_interview_goal
         except Interview.DoesNotExist:
             return None
+
+    def _format_planification_email(self):
+        email_template = Template(self.kind_of_interview.email_template)
+        email_subject_template = Template(self.kind_of_interview.email_subject)
+        context  = Context({
+            "date": self.planned_date,
+            "candidate_name": self.process.candidate.name,
+            "interviewer name": self.interviewers.all()[0] if self.interviewers else None,
+            # Insert additional context as needed
+        })
+        return email_subject_template.render(context), email_template.render(context)
+
+
+    def trigger_planification_email(self):
+        if any(_ is None for _ in [self.planned_date, self.kind_of_interview]):
+            return
+        email_subject, email_content = self._format_planification_email()
+        recipients_interviewers = [itwer.email for itwer in self.interviewers.all()]
+        email = EmailMultiAlternatives(
+            subject= email_subject,
+            body=email_content,
+            from_email=settings.MAIL_FROM,
+            to= [self.process.candidate.email] + recipients_interviewers,
+            reply_to = recipients_interviewers[:1] if recipients_interviewers else None, # First interviewer is the reply_to contact
+        )
+        email.send()
 
 
 def document_minute_path(instance, filename):

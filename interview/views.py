@@ -654,6 +654,10 @@ def interview(request, process_id=None, interview_id=None, action=None):
             request.POST = tmp
         form = InterviewForm(request.POST, instance=interview_model)
 
+        if action == "plan" and form.is_valid():
+            if settings.SEND_PLANNING_EMAIL and form.cleaned_data.get('planning_email_option'):
+                interview_model.trigger_planification_email()
+
         if form.is_valid():
             form.save()
             log_action(False, interview_model, request.user, interview)

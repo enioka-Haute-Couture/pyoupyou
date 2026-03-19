@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
@@ -140,14 +141,23 @@ class InterviewersForm(forms.ModelForm):
 
 
 class InterviewFormPlan(forms.ModelForm):
+    planning_email_option = forms.BooleanField(required=False, initial=True, label=_("Send planning email"))
     class Meta:
         model = Interview
         fields = ["planned_date", "kind_of_interview"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["kind_of_interview"].required = True
+
     helper = FormHelper()
     helper.form_method = "POST"
     helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
-    helper.layout = Layout(Div(Column("planned_date", "kind_of_interview"), css_class="relative"))
+    layout_fields = ["planned_date", "kind_of_interview"]
+    if settings.SEND_PLANNING_EMAIL:
+        layout_fields.append("planning_email_option")
+    helper.layout = Layout(
+        Div(Column(*layout_fields), css_class="relative"))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
