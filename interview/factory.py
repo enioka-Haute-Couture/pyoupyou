@@ -229,6 +229,8 @@ class InterviewKindFactory(factory.django.DjangoModelFactory):
 
     # name = "Default Interview Kind"
     name = factory.Faker("text", max_nb_chars=20)
+    email_subject = factory.Faker("text", max_nb_chars=200)
+    email_template = factory.Faker("text", max_nb_chars=400)
 
 
 class InterviewFactory(factory.django.DjangoModelFactory):
