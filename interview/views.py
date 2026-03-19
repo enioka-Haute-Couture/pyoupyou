@@ -654,8 +654,11 @@ def interview(request, process_id=None, interview_id=None, action=None):
             request.POST = tmp
         form = InterviewForm(request.POST, instance=interview_model)
 
-        if action == "plan" and form.is_valid():
-            if settings.SEND_PLANNING_EMAIL and form.cleaned_data.get('planning_email_option'):
+        if (action == "plan"
+                and form.is_valid()
+                and settings.SEND_PLANNING_EMAIL
+                and form.cleaned_data.get('planning_email_option') # Make sure the option checkbox is checked
+                and "planned_date" in form.changed_data): # Make sure the date of the interview is set / changed
                 interview_model.trigger_planification_email()
 
         if form.is_valid():
