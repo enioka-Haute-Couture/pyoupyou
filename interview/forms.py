@@ -150,14 +150,15 @@ class InterviewFormPlan(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["kind_of_interview"].required = True
-
-    helper = FormHelper()
-    helper.form_method = "POST"
-    helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
-    layout_fields = ["planned_date", "kind_of_interview"]
-    if settings.SEND_PLANNING_EMAIL:
-        layout_fields.append("planning_email_option")
-    helper.layout = Layout(Div(Column(*layout_fields), css_class="relative"))
+        self.helper = FormHelper()
+        self.helper.form_method = "POST"
+        self.helper.add_input(Submit("summit", _("Save"), css_class="btn-primary"))
+        layout_fields = ["planned_date", "kind_of_interview"]
+        if settings.SEND_PLANNING_EMAIL:
+            layout_fields.append("planning_email_option")
+        else:
+            del self.fields["planning_email_option"]
+        self.helper.layout = Layout(Div(Column(*layout_fields), css_class="relative"))
 
 
 class InterviewFormEditInterviewers(forms.ModelForm):
