@@ -730,6 +730,7 @@ class Interview(models.Model):
             "date": self.planned_date,
             "candidate_name": self.process.candidate.name,
             "interviewer name": self.interviewers.all()[0] if self.interviewers else None,
+            "subsidiary": self.process.subsidiary.full_name,
             # Insert additional context as needed
         })
         return email_subject_template.render(context), email_template.render(context)

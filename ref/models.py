@@ -13,6 +13,7 @@ class Subsidiary(models.Model):
     """Internal company / organisation unit"""
 
     name = models.CharField(_("Name"), max_length=200, unique=True)
+    full_name = models.CharField(_("Full name"), max_length=200, blank=True)
     code = models.CharField(_("Code"), max_length=3, unique=True)
     responsible = models.ForeignKey("PyouPyouUser", null=True, on_delete=models.SET_NULL)
     informed = models.ManyToManyField(
