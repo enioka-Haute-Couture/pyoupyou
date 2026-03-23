@@ -730,23 +730,25 @@ class Interview(models.Model):
             {
                 "date": self.planned_date,
                 "candidate_name": self.process.candidate.name,
-                "interviewer name": self.interviewers.all()[0] if self.interviewers else None,
+                "interviewer_name": self.interviewers.all()[0] if self.interviewers else None,
                 "subsidiary": self.process.subsidiary.full_name,
-                # Insert additional context as needed
             }
         )
         return email_subject_template.render(context), email_template.render(context)
 
     def trigger_planification_email(self):
-        if any(_ is None for _ in [self.planned_date, self.kind_of_interview]):
+        if self.planned_date is None or self.kind_of_interview is None:
             return
         email_subject, email_content = self._format_planification_email()
         recipients_interviewers = [itwer.email for itwer in self.interviewers.all()]
+        if not recipients_interviewers:
+            return
         email = EmailMultiAlternatives(
             subject=email_subject,
             body=email_content,
             from_email=settings.MAIL_FROM,
-            to=[self.process.candidate.email] + recipients_interviewers,
+            to=[self.process.candidate.email],
+            cc=recipients_interviewers,
             reply_to=recipients_interviewers[:1]
             if recipients_interviewers
             else None,  # First interviewer is the reply_to contact

@@ -1992,8 +1992,9 @@ class InterviewPlanningEmailTestCase(TestCase):
 
                 # Check that the email was sent to both candidate and interviewer
                 email_recipients = mail.outbox[0].to
+                email_ccs = mail.outbox[0].cc
                 self.assertIn(self.c.email, email_recipients)
-                self.assertIn(self.interviewer.email, email_recipients)
+                self.assertIn(self.interviewer.email, email_ccs)
             else:
                 self.assertEqual(len(mail.outbox), 0)
 
