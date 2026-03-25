@@ -1,0 +1,36 @@
+{% extends "interview/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Delete" %} {{ obj_type }} {% endblock %}
+{% block content %}
+    <div class="container">
+    <div class="lead">
+        <h1>{% trans "Delete"%} {{ obj_type }}</h1>
+    </div>
+    <p>{% trans "Are you sure you want to delete" %} "{{ object }}" {% trans "from pyoupyou ?" %}</p>
+    <p>{% trans "All of the following related items will be deleted:" %}</p>
+            <ul>
+        {% for process, interviews in processes.items %}
+        <li><a href="{{ process.get_absolute_url }}">Process</a> {{ process.subsidiary.name }} - (started {{ process.start_date|date:"d/m/Y" }})</li>
+            <ul>
+            {% for interview, interviewers in interviews.items %}
+            <li>Interview {{ interview.rank }} - {{ interviewers }}{% if interview.planned_date %} - ({{ interview.planned_date.date|date:"d/m/Y"}}){% endif %}</li>
+        {% endfor %}
+            </ul>
+        {% endfor %}
+</ul></ul>
+    <form method="post">{% csrf_token %}
+    <div>
+    <input type="hidden" name="post" value="yes">
+        <div class="row">
+    <div class="col-md-4">
+    {{ form.confirmation|as_crispy_field }}
+           </div>
+</div>
+    <input type="submit" value="{% trans 'Delete' %}" id="submit-btn" class="btn btn-danger">
+    <a href="{{ cancel_url }}" class="btn-cancel">Cancel</a>
+    </div>
+    </form>
+    </div>
+{% endblock %}

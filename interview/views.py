@@ -8,6 +8,7 @@ import json
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.auth.views import redirect_to_login
+from django.views.generic import DeleteView
 from plotly.offline import plot
 import plotly.figure_factory as ff
 import plotly.express as px
@@ -30,8 +31,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 from django.utils.html import format_html
-from django.utils.translation import gettext as _t
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _t, gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 from django.views.decorators.csrf import csrf_exempt
@@ -61,6 +61,7 @@ from interview.forms import (
     OfferForm,
     InterviewersForm,
     ProcessReuseCandidateForm,
+    ConfirmationForm,
 )
 from interview.serializers import CognitoWebHookSerializer
 from interview.models import (
@@ -2109,7 +2110,7 @@ def kanban(request):
         if itw and itw.planned_date:
             planned_date = itw.planned_date.date()
         else:
-            planned_date = _("Not planned")
+            planned_date = _t("Not planned")
 
         p.band_color = WHITE
         if p.contract_type is not None:
@@ -2132,3 +2133,54 @@ def kanban(request):
         "interview/kanban.html",
         {"data": zip(processes_by_rank, counters), "filter": processfilter, "legend": legend},
     )
+
+
+def processes_dict(related_processes):
+    return {
+        related_process: {
+            intwer: ", ".join([itw.full_name for itw in intwer.interviewers.all()])
+            for intwer in Interview.objects.filter(process=related_process)
+        }
+        for related_process in related_processes
+    }
+
+
+class CustomGenericDeleteView(DeleteView):
+    success_url = "/"
+    template_name = "interview/confirm_delete.html"
+    form_class = ConfirmationForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["obj_type"] = _(self.model._meta.model_name.title())
+        context["cancel_url"] = self.object.get_absolute_url()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+
+class CandidateDeleteView(CustomGenericDeleteView):
+    model = Candidate
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        related_processes = Process.objects.filter(candidate=self.object)
+        context["processes"] = processes_dict(related_processes)
+        return context
+
+
+class ProcessDeleteView(CustomGenericDeleteView):
+    model = Process
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        related_processes = [self.object]
+        context["processes"] = processes_dict(related_processes)
+        return context

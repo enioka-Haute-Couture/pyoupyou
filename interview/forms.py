@@ -6,13 +6,28 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, Column, Field
+from crispy_forms.layout import Layout, Div, Submit, Column, Row
 from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 
 from interview.models import Interview, Candidate, Process, Sources, Offer
 from ref.models import PyouPyouUser
 from interview.widgets import UploadFilesWidget
 from django.utils.translation import gettext_lazy as _
+
+
+class ConfirmationForm(forms.Form):
+    CONFIRMATION_WORD = "pyoupyou"
+    confirmation = forms.CharField(
+        label=_(f"Type in '{CONFIRMATION_WORD}' to confirm deletion:"),
+        widget=forms.TextInput(attrs={"placeholder": CONFIRMATION_WORD, "id": "confirmation-input"}),
+        required=True,
+    )
+
+    def clean_confirmation(self):
+        confirmation = self.cleaned_data.get("confirmation")
+        if confirmation != ConfirmationForm.CONFIRMATION_WORD:
+            raise ValidationError(_("Confirmation word is incorrect"))
+        return confirmation
 
 
 class MultiplePyouPyouUserWidget(ModelSelect2MultipleWidget):

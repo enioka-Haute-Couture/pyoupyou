@@ -26,6 +26,9 @@ urlpatterns = [
     ),
     re_path(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
     re_path(
+        r"^process/(?P<pk>\d+)(?P<slug_info>(\w-?)*)/delete/$", views.ProcessDeleteView.as_view(), name="process-delete"
+    ),
+    re_path(
         r"^switch_process_subscription/(?P<process_id>\d+)/$",
         views.switch_process_subscription_ajax,
         name="switch-process-subscription",
@@ -63,6 +66,7 @@ urlpatterns = [
     re_path(r"^reports/pivotable/interviews/$", views.interviews_pivotable, name="interviews-pivotable"),
     re_path(r"^reports/pivotable/processes/$", views.processes_pivotable, name="processes-pivotable"),
     re_path(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
+    re_path(r"^candidate/(?P<pk>\d+)/delete/$", views.CandidateDeleteView.as_view(), name="candidate-delete"),
     re_path(r"^candidate-reuse/(?P<candidate_id>\d+)/$", views.reuse_candidate, name="reuse_candidate"),
     re_path(r"^create_source/$", views.create_source_ajax, name="create_source"),
     re_path(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),
