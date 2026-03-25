@@ -108,6 +108,12 @@
         {% endif %}
 
         <input type="submit" name="summit" value="{% if duplicates %}{% trans "New Candidate" %}{% else %}{% trans "Save" %}{% endif %}" class="btn btn-primary btn-primary" id="submit-id-summit">
+
+        {% if perms.interview.frontend_can_delete_candidate and process.candidate.id %}
+                <a href="{% url 'candidate-delete' pk=process.candidate.id %}" class="btn btn-danger">
+                <i class="fa fa-trash" aria-hidden="true"></i> {% trans "Delete this candidate" %}
+            </a>
+        {% endif %}
     </form>
     <div id="create-source" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">

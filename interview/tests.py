@@ -2,6 +2,8 @@ import json
 
 import datetime
 import hashlib
+
+from django.contrib.auth.models import Permission
 from django.db.utils import IntegrityError
 import os
 import random
@@ -1949,3 +1951,131 @@ class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
         open_processes = response.context["open_processes_table"].data
         self.assertEqual(len(open_processes), 1)
         self.assertTrue(older_process in open_processes)
+
+
+class DeleteViewsTestMixin:
+    CONFIRMATION_WORD = "pyoupyou"
+
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+
+        self.candidate = CandidateFactory()
+        self.process = ProcessFactory(candidate=self.candidate, subsidiary=self.subsidiary)
+        self.interview = InterviewFactory(process=self.process, kind_of_interview=InterviewKindFactory())
+        self.interview.interviewers.set([self.user])
+
+        self.client.force_login(self.user)
+
+    def give_permission(self, codename):
+        permission = Permission.objects.get(codename=codename, content_type__app_label="interview")
+        self.user.user_permissions.add(permission)
+
+    def confirm(self, url, word=CONFIRMATION_WORD):
+        return self.client.post(url, {"confirmation": word})
+
+
+class CandidateDeleteViewTestCase(DeleteViewsTestMixin, TestCase):
+    def get_url(self):
+        return reverse("candidate-delete", kwargs={"pk": self.candidate.pk})
+
+    def test_without_permission_gets_403(self):
+        self.assertEqual(self.client.get(self.get_url()).status_code, 403)
+        self.assertEqual(self.confirm(self.get_url()).status_code, 403)
+        self.assertTrue(Candidate.objects.filter(pk=self.candidate.pk).exists())
+
+    def test_with_permission_displays_confirmation_page(self):
+        self.give_permission("frontend_can_delete_candidate")
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "interview/confirm_delete.html")
+        self.assertIn(self.process, response.context["processes"])
+
+    def test_wrong_confirmation_word_does_not_delete(self):
+        self.give_permission("frontend_can_delete_candidate")
+        response = self.confirm(self.get_url(), word="wrong")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"].errors)
+        self.assertTrue(Candidate.objects.filter(pk=self.candidate.pk).exists())
+
+    def test_correct_confirmation_deletes_candidate_and_its_processes(self):
+        self.give_permission("frontend_can_delete_candidate")
+        response = self.confirm(self.get_url())
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+        self.assertFalse(Candidate.objects.filter(pk=self.candidate.pk).exists())
+        self.assertFalse(Process.objects.filter(pk=self.process.pk).exists())
+        self.assertFalse(Interview.objects.filter(pk=self.interview.pk).exists())
+
+
+class ProcessDeleteViewTestCase(DeleteViewsTestMixin, TestCase):
+    def get_url(self):
+        return reverse("process-delete", kwargs={"pk": self.process.pk, "slug_info": self.process.get_slug_info()})
+
+    def test_without_permission_gets_403(self):
+        self.assertEqual(self.client.get(self.get_url()).status_code, 403)
+        self.assertEqual(self.confirm(self.get_url()).status_code, 403)
+        self.assertTrue(Process.objects.filter(pk=self.process.pk).exists())
+
+    def test_with_permission_displays_confirmation_page(self):
+        self.give_permission("frontend_can_delete_process")
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.interview, response.context["interviews"])
+
+    def test_wrong_confirmation_word_does_not_delete(self):
+        self.give_permission("frontend_can_delete_process")
+        response = self.confirm(self.get_url(), word="wrong")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"].errors)
+        self.assertTrue(Process.objects.filter(pk=self.process.pk).exists())
+
+    def test_correct_confirmation_deletes_process_and_its_interviews_only(self):
+        self.give_permission("frontend_can_delete_process")
+        response = self.confirm(self.get_url())
+        self.assertRedirects(response, "/", fetch_redirect_response=False)
+        self.assertFalse(Process.objects.filter(pk=self.process.pk).exists())
+        self.assertFalse(Interview.objects.filter(pk=self.interview.pk).exists())
+        self.assertTrue(Candidate.objects.filter(pk=self.candidate.pk).exists())
+
+
+class InterviewDeleteViewTestCase(DeleteViewsTestMixin, TestCase):
+    def get_url(self):
+        return reverse("interview-delete", kwargs={"pk": self.interview.pk})
+
+    def test_without_permission_gets_403(self):
+        self.assertEqual(self.client.get(self.get_url()).status_code, 403)
+        self.assertEqual(self.confirm(self.get_url()).status_code, 403)
+        self.assertTrue(Interview.objects.filter(pk=self.interview.pk).exists())
+
+    def test_with_permission_displays_confirmation_page(self):
+        self.give_permission("frontend_can_delete_interview")
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["cancel_url"], self.process.get_absolute_url())
+
+    def test_confirmation_page_works_without_kind_of_interview(self):
+        self.interview.kind_of_interview = None
+        self.interview.save()
+        self.give_permission("frontend_can_delete_interview")
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, 200)
+
+    def test_wrong_confirmation_word_does_not_delete(self):
+        self.give_permission("frontend_can_delete_interview")
+        response = self.confirm(self.get_url(), word="wrong")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["form"].errors)
+        self.assertTrue(Interview.objects.filter(pk=self.interview.pk).exists())
+
+    def test_correct_confirmation_deletes_interview_only(self):
+        self.give_permission("frontend_can_delete_interview")
+        response = self.confirm(self.get_url())
+        self.assertRedirects(response, self.process.get_absolute_url(), fetch_redirect_response=False)
+        self.assertFalse(Interview.objects.filter(pk=self.interview.pk).exists())
+        self.assertTrue(Process.objects.filter(pk=self.process.pk).exists())
+
+    def test_confirmation_page_works_without_interviewers(self):
+        self.interview.interviewers.clear()
+        self.give_permission("frontend_can_delete_interview")
+        response = self.client.get(self.get_url())
+        self.assertEqual(response.status_code, 200)
