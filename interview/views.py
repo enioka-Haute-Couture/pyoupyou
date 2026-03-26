@@ -2136,12 +2136,13 @@ def kanban(request):
 
 
 def processes_dict(related_processes):
+    return {related_process: process_interviews(related_process) for related_process in related_processes}
+
+
+def process_interviews(wanted_process):
     return {
-        related_process: {
-            intwer: ", ".join([itw.full_name for itw in intwer.interviewers.all()])
-            for intwer in Interview.objects.filter(process=related_process)
-        }
-        for related_process in related_processes
+        intwer: ", ".join([itw.full_name for itw in intwer.interviewers.all()])
+        for intwer in Interview.objects.filter(process=wanted_process)
     }
 
 
@@ -2152,7 +2153,7 @@ class CustomGenericDeleteView(DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["obj_type"] = _(self.model._meta.model_name.title())
+        context["obj_type"] = self.model._meta.verbose_name.lower()
         context["cancel_url"] = self.object.get_absolute_url()
         return context
 
@@ -2173,6 +2174,8 @@ class CandidateDeleteView(CustomGenericDeleteView):
         context = super().get_context_data(**kwargs)
         related_processes = Process.objects.filter(candidate=self.object)
         context["processes"] = processes_dict(related_processes)
+        context["object_str"] = _("the candidate {candidate}").format(candidate=self.object.name)
+        context["related_obj_deleted"] = _("processes").lower()
         return context
 
 
@@ -2181,6 +2184,10 @@ class ProcessDeleteView(CustomGenericDeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        related_processes = [self.object]
-        context["processes"] = processes_dict(related_processes)
+        context["interviews"] = process_interviews(self.object)
+        context["object_str"] = _("the process for {candidate}").format(candidate=self.object.candidate.name)
+        context["obj_str_details"] = _(", started on {start_date} ({subsidiary})").format(
+            start_date=self.object.start_date.strftime("%d/%m/%Y"), subsidiary=self.object.subsidiary.name
+        )
+        context["related_obj_deleted"] = "interviews"
         return context

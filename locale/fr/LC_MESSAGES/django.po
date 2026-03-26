@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-25 17:08+0100\n"
+"POT-Creation-Date: 2026-03-26 13:46+0100\n"
 "PO-Revision-Date: 2022-02-11 11:15+0100\n"
 "Language: fr\n"
 "MIME-Version: 1.0\n"
@@ -37,9 +37,14 @@ msgstr "Archivées"
 msgid "All"
 msgstr "Toutes"
 
+#: interview/forms.py:21
+#, python-brace-format
+msgid "Type in '{word}' to confirm deletion:"
+msgstr "Ecrire le mot '{word}' pour confirmer:"
+
 #: interview/forms.py:29
 msgid "Confirmation word is incorrect"
-msgstr ""
+msgstr "Mot de confirmation incorrect"
 
 #: interview/forms.py:58
 msgid "Upload documents (CV / Cover Letter / Other)"
@@ -67,7 +72,7 @@ msgstr ""
 msgid "Waiting candidate feedback after a job offer"
 msgstr "Proposition en cours, attente du retour du candidat"
 
-#: interview/models.py:29 interview/models.py:78 interview/models.py:755
+#: interview/models.py:29 interview/models.py:78 interview/models.py:754
 #: interview/views.py:1393 interview/views.py:1413 ref/models.py:15
 msgid "Name"
 msgstr "Nom"
@@ -98,11 +103,11 @@ msgid "anonymized"
 msgstr "anonymisé"
 
 #: interview/models.py:183 interview/models.py:204 interview/models.py:313
-#: interview/templates/interview/confirm_delete.html:14 interview/views.py:221
+#: interview/views.py:221
 msgid "Candidate"
 msgstr "Candidat"
 
-#: interview/models.py:203 interview/models.py:752
+#: interview/models.py:203 interview/models.py:751
 msgid "Creation date"
 msgstr "Date de création"
 
@@ -110,7 +115,7 @@ msgstr "Date de création"
 msgid "Kind of document"
 msgstr "Type de document"
 
-#: interview/models.py:206 interview/models.py:754
+#: interview/models.py:206 interview/models.py:753
 msgid "Content file"
 msgstr "Contenu du fichier"
 
@@ -222,117 +227,121 @@ msgstr "Informations complémentaires"
 msgid "Process creator"
 msgstr "Créateur du processus"
 
-#: interview/models.py:421
+#: interview/models.py:419
 #: interview/templates/interview/interview_minute.html:12
 #: interview/templates/interview/interview_minute_form.html:48
 msgid "for subsidiary"
 msgstr "pour la filiale"
 
-#: interview/models.py:458
+#: interview/models.py:456
 #, python-brace-format
 msgid "New process {candidate}"
 msgstr "Nouveau candidat {candidate}"
 
-#: interview/models.py:461
+#: interview/models.py:459
 #, python-brace-format
 msgid "Process {process}: candidate declined"
 msgstr "Processus {process}: Le candidat a décline notre offre"
 
-#: interview/models.py:465
+#: interview/models.py:463
 #, python-brace-format
 msgid "Process {process}: Candidate accepted our offer"
 msgstr "Processus {process}: Le candidat a accepté notre offre"
 
-#: interview/models.py:483
+#: interview/models.py:481
 #, python-brace-format
 msgid "Process {process}: {result}"
 msgstr "Processus {process}: {result}"
 
-#: interview/models.py:487
+#: interview/models.py:485
 #, python-brace-format
 msgid "Process {process}: job offer"
 msgstr "Processus {process}: job offer"
 
-#: interview/models.py:572
+#: interview/models.py:520 interview/templates/interview/confirm_delete.html:15
+msgid "Process"
+msgstr "Processus"
+
+#: interview/models.py:571
 msgid "NEED PLANIFICATION"
 msgstr "En attente de planification"
 
-#: interview/models.py:573
+#: interview/models.py:572
 msgid "WAIT PLANIFICATION RESPONSE"
 msgstr "En attente de réponse pour planification"
 
-#: interview/models.py:574
+#: interview/models.py:573
 msgid "PLANNED"
 msgstr "Planifié"
 
-#: interview/models.py:575
+#: interview/models.py:574
 #: interview/templates/interview/interview_minute_form.html:77
 msgid "GO"
 msgstr "GO"
 
-#: interview/models.py:576
+#: interview/models.py:575
 #: interview/templates/interview/interview_minute_form.html:79
 msgid "NO"
 msgstr "NON"
 
-#: interview/models.py:577
+#: interview/models.py:576
 #: interview/templates/interview/interview_minute_form.html:78
 msgid "DRAFT"
 msgstr "Brouillon"
 
-#: interview/models.py:578
+#: interview/models.py:577
 msgid "WAIT INFORMATION"
 msgstr "Attente information"
 
-#: interview/models.py:594
+#: interview/models.py:593
 msgid "next state"
 msgstr "état"
 
-#: interview/models.py:595
+#: interview/models.py:594
 msgid "Rank"
 msgstr "Ordre"
 
-#: interview/models.py:596 interview/views.py:193
+#: interview/models.py:595 interview/views.py:193
 msgid "Planned date"
 msgstr "Date prévue"
 
-#: interview/models.py:599
+#: interview/models.py:598
 #: interview/templates/interview/interview_minute.html:28
 #: interview/views.py:196
 msgid "Minute"
 msgstr "Compte-rendu"
 
-#: interview/models.py:601
+#: interview/models.py:600
 #: interview/templates/interview/interview_minute.html:49
 msgid "Next interview goal"
 msgstr "Objectif du prochain entretien"
 
-#: interview/models.py:602
+#: interview/models.py:601
 #: interview/templates/interview/interview_minute.html:26
 #: interview/templates/interview/interview_minute_form.html:53
 msgid "Interview goal"
 msgstr "Objectif de l'entretien"
 
-#: interview/models.py:603
+#: interview/models.py:602
 #: interview/templates/interview/interview_minute.html:17
 msgid "Prequalification"
 msgstr "Pré-qualification"
 
-#: interview/models.py:605 interview/views.py:203
+#: interview/models.py:604 interview/views.py:203
 msgid "Kind of interview"
 msgstr "Type d'entretien"
 
-#: interview/models.py:709
+#: interview/models.py:708
 #, python-brace-format
 msgid "New interview for {process}"
 msgstr "Nouvel entretien pour {process}"
 
-#: interview/models.py:713
+#: interview/models.py:712
 #, python-brace-format
 msgid "Interview planned: {process}"
 msgstr "Entretien planifié : {process}"
 
-#: interview/models.py:753 interview/templates/interview/interview.html:9
+#: interview/models.py:752 interview/templates/interview/interview.html:9
 msgid "Interview"
 msgstr "Entretien"
 
@@ -441,24 +450,29 @@ msgstr "Détails sur le candidat"
 
 #: interview/templates/interview/confirm_delete.html:5
 #: interview/templates/interview/confirm_delete.html:9
-#: interview/templates/interview/confirm_delete.html:33
+#: interview/templates/interview/confirm_delete.html:37
 msgid "Delete"
 msgstr "Supprimer"
 
-#: interview/templates/interview/confirm_delete.html:11
+#: interview/templates/interview/confirm_delete.html:12
 msgid "Are you sure you want to delete"
 msgstr "Voulez-vous vraiment supprimer"
 
+#: interview/templates/interview/confirm_delete.html:12
+msgid "and its"
+msgstr "et ses"
+
+#: interview/templates/interview/confirm_delete.html:12
 msgid "from pyoupyou ?"
 msgstr "de pyoupyou ?"
 
-#: interview/templates/interview/confirm_delete.html:12
-msgid "All of the following related items will be deleted:"
-msgstr "Tous les éléments suivants seront supprimés:"
+#: interview/templates/interview/confirm_delete.html:15
+msgid "started"
+msgstr "débuté le"
 
-#: interview/templates/interview/confirm_delete.html:13
-msgid "Objects"
-msgstr "Objets"
+#: interview/templates/interview/confirm_delete.html:38
+msgid "Cancel"
+msgstr "Annuler"
 
 #: interview/templates/interview/dashboard.html:5
 msgid "Dashboard"
@@ -783,7 +797,7 @@ msgstr "Embauches"
 msgid "Declined offers"
 msgstr "Refus par le candidat"
 
-#: interview/templates/interview/summary.html:150
+#: interview/templates/interview/summary.html:150 interview/views.py:2178
 msgid "processes"
 msgstr "Processus"
 
@@ -1030,6 +1044,21 @@ msgstr "Nombre de processus par numéro d'entretien"
 msgid "Candidat's source per subsidiary"
 msgstr "Sources des candidats par filiale"
 
+#: interview/views.py:2177
+#, python-brace-format
+msgid "the candidate {candidate}"
+msgstr "le candidat {candidate}"
+
+#: interview/views.py:2188
+#, python-brace-format
+msgid "the process for {candidate}"
+msgstr "le processus pour {candidate}"
+
+#: interview/views.py:2189
+#, python-brace-format
+msgid ", started on {start_date} ({subsidiary})"
+msgstr ", débuté le {start_date} ({subsidiary})"
+
 #: ref/admin.py:10
 msgid "Personal info"
 msgstr "Informations personnelles"
@@ -1165,9 +1194,6 @@ msgstr "Utilisateurs"
 
 #~ msgid "Filter process fiscal year: "
 #~ msgstr "Filtrer les procesuss par année fiscale"
-
-#~ msgid "starts"
-#~ msgstr "début"
 
 #~ msgid "ends"
 #~ msgstr "fin"

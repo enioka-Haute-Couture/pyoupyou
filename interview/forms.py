@@ -18,7 +18,7 @@ from django.utils.translation import gettext_lazy as _
 class ConfirmationForm(forms.Form):
     CONFIRMATION_WORD = "pyoupyou"
     confirmation = forms.CharField(
-        label=_(f"Type in '{CONFIRMATION_WORD}' to confirm deletion:"),
+        label=_("Type in '{word}' to confirm deletion:").format(word=CONFIRMATION_WORD),
         widget=forms.TextInput(attrs={"placeholder": CONFIRMATION_WORD, "id": "confirmation-input"}),
         required=True,
     )

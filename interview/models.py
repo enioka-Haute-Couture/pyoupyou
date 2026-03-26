@@ -346,8 +346,6 @@ class Process(models.Model):
         PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_processes"
     )
 
-    model_name = "process"
-
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
         is_new = False if self.id else True
         if is_new:
@@ -519,6 +517,7 @@ class Process(models.Model):
         return PyouPyouUser.objects.filter(interview__process=self)
 
     class Meta:
+        verbose_name = _("Process")
         permissions = [
             ("frontend_can_delete_process", "Frontend can delete process"),
         ]

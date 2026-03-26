@@ -5,23 +5,29 @@
 {% block title %}{% trans "Delete" %} {{ obj_type }} {% endblock %}
 {% block content %}
     <div class="container">
-    <div class="lead">
+    <div class="lead page-header">
         <h1>{% trans "Delete"%} {{ obj_type }}</h1>
     </div>
-    <p>{% trans "Are you sure you want to delete" %} "{{ object }}" {% trans "from pyoupyou ?" %}</p>
-    <p>{% trans "All of the following related items will be deleted:" %}</p>
+    <div class="panel">
+    <p>{% trans "Are you sure you want to delete" %} <a href="{{ object.get_absolute_url }}">{{ object_str }}</a>{{ obj_str_details }} {% trans "and its" %} {{ related_obj_deleted }} {% trans "from pyoupyou ?" %}</p>
             <ul>
-        {% for process, interviews in processes.items %}
-        <li><a href="{{ process.get_absolute_url }}">Process</a> {{ process.subsidiary.name }} - (started {{ process.start_date|date:"d/m/Y" }})</li>
+        {% if processes %}{% for process, interviews in processes.items %}
+        <li><a href="{{ process.get_absolute_url }}">{% trans "Process" %}</a> {{ process.subsidiary.name }} - ({% trans "started" %} {{ process.start_date|date:"d/m/Y" }})</li>
             <ul>
             {% for interview, interviewers in interviews.items %}
             <li>Interview {{ interview.rank }} - {{ interviewers }}{% if interview.planned_date %} - ({{ interview.planned_date.date|date:"d/m/Y"}}){% endif %}</li>
         {% endfor %}
             </ul>
         {% endfor %}
-</ul></ul>
+            {% elif interviews %}
+            {% for interview, interviewers in interviews.items %}
+            <li>Interview {{ interview.rank }} - {{ interviewers }}{% if interview.planned_date %} - ({{ interview.planned_date.date|date:"d/m/Y"}}){% endif %}</li>
+        {% endfor %}
+             {% endif %}
+</ul>
+    </div>
     <form method="post">{% csrf_token %}
-    <div>
+    <div class="">
     <input type="hidden" name="post" value="yes">
         <div class="row">
     <div class="col-md-4">
@@ -29,7 +35,7 @@
            </div>
 </div>
     <input type="submit" value="{% trans 'Delete' %}" id="submit-btn" class="btn btn-danger">
-    <a href="{{ cancel_url }}" class="btn-cancel">Cancel</a>
+    <a href="{{ cancel_url }}" class="btn btn-cancel">{% trans 'Cancel' %}</a>
     </div>
     </form>
     </div>
