@@ -7,6 +7,7 @@ import json
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.views.generic import DeleteView
 from plotly.offline import plot
@@ -2146,7 +2147,7 @@ def process_interviews(wanted_process):
     }
 
 
-class CustomGenericDeleteView(DeleteView):
+class CustomGenericDeleteView(PermissionRequiredMixin, DeleteView):
     success_url = "/"
     template_name = "interview/confirm_delete.html"
     form_class = ConfirmationForm
@@ -2169,6 +2170,7 @@ class CustomGenericDeleteView(DeleteView):
 
 class CandidateDeleteView(CustomGenericDeleteView):
     model = Candidate
+    permission_required = "interview.frontend_can_delete_candidate"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -2181,6 +2183,7 @@ class CandidateDeleteView(CustomGenericDeleteView):
 
 class ProcessDeleteView(CustomGenericDeleteView):
     model = Process
+    permission_required = "interview.frontend_can_delete_process"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
