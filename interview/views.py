@@ -203,11 +203,23 @@ class InterviewTable(tables.Table):
 
     kind_of_interview = tables.Column(verbose_name=_("Kind of interview"), orderable=False)
 
+    delete_option = tables.TemplateColumn(
+        template_name="interview/tables/delete_option.html", verbose_name="", orderable=False
+    )
+
     class Meta:
         model = Interview
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
-        sequence = ("needs_attention", "interviewers", "planned_date", "state", "kind_of_interview", "actions")
+        sequence = (
+            "needs_attention",
+            "interviewers",
+            "planned_date",
+            "state",
+            "kind_of_interview",
+            "actions",
+            "delete_option",
+        )
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
@@ -2194,3 +2206,22 @@ class ProcessDeleteView(CustomGenericDeleteView):
         )
         context["related_obj_deleted"] = "interviews"
         return context
+
+
+class InterviewDeleteView(CustomGenericDeleteView):
+    model = Interview
+    permission_required = "interview.frontend_can_delete_interview"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_str"] = _("the interview for {candidate}").format(candidate=self.object.process.candidate.name)
+        parts = [
+            self.object.kind_of_interview.name,
+            self.object.planned_date.strftime("%d/%m/%Y") if self.object.planned_date else None,
+        ]
+        context["obj_str_details"] = f"({' - '.join(p for p in parts if p)})" if any(parts) else ""
+        context["cancel_url"] = self.get_success_url()
+        return context
+
+    def get_success_url(self):
+        return self.object.process.get_absolute_url()

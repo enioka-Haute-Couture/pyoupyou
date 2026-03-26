@@ -679,6 +679,10 @@ class Interview(models.Model):
     class Meta:
         unique_together = (("process", "rank"),)
         ordering = ["process", "rank"]
+        verbose_name = _("Interview")
+        permissions = [
+            ("frontend_can_delete_interview", "Frontend can delete interview"),
+        ]
 
     @property
     def needs_attention(self):

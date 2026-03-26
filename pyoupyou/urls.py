@@ -58,6 +58,11 @@ urlpatterns = [
     ),
     re_path(r"^interview/(?P<interview_id>\d+)(?P<slug_info>(\w-?)*)/minute/$", views.minute, name="interview-minute"),
     re_path(r"^interview/(?P<interview_id>\d+)/minute/edit/$", views.minute_edit, name="interview-minute-edit"),
+    re_path(
+        r"^interview/(?P<pk>\d+)/delete$",
+        views.InterviewDeleteView.as_view(),
+        name="interview-delete",
+    ),
     re_path(r"^delete_document_interview_minute$", views.delete_document_minute_ajax, name="delete-document-minute"),
     re_path(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
     re_path(r"^reports/active-sources/$", views.active_sources, name="active-sources"),

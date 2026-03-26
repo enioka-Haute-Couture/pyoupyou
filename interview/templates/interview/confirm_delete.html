@@ -9,7 +9,10 @@
         <h1>{% trans "Delete"%} {{ obj_type }}</h1>
     </div>
     <div class="panel">
-    <p>{% trans "Are you sure you want to delete" %} <a href="{{ object.get_absolute_url }}">{{ object_str }}</a>{{ obj_str_details }} {% trans "and its" %} {{ related_obj_deleted }} {% trans "from pyoupyou ?" %}</p>
+    <p>{% trans "Are you sure you want to delete" %}
+        <a href="{{ object.get_absolute_url }}">{{ object_str }}</a>
+        {{ obj_str_details }} {% if related_obj_deleted %} {% trans "and its" %} {{ related_obj_deleted }} {% endif %} {% trans "from pyoupyou ?" %}
+    </p>
             <ul>
         {% if processes %}{% for process, interviews in processes.items %}
         <li><a href="{{ process.get_absolute_url }}">{% trans "Process" %}</a> {{ process.subsidiary.name }} - ({% trans "started" %} {{ process.start_date|date:"d/m/Y" }})</li>

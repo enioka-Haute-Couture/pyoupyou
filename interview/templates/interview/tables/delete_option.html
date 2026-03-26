@@ -1,0 +1,7 @@
+{% load i18n %}
+{% if perms.interview.frontend_can_delete_interview and record.pk %}
+<a href="{% url 'interview-delete' pk=record.pk %}" class="btn btn-danger btn-xs row-action">
+<i class="fa fa-trash" aria-hidden="true"></i>
+</a>
+{% endif %}
+
