@@ -7,7 +7,9 @@ import json
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
+from django.views.generic import DeleteView
 from plotly.offline import plot
 import plotly.figure_factory as ff
 import plotly.express as px
@@ -30,8 +32,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
 from django.utils.html import format_html
-from django.utils.translation import gettext as _t
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _t, gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 from django.views.decorators.csrf import csrf_exempt
@@ -61,6 +62,7 @@ from interview.forms import (
     OfferForm,
     InterviewersForm,
     ProcessReuseCandidateForm,
+    ConfirmationForm,
 )
 from interview.serializers import CognitoWebHookSerializer
 from interview.models import (
@@ -201,11 +203,23 @@ class InterviewTable(tables.Table):
 
     kind_of_interview = tables.Column(verbose_name=_("Kind of interview"), orderable=False)
 
+    delete_option = tables.TemplateColumn(
+        template_name="interview/tables/delete_option.html", verbose_name="", orderable=False
+    )
+
     class Meta:
         model = Interview
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
-        sequence = ("needs_attention", "interviewers", "planned_date", "state", "kind_of_interview", "actions")
+        sequence = (
+            "needs_attention",
+            "interviewers",
+            "planned_date",
+            "state",
+            "kind_of_interview",
+            "actions",
+            "delete_option",
+        )
         fields = sequence
         order_by = "id"
         empty_text = _("No data")
@@ -2109,7 +2123,7 @@ def kanban(request):
         if itw and itw.planned_date:
             planned_date = itw.planned_date.date()
         else:
-            planned_date = _("Not planned")
+            planned_date = _t("Not planned")
 
         p.band_color = WHITE
         if p.contract_type is not None:
@@ -2132,3 +2146,82 @@ def kanban(request):
         "interview/kanban.html",
         {"data": zip(processes_by_rank, counters), "filter": processfilter, "legend": legend},
     )
+
+
+def processes_dict(related_processes):
+    return {related_process: process_interviews(related_process) for related_process in related_processes}
+
+
+def process_interviews(wanted_process):
+    return {
+        intwer: ", ".join([itw.full_name for itw in intwer.interviewers.all()])
+        for intwer in Interview.objects.filter(process=wanted_process)
+    }
+
+
+class CustomGenericDeleteView(PermissionRequiredMixin, DeleteView):
+    success_url = "/"
+    template_name = "interview/confirm_delete.html"
+    form_class = ConfirmationForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["obj_type"] = self.model._meta.verbose_name.lower()
+        context["cancel_url"] = self.object.get_absolute_url()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+
+        context = self.get_context_data(object=self.object, form=form)
+        return self.render_to_response(context)
+
+
+class CandidateDeleteView(CustomGenericDeleteView):
+    model = Candidate
+    permission_required = "interview.frontend_can_delete_candidate"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        related_processes = Process.objects.filter(candidate=self.object)
+        context["processes"] = processes_dict(related_processes)
+        context["object_str"] = _("the candidate {candidate}").format(candidate=self.object.name)
+        context["related_obj_deleted"] = _("processes").lower()
+        return context
+
+
+class ProcessDeleteView(CustomGenericDeleteView):
+    model = Process
+    permission_required = "interview.frontend_can_delete_process"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["interviews"] = process_interviews(self.object)
+        context["object_str"] = _("the process for {candidate}").format(candidate=self.object.candidate.name)
+        context["obj_str_details"] = _(", started on {start_date} ({subsidiary})").format(
+            start_date=self.object.start_date.strftime("%d/%m/%Y"), subsidiary=self.object.subsidiary.name
+        )
+        context["related_obj_deleted"] = "interviews"
+        return context
+
+
+class InterviewDeleteView(CustomGenericDeleteView):
+    model = Interview
+    permission_required = "interview.frontend_can_delete_interview"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["object_str"] = _("the interview for {candidate}").format(candidate=self.object.process.candidate.name)
+        parts = [
+            self.object.kind_of_interview.name,
+            self.object.planned_date.strftime("%d/%m/%Y") if self.object.planned_date else None,
+        ]
+        context["obj_str_details"] = f"({' - '.join(p for p in parts if p)})" if any(parts) else ""
+        context["cancel_url"] = self.get_success_url()
+        return context
+
+    def get_success_url(self):
+        return self.object.process.get_absolute_url()

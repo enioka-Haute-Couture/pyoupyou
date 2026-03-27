@@ -174,8 +174,16 @@ class Candidate(models.Model):
     def name_slug(self):
         return slugify(self.name)
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("candidate", kwargs={"process_id": self.process_set.first().id})
+
     class Meta:
         verbose_name = _("Candidate")
+        permissions = [
+            ("frontend_can_delete_candidate", "Frontend can delete candidate"),
+        ]
 
 
 def document_path(instance, filename):
@@ -395,10 +403,13 @@ class Process(models.Model):
             return rule_to_apply.responsible
         return self.subsidiary.responsible
 
+    def get_slug_info(self):
+        return f"_{self.candidate.name_slug}"
+
     def get_absolute_url(self):
         from django.urls import reverse
 
-        return reverse("process-details", kwargs={"process_id": self.id, "slug_info": f"_{self.candidate.name_slug}"})
+        return reverse("process-details", kwargs={"process_id": self.id, "slug_info": self.get_slug_info()})
 
     def is_open(self):
         return self.state not in Process.CLOSED_STATE_VALUES
@@ -504,6 +515,12 @@ class Process(models.Model):
 
     def get_all_interviewers_for_process(self):
         return PyouPyouUser.objects.filter(interview__process=self)
+
+    class Meta:
+        verbose_name = _("Process")
+        permissions = [
+            ("frontend_can_delete_process", "Frontend can delete process"),
+        ]
 
 
 class InterviewKind(models.Model):
@@ -662,6 +679,10 @@ class Interview(models.Model):
     class Meta:
         unique_together = (("process", "rank"),)
         ordering = ["process", "rank"]
+        verbose_name = _("Interview")
+        permissions = [
+            ("frontend_can_delete_interview", "Frontend can delete interview"),
+        ]
 
     @property
     def needs_attention(self):

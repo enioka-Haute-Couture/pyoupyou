@@ -1,4 +1,6 @@
 # v1.24.0 (XXXX-XX-XX)
+- Added "delete" options to remove candidates, processes and interviews
+  - Added permissions that are required to access the delete option for each model
 - Implemented cache busting for prod by using ManifestStaticFilesStorage to handle static files
 - Changed pivotable and js/css dependencies to static loading instead of cdn
 - Allow multiple file uploads when creating/editing candidate

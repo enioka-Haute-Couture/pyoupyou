@@ -26,6 +26,9 @@ urlpatterns = [
     ),
     re_path(r"^process/(?P<process_id>\d+)(?P<slug_info>(\w-?)*)/$", views.process, name="process-details"),
     re_path(
+        r"^process/(?P<pk>\d+)(?P<slug_info>(\w-?)*)/delete/$", views.ProcessDeleteView.as_view(), name="process-delete"
+    ),
+    re_path(
         r"^switch_process_subscription/(?P<process_id>\d+)/$",
         views.switch_process_subscription_ajax,
         name="switch-process-subscription",
@@ -55,6 +58,11 @@ urlpatterns = [
     ),
     re_path(r"^interview/(?P<interview_id>\d+)(?P<slug_info>(\w-?)*)/minute/$", views.minute, name="interview-minute"),
     re_path(r"^interview/(?P<interview_id>\d+)/minute/edit/$", views.minute_edit, name="interview-minute-edit"),
+    re_path(
+        r"^interview/(?P<pk>\d+)/delete$",
+        views.InterviewDeleteView.as_view(),
+        name="interview-delete",
+    ),
     re_path(r"^delete_document_interview_minute$", views.delete_document_minute_ajax, name="delete-document-minute"),
     re_path(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
     re_path(r"^reports/active-sources/$", views.active_sources, name="active-sources"),
@@ -63,6 +71,7 @@ urlpatterns = [
     re_path(r"^reports/pivotable/interviews/$", views.interviews_pivotable, name="interviews-pivotable"),
     re_path(r"^reports/pivotable/processes/$", views.processes_pivotable, name="processes-pivotable"),
     re_path(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
+    re_path(r"^candidate/(?P<pk>\d+)/delete/$", views.CandidateDeleteView.as_view(), name="candidate-delete"),
     re_path(r"^candidate-reuse/(?P<candidate_id>\d+)/$", views.reuse_candidate, name="reuse_candidate"),
     re_path(r"^create_source/$", views.create_source_ajax, name="create_source"),
     re_path(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),

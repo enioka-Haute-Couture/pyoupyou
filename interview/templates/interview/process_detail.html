@@ -202,6 +202,11 @@
         {% else %}
             <a href="{% url 'process-reopen' process_id=process.id %}" class="btn btn-success"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reopen this process" %}</a>
         {% endif %}
+    {% if perms.interview.frontend_can_delete_process %}
+        <a href="{% url 'process-delete' pk=process.id slug_info=process.get_slug_info %}" class="btn btn-danger">
+                <i class="fa fa-trash" aria-hidden="true"></i> {% trans "Delete this process" %}
+            </a>
+        {% endif %}
     </div>
     {% endif %}
 </div>
