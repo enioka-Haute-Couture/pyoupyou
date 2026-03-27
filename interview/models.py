@@ -662,6 +662,7 @@ class Interview(models.Model):
     class Meta:
         unique_together = (("process", "rank"),)
         ordering = ["process", "rank"]
+        permissions = (("frontend_can_plan_interview", _("Frontend can plan interview")),)
 
     @property
     def needs_attention(self):

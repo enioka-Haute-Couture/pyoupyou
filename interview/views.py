@@ -629,7 +629,11 @@ def interview(request, process_id=None, interview_id=None, action=None):
     if interview_id is not None:
         try:
             interview_model = Interview.objects.for_user(request.user).get(id=interview_id)
-            if action in ["plan", "planning-request"] and request.user not in interview_model.interviewers.all():
+            if (
+                action in ["plan", "planning-request"]
+                and request.user not in interview_model.interviewers.all()
+                and not request.user.has_perm("frontend_can_plan_interview")
+            ):
                 return HttpResponseNotFound()
 
         except Interview.DoesNotExist:
