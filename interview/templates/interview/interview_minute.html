@@ -6,6 +6,23 @@
 
 {% block title %}{% trans "CR" %} - {{ process.candidate.name }}  {% endblock %}
 
+{% block more_css %}
+<script>
+    $(function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("minute_saved") === "1") {
+            try {
+                localStorage.removeItem("interview_minute_{{ interview.id }}_{{ request.user.id }}");
+            } catch (e) {}
+
+            params.delete("minute_saved");
+            const qs = params.toString();
+            history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : "") + window.location.hash);
+        }
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <div class="lead">

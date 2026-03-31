@@ -710,7 +710,7 @@ def minute_edit(request, interview_id):
                 DocumentInterview.objects.create(content=document, interview=interview, name=document.name)
             form.save()
             log_action(False, interview, request.user, minute_edit)
-            return HttpResponseRedirect(interview.get_absolute_url())
+            return HttpResponseRedirect(f"{interview.get_absolute_url()}?minute_saved=1")
     else:
         form = InterviewMinuteForm(instance=interview)
 

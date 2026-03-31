@@ -8,6 +8,7 @@
 - Add new closed state CLOSED_STATE: PROFILE_NOT_RELEVANT
 - Deactivate mails on script create_dev_dataset
 - Fix the document upload on interview form
+- Added client-side draft save for interview minutes on submit (1 day retention if no success on following submits)
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
