@@ -1,4 +1,8 @@
 # v1.24.0 (XXXX-XX-XX)
+- Add an interview email notification option intended for interviewers and candidate
+  - This feature is disabled by default.
+  - This option is limited to the planification of the interview. It's unavailable during process creation.
+  - An ics file can be generated and attached to the email (option is off by default)
 - Implemented cache busting for prod by using ManifestStaticFilesStorage to handle static files
 - Changed pivotable and js/css dependencies to static loading instead of cdn
 - Allow multiple file uploads when creating/editing candidate

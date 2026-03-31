@@ -12,7 +12,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.core import mail
 from django.core.management import call_command
 from django.core.files.base import ContentFile
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, override_settings
 from django.urls import reverse
 
 from interview.models import Candidate, ResponsibleRule
@@ -1949,3 +1949,64 @@ class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
         open_processes = response.context["open_processes_table"].data
         self.assertEqual(len(open_processes), 1)
         self.assertTrue(older_process in open_processes)
+
+
+test_cases_interview_date_change = [True, False]
+
+
+class InterviewPlanningEmailTestCase(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.subsidiary = SubsidiaryFactory()
+        self.c = CandidateFactory()
+        self.p = ProcessFactory(candidate=self.c, subsidiary=self.subsidiary)
+        self.kind_of_interview = InterviewKindFactory()
+        self.i = InterviewFactory(process=self.p, kind_of_interview=self.kind_of_interview)
+
+        self.interviewer = PyouPyouUser.objects.create_user("TST", "test@mail.com", "test", company=self.subsidiary)
+        self.interviewer.date_joined -= relativedelta(years=2)  # make sure our user can see all the processes we create
+        self.interviewer.save()
+        self.i.interviewers.set([self.interviewer])
+
+    @override_settings(SEND_PLANNING_EMAIL=True)
+    def test_email_is_sent_on_date_change(self):
+        for change_date in test_cases_interview_date_change:
+            mail.outbox = []
+            data = {
+                "kind_of_interview": self.kind_of_interview.id,
+                "planning_email_option": True,
+            }
+            if change_date:
+                data["planned_date"] = datetime.datetime.now(pytz.timezone("Europe/Paris"))
+            request = self.factory.post(
+                reverse("interview-plan", kwargs={"process_id": self.p.id, "interview_id": self.i.id}), data=data
+            )
+            request.user = self.interviewer
+
+            response = interview(request, self.p.id, self.i.id, "plan")
+            self.assertEqual(response.status_code, 302)  # Redirect on success
+
+            if change_date:
+                # Check that an email was sent
+                self.assertEqual(len(mail.outbox), 1)
+
+                # Check that the email was sent to both candidate and interviewer
+                email_recipients = mail.outbox[0].to
+                email_ccs = mail.outbox[0].cc
+                self.assertIn(self.c.email, email_recipients)
+                self.assertIn(self.interviewer.email, email_ccs)
+            else:
+                self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(SEND_PLANNING_EMAIL=True)
+    def test_email_send_checkbox_visible_on_global_parameter(self):
+        url = reverse("interview-plan", kwargs={"process_id": self.p.id, "interview_id": self.i.id})
+        self.client.force_login(self.interviewer)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "planning_email_option")
+
+        with self.settings(SEND_PLANNING_EMAIL=False):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertNotContains(response, "planning_email_option")

@@ -39,3 +39,4 @@ class SubsidiaryFactory(factory.django.DjangoModelFactory):
 
     name = factory.Faker("company")
     code = factory.LazyAttribute(lambda n: compute_subsidiary_code(n.name))
+    full_name = factory.LazyAttribute(lambda n: n.name)

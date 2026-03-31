@@ -4,20 +4,25 @@ import datetime
 import os
 import hashlib
 import shutil
+import tomllib
 import unicodedata
 import itertools
 
+import pytz
 from django.conf import settings
 from django.core import mail
+from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.db.models import Q, CharField, Count
 from django.db.models.signals import m2m_changed
 from django.db.models.functions import Lower
 from django.dispatch import receiver
+from django.template import Template, Context
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
+from icalendar import Calendar, Event
 
 from pyoupyou.settings import MINUTE_FORMAT, STALE_DAYS
 from ref.models import Subsidiary, PyouPyouUser
@@ -508,6 +513,10 @@ class Process(models.Model):
 
 class InterviewKind(models.Model):
     name = models.CharField(max_length=255)
+    duration = models.PositiveIntegerField(verbose_name=_("Interview duration in minutes"), blank=False, default=60)
+    email_subject = models.TextField(verbose_name=_("Email subject"), blank=True)
+    email_template = models.TextField(verbose_name=_("Email template"), blank=True)
+    attached_ics = models.BooleanField(verbose_name=_("Attached .ics file"), default=False)
 
     def __str__(self):
         return self.name
@@ -718,6 +727,107 @@ class Interview(models.Model):
             return Interview.objects.filter(process=self.process).get(rank=self.rank - 1).next_interview_goal
         except Interview.DoesNotExist:
             return None
+
+    def _format_planification_email(self):
+        email_template = Template(self.kind_of_interview.email_template)
+        email_subject_template = Template(self.kind_of_interview.email_subject)
+        context = Context(
+            {
+                "date": self.planned_date,
+                "candidate_name": self.process.candidate.name,
+                "interviewer_name": self.interviewers.all()[0] if self.interviewers else None,
+                "subsidiary": self.process.subsidiary.full_name,
+            }
+        )
+        return email_subject_template.render(context), email_template.render(context)
+
+    def trigger_planification_email(self):
+        if self.planned_date is None or self.kind_of_interview is None:
+            return
+        email_subject, email_content = self._format_planification_email()
+        recipients_interviewers = [itwer.email for itwer in self.interviewers.all()]
+        if not recipients_interviewers:
+            return
+        email = EmailMultiAlternatives(
+            subject=email_subject,
+            body=email_content,
+            from_email=settings.MAIL_FROM,
+            to=[self.process.candidate.email],
+            cc=recipients_interviewers,
+            reply_to=recipients_interviewers[:1]
+            if recipients_interviewers
+            else None,  # First interviewer is the reply_to contact
+        )
+        if self.kind_of_interview.attached_ics:
+            email.attach(
+                _("Interview {rank} : {candidate} - {date}.ics").format(
+                    rank=self.rank, candidate=self.process.candidate.name, date=self.planned_date.date()
+                ),
+                self.generate_ics_file(),
+            )
+
+        email.send()
+
+    def generate_ics_file(self):
+        candidate = self.process.candidate
+
+        cal = Calendar()
+
+        with open("pyproject.toml", "rb") as f:
+            project_params = tomllib.load(f)
+        project_name = project_params.get("project", {}).get("name")
+        project_version = project_params.get("project", {}).get("version")
+        language_code = getattr(settings, "LANGUAGE_CODE", "en").split("-")[0].upper()
+
+        cal.add("prodid", f"-//{project_name} {project_version}//{language_code}")
+        cal.add("version", "2.0")
+
+        event = Event()
+
+        uid = slugify(
+            _("{candidate}-{date}-Interview-{rank}").format(
+                candidate=candidate.name, date=self.planned_date, rank=self.rank
+            )
+        )
+        event.add("uid", uid)
+
+        title = _(
+            "Interview {rank} - {candidate} - {interview_kind}".format(
+                rank=self.rank, candidate=candidate.name, interview_kind=self.kind_of_interview.name
+            )
+        )
+        itwer_participants = self.get_ics_participants()
+        candidate_participant = (
+            f"mailto:{candidate.email}",
+            {"ROLE": "REQ-PARTICIPANT", "PARTSTAT": "NEEDS-ACTION", "CN": candidate.name, "RSVP": "TRUE"},
+        )
+
+        event.add("dtstart", self.planned_date)
+        event.add("dtend", self.planned_date + datetime.timedelta(minutes=self.kind_of_interview.duration))
+        event.add("summary", title)
+        event.add("organizer", itwer_participants[0][0], parameters=itwer_participants[0][1])
+        for (email, params) in itwer_participants + [candidate_participant]:
+            event.add("attendee", email, parameters=params)
+
+        cal.add_component(event)
+
+        return cal.to_ical()
+
+    def get_ics_participants(self):
+        """
+        Returns a list of vCalAddress objects representing the participating interviewers of the event
+        """
+        participants = []
+        for idx, itw in enumerate(self.interviewers.all()):
+            email = f"mailto:{itw.email}"
+            parameters = {
+                "ROLE": "ORGANIZER" if idx == 0 else "REQ-PARTICIPANT",
+                "PARTSTAT": "ACCEPTED" if idx == 0 else "NEEDS-ACTION",
+                "CN": itw.full_name,
+                "RSVP": "TRUE" if idx != 0 else "FALSE",
+            }  # Only ask for an RSVP of interviewers that are not in charge
+            participants.append((email, parameters))
+        return participants
 
 
 def document_minute_path(instance, filename):

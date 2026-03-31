@@ -56,7 +56,19 @@ def generate_basic_data(subsidiary):
     # generate InterviewKind
     if not InterviewKind.objects.exists():
         for i in range(1, 5):
-            InterviewKindFactory(name="Interview Kind {no}".format(no=i))
+            InterviewKindFactory(
+                name="Interview Kind {no}".format(no=i),
+                email_subject="Interview Kind {no} on {{{{date.date}}}} at {{{{date.time}}}} ({{{{candidate_name}}}})".format(
+                    no=i
+                ),
+                email_template="""Hello,
+Your Interview Kind {no} will take place {{{{date.date}}}} at {{{{date.time}}}}.
+We look forward to meeting you.
+Sincerely,
+{{{{subsidiary}}}} recruiter""".format(
+                    no=i
+                ),
+            )
 
     # generate ContractType
     COLORS = [color[0] for color in DEFAULT_BANDCOLORS]
@@ -94,7 +106,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for i in range(1, 3):
             # create subsidiary
-            subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i), code="SU{no}".format(no=i))
+            subsidiary = SubsidiaryFactory(
+                name="Subsidiary {no}".format(no=i),
+                code="SU{no}".format(no=i),
+                full_name="Subsidiary {no} and Partners Inc.".format(no=i),
+            )
             generate_basic_data(subsidiary)
 
             # create pyoupyou_users for this subsidiary

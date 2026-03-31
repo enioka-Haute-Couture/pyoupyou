@@ -654,12 +654,27 @@ def interview(request, process_id=None, interview_id=None, action=None):
             request.POST = tmp
         form = InterviewForm(request.POST, instance=interview_model)
 
+        if (
+            action == "plan"
+            and form.is_valid()
+            and settings.SEND_PLANNING_EMAIL
+            and form.cleaned_data.get("planning_email_option")  # Make sure the option checkbox is checked
+        ):
+            if not interview_model.process.candidate.email:
+                form.add_error("planning_email_option", _("The candidate doesn't have an email address"))
+
+            elif "planned_date" in form.changed_data:  # Make sure the date of the interview is set / changed
+                interview_model.trigger_planification_email()
+
         if form.is_valid():
             form.save()
             log_action(False, interview_model, request.user, interview)
             return ret
     else:
         form = InterviewForm(instance=interview_model)
+        # Check the "send email" checkbox by default if the candidate has an email address
+        if action == "plan" and "planning_email_option" in form.fields:
+            form.fields["planning_email_option"].initial = bool(interview_model.process.candidate.email)
 
     # if request.user.privilege not in [PyouPyouUser.PrivilegeLevel.ALL, PyouPyouUser.PrivilegeLevel.EXTERNAL_RPO]:
     # OR ou AND ?
