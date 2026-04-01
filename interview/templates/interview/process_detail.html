@@ -12,6 +12,14 @@
 {% block more_css %}
 <link rel="stylesheet" href="{% static 'django_tables2/themes/paleblue/css/screen.css' %}" />
 <script src="{% static "interview/js/htmx.min.js" %}"></script>
+<script>
+    $(function () {
+        $('.refusal-mailto').on('click', function (event) {
+            event.preventDefault();
+            window.open($(this).attr('href'), '_blank', 'noopener');
+        });
+    });
+</script>
 {% endblock %}
 
 {% block content %}
@@ -216,7 +224,10 @@
                         {% for motive, content in refusal_email_content.items %}
                             <li role="presentation">
                                 <a role="menuitem"
+                                   class="refusal-mailto"
                                    tabindex="-1"
+                                   target="_blank"
+                                   rel="noopener"
                                    href="mailto:{{ process.candidate.email }}?subject={{ content.0|urlencode }}&body={{ content.1|urlencode }}">
                                     {{ motive }}
                                 </a>
