@@ -200,7 +200,32 @@
         {% if process.is_open %}
             <button class="btn btn-danger" data-toggle="modal" data-target="#close-process"><i class="fa fa-envelope" aria-hidden="true"></i> {% trans "Close this process" %}</button>
         {% else %}
-            <a href="{% url 'process-reopen' process_id=process.id %}" class="btn btn-success"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reopen this process" %}</a>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;">
+                <a href="{% url 'process-reopen' process_id=process.id %}" class="btn btn-success"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reopen this process" %}</a>
+                {% if refusal_email_content %}
+                <div class="dropdown">
+                    <a class="btn btn-primary dropdown-toggle"
+                       href="#"
+                       data-toggle="dropdown"
+                       aria-haspopup="true"
+                       aria-expanded="false">
+                        {% trans "Select refusal email" %}
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu">
+                        {% for motive, content in refusal_email_content.items %}
+                            <li role="presentation">
+                                <a role="menuitem"
+                                   tabindex="-1"
+                                   href="mailto:{{ process.candidate.email }}?subject={{ content.0|urlencode }}&body={{ content.1|urlencode }}">
+                                    {{ motive }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
         {% endif %}
     </div>
     {% endif %}

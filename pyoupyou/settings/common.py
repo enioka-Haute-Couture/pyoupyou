@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from django.utils.translation import gettext_lazy as _
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -123,3 +124,46 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Process analysis financial starting date.
 # It should only contain the month and day using '<month>-<day>' format.
 FINANCIAL_STARTING_MONTH_DAY = "07-01"
+
+
+def get_refusal_email_content():
+    return {
+        str(_("Profile not relevant")): [
+            str(_("Answer to your job application")),
+            str(
+                _(
+                    "Hello,\n\nThank you for taking the time to interview with us, "
+                    "we appreciate your interest in joining our company."
+                    "\nAfter careful consideration, "
+                    "we have decided to move forward with another candidate whose experience more closely aligns with our current needs. "
+                    "\nThis was a difficult decision given the strong pool of applicants."
+                    "\nWe wish you the best in your job search and future endeavors."
+                    "\n\nBest regards,"
+                )
+            ),
+        ],
+        str(_("No open positions")): [
+            str(_("Answer to your job application")),
+            str(
+                _(
+                    "Hello,\n\nThank you for taking the time to interview with us, "
+                    "we appreciate your interest in joining our company."
+                    "\nWe regretfully inform you that we are currently unable to accept any further applications at this time."
+                    "\nWe wish you the best in your job search and future endeavors."
+                    "\n\nBest regards,"
+                )
+            ),
+        ],
+        str(_("Missing contact information")): [
+            str(_("Answer to your job application")),
+            str(
+                _(
+                    "Hello,\n\nThank you for taking the time to interview with us, "
+                    "we appreciate your interest in joining our company."
+                    "\nUnfortunately, we are unable to proceed with your application at this time due to missing contact information."
+                    "\nIf you are interested in joining our team, please ensure you have provided all the necessary information."
+                    "\n\nBest regards,"
+                )
+            ),
+        ],
+    }

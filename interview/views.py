@@ -74,6 +74,7 @@ from interview.models import (
     DocumentInterview,
     ContractType,
 )
+from pyoupyou.settings.common import get_refusal_email_content
 from ref.filters import SubsidiaryFilter
 from ref.models import PyouPyouUser, Subsidiary
 
@@ -281,6 +282,10 @@ def process(request, process_id, slug_info=None):
         "subsidiaries": Subsidiary.objects.all(),
         "others_process": ProcessLightTable(others_process),
     }
+
+    if process.state in [Process.PROFILE_NOT_RELEVANT, Process.OTHER]:
+        context["refusal_email_content"] = get_refusal_email_content()
+
     return render(request, "interview/process_detail.html", context)
 
 
