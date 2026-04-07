@@ -377,33 +377,10 @@ def closed_processes(request):
     closed_processes = subsidiary_filter.filter_queryset(
         Process.objects.for_table(request.user).filter(end_date__isnull=False)
     )
-
-    closed_processes_table = ProcessEndTable(closed_processes, prefix="c")
-
-    config = RequestConfig(request)
-    config.configure(closed_processes_table)
-
-    context = {
-        "title": _("Closed processes"),
-        "table": closed_processes_table,
-        "subsidiaries": Subsidiary.objects.all(),
-    }
-
-    return render(request, "interview/single_table.html", context)
-
-
-@login_required
-@require_http_methods(["GET"])
-def closed_processes_DT(request):
-    subsidiary_filter = get_global_filter(request)
-
-    closed_processes = subsidiary_filter.filter_queryset(
-        Process.objects.for_table(request.user).filter(end_date__isnull=False)
-    )
     processes_data = []
     for process in closed_processes:
         action_btn = render_to_string(
-            "interview/tables/process_actions_dt.html", {"process": process, "user": request.user}
+            "interview/tables/process_actions.html", {"process": process, "user": request.user}
         )
         responsible_html = render_to_string(
             "interview/tables/process_responsible.html", {"responsible": process.responsible.all()}
@@ -432,7 +409,7 @@ def closed_processes_DT(request):
         "process_class": Process,
     }
 
-    return render(request, "interview/closed_processes_dt.html", context)
+    return render(request, "interview/closed_processes.html", context)
 
 
 @login_required
