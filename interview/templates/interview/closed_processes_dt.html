@@ -1,0 +1,131 @@
+{% extends "interview/datatables_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="panel panel-primary">
+        <div class="panel-heading">
+            <div class="panel-title">{{ title }}</div>
+        </div>
+        <div class="panel-body">
+            <table id="closed-processes-table" class="table table-striped compact">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>{% trans "No itw" %}</th>
+                        <th>{% trans "Candidate" %}</th>
+                        <th>{% trans "Subsidiary" %}</th>
+                        <th>{% trans "Start date" %}</th>
+                        <th>{% trans "End date" %}</th>
+                        <th>{% trans "Contract type" %}</th>
+                        <th>{% trans "Process state" %}</th>
+                        <th>{% trans "Responsible" %}</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    var processesData = {{ processes_data|safe }};
+
+    $('#closed-processes-table').DataTable({
+        fixedHeader: true,
+        lengthChange: false,
+        dom: 'tip',
+        columnControl: [
+            {
+                target: 0,
+                content: ["order"]
+            },
+            {
+                target: 1,
+                content: [ {
+                    extend: 'dropdown',
+                    icon: 'search',
+                    text: 'Search',
+                    content: [{
+                        extend: 'searchList'
+                    }]
+            },]
+        }],
+        columnDefs: [
+
+        {
+            targets: [0,9],
+            columnControl: [
+                {target: 0,content:[]},
+                {target: 1,content:[]}]
+        },
+             {
+            className: 'dtr-control',
+            orderable: false,
+            target: 0
+        },
+          {
+            targets: [2],
+            columnControl: [
+                {target: 0,content:["order"]},
+                {target: 1,content:["searchDropdown"]}
+            ]
+        },
+        { responsivePriority: 1, targets: 2 },
+        { responsivePriority: 2, targets: 9 },
+        { responsivePriority: 3, targets: 7 },
+        { responsivePriority: 4, targets: 6 },
+        { responsivePriority: 5, targets: 3 },
+        { responsivePriority: 6, targets: 4 },
+        ],
+        ordering: {
+            indicators: false,
+            handler: false
+        },
+        data: processesData,
+        columns: [
+            {
+                data: 'needs_attention',
+                orderable: false,
+                searchable: false
+            },
+            { data: 'current_rank' },
+            { data: 'candidate' },
+            { data: 'subsidiary' },
+            { data: 'start_date' },
+            { data: 'end_date' },
+            { data: 'contract_type' },
+            { data: 'state' },
+            {
+                data: 'responsible',
+                orderable: false
+            },
+            {
+                data: 'actions',
+                orderable: false,
+                searchable: false
+            }
+        ],
+        order: [[5, 'desc']], // Sort by end_date descending (index 5)
+        responsive: {
+        details: {
+            type: 'column',
+            target: 'tr'
+        }
+    },
+        pageLength: 25,
+        rowCallback: function(row, data) {
+            if (data.needs_attention_sort === 1) {
+                $(row).addClass('danger');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

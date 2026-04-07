@@ -151,3 +151,5 @@ th.asc .sort-icon::before {
     text-align: center;
     font-size: 2em;
 }
+
+.fixedHeader-floating { background-color: white; }

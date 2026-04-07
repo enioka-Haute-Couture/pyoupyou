@@ -8,6 +8,7 @@ import json
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
 from django.contrib.admin.options import get_content_type_for_model
 from django.contrib.auth.views import redirect_to_login
+from django.template.loader import render_to_string
 from plotly.offline import plot
 import plotly.figure_factory as ff
 import plotly.express as px
@@ -389,6 +390,49 @@ def closed_processes(request):
     }
 
     return render(request, "interview/single_table.html", context)
+
+
+@login_required
+@require_http_methods(["GET"])
+def closed_processes_DT(request):
+    subsidiary_filter = get_global_filter(request)
+
+    closed_processes = subsidiary_filter.filter_queryset(
+        Process.objects.for_table(request.user).filter(end_date__isnull=False)
+    )
+    processes_data = []
+    for process in closed_processes:
+        action_btn = render_to_string(
+            "interview/tables/process_actions_dt.html", {"process": process, "user": request.user}
+        )
+        responsible_html = render_to_string(
+            "interview/tables/process_responsible.html", {"responsible": process.responsible.all()}
+        )
+
+        processes_data.append(
+            {
+                "needs_attention": '<i class="fa fa-warning"></i>' if process.needs_attention else "",
+                "current_rank": process.current_rank,
+                "candidate": process.candidate.display_name,
+                "subsidiary": str(process.subsidiary),
+                "start_date": process.start_date.strftime("%d/%m/%Y") if process.start_date else "",
+                "end_date": process.end_date.strftime("%d/%m/%Y") if process.end_date else "",
+                "contract_type": str(process.contract_type),
+                "state": process.get_state_display(),
+                "responsible": responsible_html,
+                "actions": action_btn,
+                "needs_attention_sort": 1 if process.needs_attention else 0,
+            }
+        )
+
+    context = {
+        "title": _("Closed processes"),
+        "processes_data": json.dumps(processes_data),
+        "subsidiaries": Subsidiary.objects.all(),
+        "process_class": Process,
+    }
+
+    return render(request, "interview/closed_processes_dt.html", context)
 
 
 @login_required

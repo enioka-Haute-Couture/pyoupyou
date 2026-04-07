@@ -10,6 +10,7 @@ urlpatterns = [
     re_path(r"^$", views.dashboard, name="dashboard"),
     re_path(r"^processes/$", views.processes, name="process-list"),
     re_path(r"^processes/closed$", views.closed_processes, name="process-closed-list"),
+    re_path(r"^processes/closed/dt$", views.closed_processes_DT, name="process-closed-list-dt"),
     re_path(r"^processes/source/(?P<source_id>\d+)$", views.processes_for_source, name="process-list-source"),
     re_path(r"^processes/offer/(?P<offer_id>\d+)$", views.processes_for_offer, name="process-list-offer"),
     re_path(

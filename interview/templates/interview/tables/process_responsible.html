@@ -1,0 +1,6 @@
+{% spaceless %}
+{% for c in responsible %}
+    {% if not forloop.first %}, {% endif %}
+    <span title="{{ c.full_name }}">{{ c.trigramme }}</span>
+{% endfor %}
+{% endspaceless %}
