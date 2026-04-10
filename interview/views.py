@@ -140,6 +140,7 @@ class ProcessTable(tables.Table):
 
     class Meta:
         model = Process
+        prefix = "a"
         template_name = "interview/_tables.html"
         attrs = {"class": "table table-striped table-condensed"}
         sequence = (
@@ -161,6 +162,7 @@ class ProcessTable(tables.Table):
 
 class ProcessEndTable(ProcessTable):
     class Meta(ProcessTable.Meta):
+        prefix = "closed"
         sequence = (
             "needs_attention",
             "current_rank",
@@ -173,6 +175,11 @@ class ProcessEndTable(ProcessTable):
             "actions",
         )
         fields = sequence
+        attrs = {
+            "id": "{prefix}-processes-table".format(prefix=prefix),
+            "class": "table table-striped table-condensed",
+            'style': 'width:100%'
+        }
 
         order_by = "-end_date"
 
@@ -377,36 +384,17 @@ def closed_processes(request):
     closed_processes = subsidiary_filter.filter_queryset(
         Process.objects.for_table(request.user).filter(end_date__isnull=False)
     )
-    processes_data = []
-    for process in closed_processes:
-        action_btn = render_to_string(
-            "interview/tables/process_actions.html", {"process": process, "user": request.user}
-        )
-        responsible_html = render_to_string(
-            "interview/tables/process_responsible.html", {"responsible": process.responsible.all()}
-        )
 
-        processes_data.append(
-            {
-                "needs_attention": '<i class="fa fa-warning"></i>' if process.needs_attention else "",
-                "current_rank": process.current_rank,
-                "candidate": process.candidate.display_name,
-                "subsidiary": str(process.subsidiary),
-                "start_date": process.start_date.strftime("%d/%m/%Y") if process.start_date else "",
-                "end_date": process.end_date.strftime("%d/%m/%Y") if process.end_date else "",
-                "contract_type": str(process.contract_type),
-                "state": process.get_state_display(),
-                "responsible": responsible_html,
-                "actions": action_btn,
-                "needs_attention_sort": 1 if process.needs_attention else 0,
-            }
-        )
+    closed_processes_table = ProcessEndTable(closed_processes, prefix="closed")
+
+    config = RequestConfig(request, paginate={"per_page": 100})
+    config.configure(closed_processes_table)
 
     context = {
         "title": _("Closed processes"),
-        "processes_data": json.dumps(processes_data),
+        "table": closed_processes_table,
         "subsidiaries": Subsidiary.objects.all(),
-        "process_class": Process,
+        "prefix": "closed",
     }
 
     return render(request, "interview/closed_processes.html", context)
