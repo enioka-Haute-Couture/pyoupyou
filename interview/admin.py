@@ -100,5 +100,5 @@ class InterviewKindAdmin(admin.ModelAdmin):
 
 @admin.register(ResponsibleRule)
 class ResponsibleRuleAdmin(admin.ModelAdmin):
-    list_display = ("id", "responsible", "subsidiary", "contract_type", "sources", "offer")
+    list_display = ("id", "responsible", "subsidiary", "contract_type", "sources", "offer", "priority")
     search_fields = ("name",)

@@ -760,4 +760,4 @@ class ResponsibleRule(models.Model):
     sources = models.ForeignKey(Sources, null=True, blank=True, on_delete=models.CASCADE)
     contract_type = models.ForeignKey(ContractType, null=True, blank=True, on_delete=models.CASCADE)
     offer = models.ForeignKey(Offer, null=True, blank=True, on_delete=models.CASCADE)
-    priority = models.IntegerField(default=0)
+    priority = models.IntegerField(default=0, help_text=_("Higher number has priority"))
