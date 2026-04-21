@@ -107,6 +107,7 @@ class Command(BaseCommand):
             admin = subsidiary_pyoupyou_users[0]
             admin.is_superuser = True
             admin.is_staff = True
+            admin.full_name += "(ADMIN)"
             admin.save()
 
             # set subsidiary's responsible
