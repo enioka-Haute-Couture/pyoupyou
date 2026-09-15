@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 # factory.fuzzy and factory.Faker share a dedicated instance of random.Random, which can be managed through the
 # factory.random module
@@ -6,10 +7,15 @@ from factory.random import random
 
 
 import factory
+from factory.django import mute_signals
+from django.db.models import signals
 import pytz
 from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
 from django.core.management import call_command
+from django.conf import settings
+
+logger = logging.getLogger("pyoupyou.batch")
 from factory.faker import faker
 from interview.factory import (
     OfferFactory,
@@ -18,15 +24,10 @@ from interview.factory import (
     SourcesCategoryFactory,
     SourcesFactory,
     InterviewKindFactory,
-    InterviewFactory,
 )
-from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process, Sources
+from interview.models import ContractType, SourcesCategory, InterviewKind, Interview, Process
 from ref.factory import SubsidiaryFactory, PyouPyouUserFactory
-from interview.factory import (
-    date_minus_time_ago,
-    date_random_plus_minus_time,
-    test_tz,
-)
+from interview.factory import date_minus_time_ago
 
 """
 Create some data and load them
@@ -92,6 +93,10 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
+        # Disable emails completely
+        settings.EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
+        logger.info("Email notifications disabled")
+
         for i in range(1, 3):
             # create subsidiary
             subsidiary = SubsidiaryFactory(name="Subsidiary {no}".format(no=i), code="SU{no}".format(no=i))
@@ -108,7 +113,9 @@ class Command(BaseCommand):
             admin.is_superuser = True
             admin.is_staff = True
             admin.full_name += "(ADMIN)"
+            admin.set_password("admin")  # Set a known password for dev
             admin.save()
+            logger.info(f"Admin user created - trigramme: {admin.trigramme}, email: {admin.email}, password: admin")
 
             # set subsidiary's responsible
             subsidiary.responsible = subsidiary_pyoupyou_users[0]
