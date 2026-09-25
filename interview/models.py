@@ -491,7 +491,7 @@ class Process(models.Model):
 
         # Add responsible based on rule
         computed_responsible = self.compute_responsable()
-        if computed_responsible is not None:
+        if computed_responsible is not None and computed_responsible.is_active:
             recipients.append(computed_responsible.email)
 
         # add users subscribed to offer's notification
