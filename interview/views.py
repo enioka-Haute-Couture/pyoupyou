@@ -269,7 +269,7 @@ def process(request, process_id, slug_info=None):
         elif last_itw.goal:
             goal = last_itw.goal
 
-    documents = process.candidate.document_set.all()
+    documents = process.candidate.document_set.filter(Q(process=process) | Q(process__isnull=True))
 
     context = {
         "process": process,
@@ -519,9 +519,6 @@ def new_candidate_POST_handler(
         content = request.FILES.getlist("candidate_documents", [])
         doctypes = request.POST.getlist("doctypes", [])
 
-        for (file, doctype) in zip(content, doctypes):
-            Document.objects.create(document_type=doctype, content=file, candidate=candidate)
-
         process = process_form.save(commit=False)
         process.candidate = candidate
         process.creator = PyouPyouUser.objects.get(id=request.user.id)
@@ -529,6 +526,9 @@ def new_candidate_POST_handler(
             process.sources = request.user.limited_to_source
         process.save()
         log_action(True, process, request.user, new_candidate)
+
+        for (file, doctype) in zip(content, doctypes):
+            Document.objects.create(document_type=doctype, content=file, candidate=candidate, process=process)
 
         if interviewers_form.cleaned_data["interviewers"]:
             interview = interviewers_form.save(commit=False)
@@ -908,9 +908,9 @@ def edit_candidate(request, process_id):
             content = request.FILES.getlist("candidate_documents", [])
             doctypes = request.POST.getlist("doctypes", [])
             for (doc, doctype) in zip(content, doctypes):
-                Document.objects.create(document_type=doctype, content=doc, candidate=candidate)
+                Document.objects.create(document_type=doctype, content=doc, candidate=candidate, process=process)
             ids_documents_to_delete = request.POST.getlist("documents_to_delete", [])
-            related_documents = Document.objects.filter(candidate=candidate)  # security
+            related_documents = Document.objects.filter(Q(candidate=candidate) & (Q(process=process) | Q(process__isnull=True)))  # security
             for doc_id in ids_documents_to_delete:
                 related_documents.get(id=int(doc_id)).delete()
             process_form.id = process.id
@@ -937,7 +937,7 @@ def edit_candidate(request, process_id):
         "source_form": source_form,
         "offer_form": offer_form,
         "subsidiaries": Subsidiary.objects.all(),
-        "documents": Document.objects.filter(candidate=candidate),
+        "documents": Document.objects.filter(Q(candidate=candidate) & (Q(process=process) | Q(process__isnull=True))),
         "document_types": doctypes,
     }
     return render(request, "interview/new_candidate.html", data)

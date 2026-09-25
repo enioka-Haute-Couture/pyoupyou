@@ -194,6 +194,7 @@ class Document(models.Model):
 
     created_date = models.DateTimeField(auto_now_add=True, verbose_name=_("Creation date"))
     candidate = models.ForeignKey(Candidate, verbose_name=_("Candidate"), on_delete=models.CASCADE)
+    process = models.ForeignKey("Process", null=True, blank=True, on_delete=models.CASCADE, verbose_name=_("Process"))
     document_type = models.CharField(max_length=2, choices=DOCUMENT_TYPE, verbose_name=_("Kind of document"))
     content = models.FileField(upload_to=document_path, verbose_name=_("Content file"))
     # content_url = models.URLField(verbose_name=_("Content URL"))

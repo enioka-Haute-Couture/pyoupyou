@@ -3,6 +3,7 @@ import json
 import datetime
 import hashlib
 from django.db.utils import IntegrityError
+from django.db.models import Q
 import os
 import random
 
@@ -705,6 +706,68 @@ class AnonymizesCandidateTestCase(TestCase):
             self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
             for idx, interview_i in enumerate(reused_candidate.process_set.first().interview_set.all()):
                 self.assertEqual(interview_i.minute, self.p.interview_set.all()[idx].minute)
+
+    def test_reuse_candidate_documents_isolation(self):
+        self.user = self.pyoupyou_user
+        self.client.force_login(user=self.user)
+
+        # Get count of existing documents from setUp (1 document created in setUp)
+        initial_doc_count = Document.objects.filter(candidate=self.p.candidate).count()
+
+        # Create an additional document for the original process (process=None for backward compatibility)
+        old_cv = Document.objects.create(
+            document_type="CV",
+            content=ContentFile("old cv content", "old_cv.pdf"),
+            candidate=self.p.candidate,
+            process=None
+        )
+
+        # Reuse the candidate with a new CV
+        new_cv_file = SimpleUploadedFile("new_cv.pdf", b"new cv content", content_type="application/pdf")
+        response = self.client.post(
+            path=reverse(views.reuse_candidate, kwargs={"candidate_id": self.p.candidate.id}),
+            data={
+                "name": self.p.candidate.name,
+                "email": self.p.candidate.email,
+                "phone": self.p.candidate.phone,
+                "subsidiary": self.subsidiary.id,
+                "reuse-candidate": "",
+                "candidate_documents": [new_cv_file],
+                "doctypes": ["CV"],
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        # Get the two processes
+        original_process = Process.objects.get(id=self.p.id)
+        new_process = Process.objects.exclude(id=self.p.id).filter(candidate=self.p.candidate).first()
+        self.assertIsNotNone(new_process)
+
+        # Get all documents - should be initial + old_cv + new_cv
+        all_documents = Document.objects.filter(candidate=self.p.candidate)
+        self.assertEqual(all_documents.count(), initial_doc_count + 2)
+
+        # Old documents (process=None) should be visible on both processes
+        old_process_documents = Document.objects.filter(
+            candidate=original_process.candidate
+        ).filter(Q(process=original_process) | Q(process__isnull=True))
+        self.assertIn(old_cv, old_process_documents)
+        self.assertEqual(old_process_documents.count(), initial_doc_count + 1)  # Initial + old CV
+
+        # New process should see: old documents (process=None) + new CV (process=new_process)
+        new_process_documents = Document.objects.filter(
+            candidate=new_process.candidate
+        ).filter(Q(process=new_process) | Q(process__isnull=True))
+        self.assertEqual(new_process_documents.count(), initial_doc_count + 2)  # Initial + old CV + new CV
+
+        # Verify the new CV is linked to the new process
+        new_cv = Document.objects.filter(candidate=self.p.candidate, process=new_process).first()
+        self.assertIsNotNone(new_cv)
+        self.assertEqual(new_cv.process, new_process)
+        self.assertIn(new_cv, new_process_documents)
+        self.assertNotIn(new_cv, old_process_documents)
 
 
 class HomeViewTestCase(TestCase):
