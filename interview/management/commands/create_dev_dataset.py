@@ -7,8 +7,6 @@ from factory.random import random
 
 
 import factory
-from factory.django import mute_signals
-from django.db.models import signals
 import pytz
 from dateutil.relativedelta import relativedelta
 from django.core.management import BaseCommand
@@ -113,9 +111,7 @@ class Command(BaseCommand):
             admin.is_superuser = True
             admin.is_staff = True
             admin.full_name += "(ADMIN)"
-            admin.set_password("admin")  # Set a known password for dev
             admin.save()
-            logger.info(f"Admin user created - trigramme: {admin.trigramme}, email: {admin.email}, password: admin")
 
             # set subsidiary's responsible
             subsidiary.responsible = subsidiary_pyoupyou_users[0]
