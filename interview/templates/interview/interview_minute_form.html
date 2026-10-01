@@ -37,8 +37,75 @@
             $(this).on('click', (event) => {
                 delete_document(event.target.id)
             });
-        })
+        });
+
+        // LocalStorage autosave for minute & next_interview_goal
+        const INTERVIEW_ID = {{ interview.id }};
+        const USER_ID = {{ request.user.id }};
+        const STORAGE_KEY = `interview_minute_${INTERVIEW_ID}_${USER_ID}`;
+        const EXPIRATION_DAYS = 14;
+
+        function saveDraft() {
+            const data = {
+                minute: $('#id_minute').val(),
+                next_interview_goal: $('#id_next_interview_goal').val(),
+                timestamp: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadDraft() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const data = JSON.parse(saved);
+                const age = Date.now() - data.timestamp;
+                const maxAge = EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
+
+                if (age > maxAge) {
+                    localStorage.removeItem(STORAGE_KEY);$
+                    return;
+                }
+
+                // Restore if text area is empty
+                if ($('#id_minute').val() === '') {
+                    $('#id_minute').val(data.minute);
+                }
+                if ($('#id_next_interview_goal').val() === '') {
+                    $('#id_next_interview_goal').val(data.next_interview_goal);
+                }
+            }
+        }
+
+        function cleanupOldDrafts() {
+            const prefix = 'interview_minute_';
+            const maxAge = EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(prefix)) {
+                    const saved = localStorage.getItem(key);
+                    if (saved) {
+                        try {
+                            const data = JSON.parse(saved);
+                            if (Date.now() - data.timestamp > maxAge) {
+                                localStorage.removeItem(key);
+                            }
+                        } catch (e) {}
+                    }
+                }
+            }
+        }
+
+        let saveTimeout;
+        $('#id_minute, #id_next_interview_goal').on('input', function() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveDraft, 500);
+        });
+
+        loadDraft();
+        cleanupOldDrafts();
     });
+
 </script>
 {% endblock %}
 
