@@ -54,6 +54,11 @@ msgstr "Les entretiens doivent être spécifiés si la date prévue est mise"
 msgid "Save"
 msgstr "Enregistrer"
 
+#: interview/templates/interview/process_detail.html:99
+#: interview/templates/interview/new_candidate.html:81
+msgid "added on"
+msgstr "ajouté le"
+
 #: interview/forms.py:159
 msgid "Add a goal only if it differs"
 msgstr ""
@@ -379,6 +384,10 @@ msgstr "Processus terminés"
 #: interview/templates/interview/new_candidate.html:6
 msgid "New candidate"
 msgstr "Nouveau candidat"
+
+#: interview/templates/interview/partials/form_errors.html:6
+msgid "Please correct the following errors:"
+msgstr "Veuillez corriger les erreurs suivantes :"
 
 #: interview/templates/interview/base.html:52
 msgid "More"

@@ -96,7 +96,7 @@
                         <dd>
                     <ul>
                     {% for d in documents %}
-                        <li> <a href="{{ d.content.url }}" > {{ d.get_document_type_display }}</a></li>
+                        <li> <a href="{{ d.content.url }}" > {{ d.get_document_type_display }}</a> ({% trans "added on" %} {{ d.created_date|date:"d/m/y" }})</li>
                     {% endfor %}
                     </ul>
                 </dd>
