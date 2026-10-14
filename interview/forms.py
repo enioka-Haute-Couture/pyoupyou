@@ -168,12 +168,26 @@ class MultipleFileInput(forms.ClearableFileInput):
     allow_multiple_selected = True
 
 
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = [single_file_clean(data, initial)]
+        return result
+
+
 class InterviewMinuteForm(forms.ModelForm):
     class Meta:
         model = Interview
         fields = ["minute", "next_interview_goal", "kind_of_interview"]
 
-    document = forms.FileField(label="Document", required=False, widget=MultipleFileInput())
+    document = MultipleFileField(label="Document", required=False)
     helper = FormHelper()
     helper.form_tag = False
 

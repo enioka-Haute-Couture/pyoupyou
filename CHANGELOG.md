@@ -7,6 +7,7 @@
 - Send mail to process responsible when based on rules
 - Add new closed state CLOSED_STATE: PROFILE_NOT_RELEVANT
 - Deactivate mails on script create_dev_dataset
+- Fix the document upload on interview form
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
