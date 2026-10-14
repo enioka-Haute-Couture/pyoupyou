@@ -3,9 +3,16 @@
 {% load i18n %}
 {% load static %}
 
-{% block title %}{% trans "New candidate"  %} {% endblock %}
+{% block title %}
+  {% if process %}
+    {% trans "Candidate" %}
+  {% else %}
+    {% trans "New candidate" %}
+  {% endif %}
+{% endblock %}
 
 {% block more_css %}
+    <script src="{% static "interview/js/htmx.min.js" %}"></script>
     <script type="application/javascript">
       $(function () {
         $('#id_contract_start_date').datetimepicker({
@@ -48,27 +55,15 @@
 
 {% block content %}
 <div class="container">
-    <form method="post" class="relative" enctype="multipart/form-data" id="process-candidate-form">
-        {% if duplicates %}
-        {% trans "This candidate ressembles to those other candidates:" %}
-        {% regroup duplicates by candidate as dups %}
-        <ul>
-            {% for candidate, processes in dups %}
-                <li>
-                    {{ candidate.display_name }}
-                    <ul>
-                    {% for process in processes %}
-                            <li>
-                                {{ process.subsidiary }}: {{ process.start_date }}{% if process.end_date %} - {{ process.end_date }}{% endif %} <a class="btn btn-xs btn-info" href="{% url 'process-details' process_id=process.id slug_info=process.candidate.name_slug %}"><i class="fa fa-folder-open" aria-hidden="true"></i> {% trans "Show" %}</a>
-                            </li>
-                    {% endfor %}
-                    </ul>
-                </li>
-            {% endfor %}
-        </ul>
-        <p>
-        {% trans "Reuse a candidate or create a new one, checkout options at the bottom of this form." %}
-        </p>
+    <form method="post" class="relative" enctype="multipart/form-data" id="process-candidate-form"
+          hx-post="{% url 'candidate-submit' %}"
+          hx-encoding="multipart/form-data"
+          hx-target="#duplicates-container"
+          hx-swap="innerHTML">
+        {% csrf_token %}
+
+        {% if process %}
+        <input type="hidden" name="process_id" value="{{ process.id }}">
         {% endif %}
 
         {% crispy candidate_form %}
@@ -76,7 +71,10 @@
             <ul>
                 {% for d in documents %}
                 <li style="margin-bottom: 10px; display: flex; justify-content: space-between;" id="list_element_{{d.id}}">
-                    <a href="{{ d.content.url }}">{{ d.content.name }}</a>
+                    <div>
+                        <a href="{{ d.content.url }}">{{ d.content.name }}</a>
+                        <span style="font-size: 12px;">({% trans "added on" %} {{ d.created_date|date:"d/m/y" }})</span>
+                    </div>
                     <div style="gap: 5px; color: red; font-size: 14px;font-weight: bold;">
                         <input type="checkbox" id="maybe_delete_{{d.id}}" name="documents_to_delete" value="{{ d.id }}" />
                         {% trans "Delete this document" %}
@@ -90,24 +88,10 @@
         {% crispy interviewers_form %}
         {% endif %}
 
-        {% if duplicates %}
-        {% trans "Candidate(s) that can be reused:" %}
-        {% regroup duplicates by candidate as dups %}
-        <ul>
-            {% for candidate, processes in dups %}
-                <li>
-                    {{ candidate.display_name }}
-                    <input type="hidden" name="reuse-candidate" />
-                    <a class="btn btn-success" onclick="let form = document.getElementById('process-candidate-form'); form.action='{% url "reuse_candidate" candidate_id=candidate.id %}'; form.submit()"><i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}</a>
-                </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-        {% if duplicates %}
-            <input type="hidden" name="new-candidate"></input>
-        {% endif %}
+        <div id="duplicates-container"></div>
 
-        <input type="submit" name="summit" value="{% if duplicates %}{% trans "New Candidate" %}{% else %}{% trans "Save" %}{% endif %}" class="btn btn-primary btn-primary" id="submit-id-summit">
+<button type="submit" name="summit" value="summit"
+        class="btn btn-primary" id="submit-id-summit">{% trans "Save" %}</button>
     </form>
     <div id="create-source" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">

@@ -43,6 +43,23 @@ from django.utils.translation import activate
 from dateutil.relativedelta import relativedelta
 
 
+class CandidateSubmitMixin:
+    """Helpers to post on the HTMX candidate endpoint."""
+
+    submit_url_name = "candidate-submit"
+
+    def _submit_candidate(self, data):
+        """POST on submit_candidate and assert it succeeded (HX-Redirect present)."""
+        response = self.client.post(path=reverse(self.submit_url_name), data=data, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("HX-Redirect", response, msg=response.content.decode())
+        return response
+
+    def _post_reuse(self, candidate_id, data):
+        """Simulate the "Reuse this candidate" click."""
+        return self._submit_candidate({**data, "reuse_candidate_id": candidate_id})
+
+
 class InterviewTestCase(TestCase):
     def test_new_interview_state_equals_need_plannification(self):
         p = ProcessFactory()
@@ -421,7 +438,7 @@ class StatusAndNotificationTestCase(TestCase):
         mail.outbox = []
 
 
-class AnonymizesCandidateTestCase(TestCase):
+class AnonymizesCandidateTestCase(CandidateSubmitMixin, TestCase):
     def setUp(self):
         self.factory = RequestFactory()
 
@@ -622,19 +639,15 @@ class AnonymizesCandidateTestCase(TestCase):
         self.user = self.pyoupyou_user
         self.client.force_login(user=self.user)
 
-        response = self.client.post(
-            path=reverse(views.reuse_candidate, kwargs={"candidate_id": self.p.candidate.id}),
-            data={
+        self._post_reuse(
+            self.p.candidate.id,
+            {
                 "name": self.p.candidate.name,
                 "email": self.p.candidate.email,
                 "phone": self.p.candidate.phone,
                 "subsidiary": self.subsidiary.id,
-                "reuse-candidate": "",
             },
-            follow=True,
         )
-
-        self.assertEqual(response.status_code, 200)
 
         reused_candidate = Candidate.objects.first()
         self.assertFalse(reused_candidate.anonymized)
@@ -684,27 +697,26 @@ class AnonymizesCandidateTestCase(TestCase):
         ]
 
         for form_data in form_data_set:
-            response = self.client.post(
-                path=reverse(views.reuse_candidate, kwargs={"candidate_id": self.p.candidate.id}),
-                data=form_data,
-                follow=True,
-            )
+            with self.subTest(form_data=form_data):
+                response = self._post_reuse(self.p.candidate.id, form_data)
 
-            self.assertEqual(response.status_code, 200)
+                detail = self.client.get(response["HX-Redirect"])
+                self.assertEqual(detail.status_code, 200)
+                self.assertTemplateUsed(detail, "interview/process_detail.html")
 
-            self.assertTemplateUsed(response, "interview/process_detail.html")
-
-            reused_candidate = Candidate.objects.first()
-            self.assertFalse(reused_candidate.anonymized)
-            self.assertEqual(reused_candidate.id, self.p.candidate.id)
-            self.assertEqual(reused_candidate.name, self.p.candidate.name)
-            self.assertEqual(reused_candidate.email, self.p.candidate.email)
-            self.assertEqual(reused_candidate.phone, self.p.candidate.phone)
-            self.assertEqual(reused_candidate.linkedin_url, self.p.candidate.linkedin_url)
-            self.assertEqual(reused_candidate.process_set.first().other_informations, self.p.other_informations)
-            self.assertEqual(reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count())
-            for idx, interview_i in enumerate(reused_candidate.process_set.first().interview_set.all()):
-                self.assertEqual(interview_i.minute, self.p.interview_set.all()[idx].minute)
+                reused_candidate = Candidate.objects.first()
+                self.assertFalse(reused_candidate.anonymized)
+                self.assertEqual(reused_candidate.id, self.p.candidate.id)
+                self.assertEqual(reused_candidate.name, self.p.candidate.name)
+                self.assertEqual(reused_candidate.email, self.p.candidate.email)
+                self.assertEqual(reused_candidate.phone, self.p.candidate.phone)
+                self.assertEqual(reused_candidate.linkedin_url, self.p.candidate.linkedin_url)
+                self.assertEqual(reused_candidate.process_set.first().other_informations, self.p.other_informations)
+                self.assertEqual(
+                    reused_candidate.process_set.first().interview_set.count(), self.p.interview_set.count()
+                )
+                for idx, interview_i in enumerate(reused_candidate.process_set.first().interview_set.all()):
+                    self.assertEqual(interview_i.minute, self.p.interview_set.all()[idx].minute)
 
 
 class HomeViewTestCase(TestCase):
@@ -818,7 +830,7 @@ class HomeViewTestCase(TestCase):
         self.assertNotEqual(p2.id, subsidiary_processes[0].id)
 
 
-class ProcessCreationViewTestCase(TestCase):
+class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
     def setUp(self):
         self.url = reverse(views.new_candidate)
         self.assertEqual(self.url, "/candidate/")
@@ -839,30 +851,26 @@ class ProcessCreationViewTestCase(TestCase):
             SimpleUploadedFile(f"testfile_{k}.txt", b"File content", content_type="text/plain")
             for k in range(document_count)
         ]
-        SimpleUploadedFile(f"myfile2.txt", b"File content 2", content_type="text/plain")
         all_doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
         nb_doctypes = len(all_doctypes)
         chosen_doctypes = [all_doctypes[k % nb_doctypes] for k in range(document_count)]
 
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        self._submit_candidate(
+            {
                 "name": name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
+                "force_new": "true",
                 "candidate_documents": files,
                 "doctypes": chosen_doctypes,
-            },
+            }
         )
 
-        self.assertEqual(response.status_code, 302)
         candidate = Candidate.objects.get(name=name)
-        documents = Document.objects.filter(candidate=candidate)
-
-        files_names = documents.values_list("document_type").first()[0]
-        self.assertEqual(files_names, Document.DOCUMENT_TYPE[0][0])  # CV
+        documents = Document.objects.filter(candidate=candidate).order_by("id")
         self.assertEqual(document_count, documents.count())
+
+        first_doctype = documents.values_list("document_type", flat=True).first()
+        self.assertEqual(first_doctype, Document.DOCUMENT_TYPE[0][0])  # CV
 
     def test_delete_file(self):
         self.client.force_login(user=self.pyoupyou_user)
@@ -876,35 +884,43 @@ class ProcessCreationViewTestCase(TestCase):
         nb_doctypes = len(all_doctypes)
         chosen_doctypes = [all_doctypes[k % nb_doctypes] for k in range(document_count)]
 
-        self.client.post(
-            path=reverse(views.new_candidate),
+        # creation
+        response = self.client.post(
+            path=reverse("candidate-submit"),
             data={
                 "name": name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
+                "force_new": "true",
                 "candidate_documents": files,
                 "doctypes": chosen_doctypes,
             },
+            HTTP_HX_REQUEST="true",
         )
+        self.assertIn("HX-Redirect", response, msg=response.content.decode())
+
         candidate = Candidate.objects.get(name=name)
         documents = Document.objects.filter(candidate=candidate)
         process = Process.objects.get(candidate=candidate)
         self.assertEqual(document_count, documents.count())
+        stored_files = [(d.content.storage, d.content.name) for d in documents]
 
-        # deletion
-        ids_documents_to_delete = [int(k[0]) for k in documents.values_list("id")]
-        self.client.post(
-            path=reverse(views.edit_candidate, kwargs={"process_id": process.id}),
-            data={
-                "name": name,
-                "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": False,
-                "documents_to_delete": ids_documents_to_delete,
-            },
-        )
+        # deletion (edit mode)
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                path=reverse("candidate-submit"),
+                data={
+                    "process_id": process.id,
+                    "name": name,
+                    "subsidiary": self.subsidiary.id,
+                    "documents_to_delete": list(documents.values_list("id", flat=True)),
+                },
+                HTTP_HX_REQUEST="true",
+            )
+        self.assertIn("HX-Redirect", response, msg=response.content.decode())
+
         self.assertEqual(0, Document.objects.filter(candidate=candidate).count())
+        for storage, file_name in stored_files:
+            self.assertFalse(storage.exists(file_name))
 
     def test_match_filetype(self):
         self.client.force_login(user=self.pyoupyou_user)
@@ -917,20 +933,18 @@ class ProcessCreationViewTestCase(TestCase):
         all_doctypes = [couple[0] for couple in Document.DOCUMENT_TYPE]
         nb_doctypes = len(all_doctypes)
         chosen_doctypes = [all_doctypes[k % nb_doctypes] for k in range(document_count)]
-        self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        self._submit_candidate(
+            {
                 "name": name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
+                "force_new": "true",
                 "candidate_documents": files,
                 "doctypes": chosen_doctypes,
-            },
+            }
         )
+
         candidate = Candidate.objects.get(name=name)
-        documents = Document.objects.filter(candidate=candidate)
-        self.assertEqual(document_count, documents.count())
+        documents = Document.objects.filter(candidate=candidate).order_by("id")
         self.assertEqual(documents.count(), len(chosen_doctypes))
 
         for (document, doctype) in zip(documents, chosen_doctypes):
@@ -962,43 +976,31 @@ class ProcessCreationViewTestCase(TestCase):
         response = self.client.get(self.url)
 
         context = response.context
-        candidate_form = context["candidate_form"]
-        process_form = context["process_form"]
-        source_form = context["source_form"]
-        offer_form = context["offer_form"]
-        interviewers_form = context["interviewers_form"]
-        duplicate_processes = context["duplicates"]
-        candidate = context["candidate"]
-        self.assertIsNotNone(candidate_form)
-        self.assertIsNotNone(process_form)
-        self.assertIsNotNone(source_form)
-        self.assertIsNotNone(offer_form)
-        self.assertIsNotNone(interviewers_form)
-        self.assertIsNone(duplicate_processes)
-        self.assertIsNone(candidate)
+        self.assertIsNotNone(context["candidate_form"])
+        self.assertIsNotNone(context["process_form"])
+        self.assertIsNotNone(context["source_form"])
+        self.assertIsNotNone(context["offer_form"])
+        self.assertIsNotNone(context["interviewers_form"])
+
+        # Creation mode: no process; duplicates are now rendered by the HTMX partial
+        self.assertIsNone(context["process"])
+        self.assertNotIn("duplicates", context)
 
     def test_form_submit_with_least_data(self):
         # log user in
         self.client.force_login(user=self.pyoupyou_user)
 
         candidate_name = self.fake.name()
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        response = self._submit_candidate(
+            {
                 "name": candidate_name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
+                "force_new": "true",
+            }
         )
 
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            p.get_absolute_url(),
-        )
+        p = Process.objects.get(candidate__name=candidate_name)
+        self.assertEqual(response["HX-Redirect"], p.get_absolute_url())
 
     def test_form_correct_responsible(self):
         self.client.force_login(user=self.pyoupyou_user)
@@ -1007,17 +1009,18 @@ class ProcessCreationViewTestCase(TestCase):
 
         ResponsibleRule.objects.create(responsible=responsible, subsidiary=self.subsidiary, contract_type=contract_type)
         candidate_name = self.fake.name()
-        self.client.post(
-            path=reverse(views.new_candidate),
+        response = self.client.post(
+            path=reverse("candidate-submit"),
             data={
                 "name": candidate_name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
+                "force_new": "true",
                 "contract_type": contract_type.id,
             },
-            follow=True,
+            HTTP_HX_REQUEST="true",
         )
+        self.assertIn("HX-Redirect", response, msg=response.content.decode())
+
         self.assertNotEqual(self.subsidiary.responsible, responsible)
         p = Process.objects.filter(candidate__name=candidate_name).first()
         p.save()
@@ -1032,22 +1035,18 @@ class ProcessCreationViewTestCase(TestCase):
         ResponsibleRule.objects.create(responsible=not_responsible, subsidiary=self.subsidiary, priority=5)
         ResponsibleRule.objects.create(responsible=responsible, subsidiary=self.subsidiary, priority=15)
         candidate_name = self.fake.name()
-        self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        self._submit_candidate(
+            {
                 "name": candidate_name,
                 "subsidiary": self.subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
-            },
-            follow=True,
+                "force_new": "true",
+            }
         )
+
         self.assertNotEqual(self.subsidiary.responsible, responsible)
-        p = Process.objects.filter(candidate__name=candidate_name).first()
+        p = Process.objects.get(candidate__name=candidate_name)
         p.save()
         self.assertEqual(p.responsible.first(), responsible)
-        ResponsibleRule.objects.all().delete()
-        self.assertEqual(0, ResponsibleRule.objects.all().count())
 
     def test_no_rule_matching(self):
         self.client.force_login(user=self.pyoupyou_user)
@@ -1061,21 +1060,17 @@ class ProcessCreationViewTestCase(TestCase):
         ResponsibleRule.objects.create(responsible=wrong_responsible, subsidiary=self.subsidiary, priority=15)
 
         candidate_name = self.fake.name()
-        self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        self._submit_candidate(
+            {
                 "name": candidate_name,
                 "subsidiary": other_subsidiary.id,
-                "summit": "Enregistrer",
-                "new-candidate": True,
-            },
-            follow=True,
+                "force_new": "true",
+            }
         )
-        p = Process.objects.filter(candidate__name=candidate_name).first()
+
+        p = Process.objects.get(candidate__name=candidate_name)
         p.save()
         self.assertEqual(p.responsible.first(), responsible)
-        ResponsibleRule.objects.all().delete()
-        self.assertEqual(0, ResponsibleRule.objects.all().count())
 
     def test_rules_not_null(self):
         self.assertRaises(IntegrityError, lambda: ResponsibleRule.objects.create(responsible=self.pyoupyou_user))
@@ -1098,9 +1093,8 @@ class ProcessCreationViewTestCase(TestCase):
         interviewers = self.pyoupyou_user
         interview_kind = InterviewKindFactory()
 
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        response = self._submit_candidate(
+            {
                 "name": candidate_name,
                 "email": candidate_mail,
                 "phone": candidate_phone,
@@ -1114,18 +1108,13 @@ class ProcessCreationViewTestCase(TestCase):
                 "other_informations": complementary_informations,
                 "interviewers-kind_of_interview": interview_kind.id,
                 "interviewers-interviewers": interviewers.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
+                "force_new": "true",
+            }
         )
 
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            p.get_absolute_url(),
-        )
+        p = Process.objects.get(candidate__name=candidate_name)
+        self.assertEqual(response["HX-Redirect"], p.get_absolute_url())
+        self.assertEqual(1, p.interview_set.count())
 
     def test_correct_display_of_existing_candidate(self):
         # log user in
@@ -1135,40 +1124,29 @@ class ProcessCreationViewTestCase(TestCase):
         candidate_name = self.fake.name()
         process_sub = self.subsidiary
         offer = OfferFactory()
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
-        )
+        data = {
+            "name": candidate_name,
+            "subsidiary": process_sub.id,
+            "offer": offer.id,
+        }
+        response = self._submit_candidate({**data, "force_new": "true"})
 
         # assert the candidate was correctly created
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(
-            response,
-            p.get_absolute_url(),
-        )
+        p = Process.objects.get(candidate__name=candidate_name)
+        self.assertEqual(response["HX-Redirect"], p.get_absolute_url())
 
         # same call
         response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-            },
-            follow=True,
+            path=reverse("candidate-submit"),
+            data=data,
+            HTTP_HX_REQUEST="true",
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIsNotNone(response.context["duplicates"])
+        self.assertNotIn("HX-Redirect", response)
+        self.assertTemplateUsed(response, "interview/partials/duplicate_candidates.html")
+        self.assertIn(p, response.context["duplicates"])
+        self.assertEqual(1, Process.objects.filter(candidate__name=candidate_name).count())
 
     def test_form_submit_reusing_candidate(self):
         # log user in
@@ -1178,45 +1156,25 @@ class ProcessCreationViewTestCase(TestCase):
         candidate_name = self.fake.name()
         process_sub = self.subsidiary
         offer = OfferFactory()
-        response = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
-        )
+        data = {
+            "name": candidate_name,
+            "subsidiary": process_sub.id,
+            "offer": offer.id,
+        }
+        response = self._submit_candidate({**data, "force_new": "true"})
+        first_process = Process.objects.get(candidate__name=candidate_name)
+        self.assertEqual(response["HX-Redirect"], first_process.get_absolute_url())
 
-        # assert the candidate was correctly created
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(response, p.get_absolute_url())
+        # reuse it for a new process
+        response = self._post_reuse(first_process.candidate.id, data)
 
-        new_offer = OfferFactory()
-
-        response = self.client.post(
-            path=reverse(views.reuse_candidate, kwargs={"candidate_id": p.candidate.id}),
-            data={
-                "name": candidate_name,
-                "subsidiary": process_sub.id,
-                "offer": new_offer.id,
-                "email": "",
-                "phone": "",
-                "reuse-candidate": "",
-            },
-            follow=True,
-        )
-
-        process_for_candidate = Process.objects.filter(candidate__name=candidate_name)
-        self.assertEqual(process_for_candidate.count(), 2)
-        p = Process.objects.filter(candidate__name=candidate_name).last()
-        self.assertIsNotNone(p)
-        self.assertRedirects(response, p.get_absolute_url())
-
-        self.assertEqual(process_for_candidate[0].candidate.id, process_for_candidate[1].candidate.id)
+        # same candidate, new process
+        self.assertEqual(1, Candidate.objects.filter(name=candidate_name).count())
+        processes = Process.objects.filter(candidate=first_process.candidate).order_by("id")
+        self.assertEqual(2, processes.count())
+        new_process = processes.last()
+        self.assertNotEqual(first_process.id, new_process.id)
+        self.assertEqual(response["HX-Redirect"], new_process.get_absolute_url())
 
     def test_edit_existing_candidate(self):
         # log user in
@@ -1227,54 +1185,98 @@ class ProcessCreationViewTestCase(TestCase):
         candidate_linkedin_url = "https://www.linkedin.com/in"
         process_sub = self.subsidiary
         offer = OfferFactory()
-        response_create_candidate = self.client.post(
-            path=reverse(views.new_candidate),
-            data={
+        response_create_candidate = self._submit_candidate(
+            {
                 "name": candidate_name,
                 "linkedin_url": candidate_linkedin_url,
                 "subsidiary": process_sub.id,
                 "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-                "new-candidate": True,  # bypass checks for already existing candidate
-            },
-            follow=True,
+                "force_new": "true",
+            }
         )
 
         # assert the candidate was correctly created
-        p = Process.objects.filter(candidate__name=candidate_name).first()
-        self.assertIsNotNone(p)
-        self.assertRedirects(
-            response_create_candidate,
-            p.get_absolute_url(),
-        )
+        p = Process.objects.get(candidate__name=candidate_name)
+        self.assertEqual(response_create_candidate["HX-Redirect"], p.get_absolute_url())
 
+        # The candidate edition works
         response_get_created_candidate_form = self.client.get(
             reverse(views.edit_candidate, kwargs={"process_id": p.id})
         )
-
-        # The candidate edition works
         self.assertTemplateUsed(response_get_created_candidate_form, "interview/new_candidate.html")
         self.assertEqual(candidate_name, response_get_created_candidate_form.context["candidate_form"]["name"].initial)
 
         # update the existing candidate
         empty_linkedin_url = ""
-        response_edit_candidate = self.client.post(
-            path=reverse(views.edit_candidate, kwargs={"process_id": p.id}),
-            data={
+        response_edit_candidate = self._submit_candidate(
+            {
+                "process_id": p.id,
                 "name": candidate_name,
                 "linkedin_url": empty_linkedin_url,
                 "subsidiary": process_sub.id,
                 "offer": offer.id,
-                "summit": "Enregistrer",  # means having clicked on "Save" in the page
-            },
-            follow=True,
+            }
+        )
+        self.assertEqual(response_edit_candidate["HX-Redirect"], f"/process/{p.id}_{slugify(candidate_name)}/")
+        response_detail = self.client.get(response_edit_candidate["HX-Redirect"])
+        self.assertTemplateUsed(response_detail, "interview/process_detail.html")
+
+        self.assertEqual(1, Process.objects.filter(candidate__name=candidate_name).count())
+        p.refresh_from_db()
+        p.candidate.refresh_from_db()
+        self.assertEqual(candidate_name, p.candidate.name)
+        self.assertEqual(empty_linkedin_url, p.candidate.linkedin_url)
+
+    def test_form_errors_partial_displayed_on_invalid_data(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        process_count = Process.objects.count()
+        candidate_count = Candidate.objects.count()
+
+        # name (candidate form) and subsidiary (process form) are both missing
+        response = self.client.post(
+            path=reverse("candidate-submit"),
+            data={"email": "jean@mail.com"},
+            HTTP_HX_REQUEST="true",
         )
 
-        self.assertEqual(response_edit_candidate.status_code, 200)
-        self.assertRedirects(response_edit_candidate, f"/process/{p.id}_{slugify(candidate_name)}/")
-        self.assertTemplateUsed(response_edit_candidate, "interview/process_detail.html")
-        self.assertTrue(candidate_name, response_edit_candidate.context["process"].candidate.name)
-        self.assertEqual(empty_linkedin_url, response_edit_candidate.context["process"].candidate.linkedin_url)
+        # HTMX only swaps 2xx responses, and nothing must be saved
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn("HX-Redirect", response)
+        self.assertTemplateUsed(response, "interview/partials/form_errors.html")
+        self.assertTemplateNotUsed(response, "interview/partials/duplicate_candidates.html")
+        self.assertEqual(process_count, Process.objects.count())
+        self.assertEqual(candidate_count, Candidate.objects.count())
+
+        # errors of every form are reported, not only the first invalid one
+        candidate_form, process_form, interviewers_form = response.context["forms"]
+        self.assertIn("name", candidate_form.errors)
+        self.assertIn("subsidiary", process_form.errors)
+
+        # each error message is rendered in the partial
+        for form in response.context["forms"]:
+            for errors in form.errors.values():
+                for error in errors:
+                    self.assertContains(response, error)
+
+        # the submit button label is reset (out-of-band swap)
+        self.assertContains(response, 'hx-swap-oob="innerHTML:#submit-id-summit"')
+
+    def test_form_errors_partial_on_edit_does_not_modify_process(self):
+        self.client.force_login(user=self.pyoupyou_user)
+        candidate_name = self.fake.name()
+        self._submit_candidate({"name": candidate_name, "subsidiary": self.subsidiary.id, "force_new": "true"})
+        p = Process.objects.get(candidate__name=candidate_name)
+
+        response = self.client.post(
+            path=reverse("candidate-submit"),
+            data={"process_id": p.id, "name": "", "subsidiary": self.subsidiary.id},
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertTemplateUsed(response, "interview/partials/form_errors.html")
+        self.assertNotIn("HX-Redirect", response)
+        p.candidate.refresh_from_db()
+        self.assertEqual(candidate_name, p.candidate.name)
 
 
 class NoMailToDeactivatedUsersTestCase(TestCase):
