@@ -8,9 +8,18 @@
 {% block more_css %}
 <script>
     $(function () {
+        const INTERVIEW_ID = {{ interview.id }};
+        const STORAGE_PREFIX = 'interview_minute_';
+        const STORAGE_KEY = `${STORAGE_PREFIX}${INTERVIEW_ID}`;
+        const MAX_AGE = 24 * 60 * 60 * 1000;  // 1 day
+
+        const $form = $('#itw-minute');
+        const $minute = $('#id_minute');
+        const $nextGoal = $('#id_next_interview_goal');
+
         $.ajaxSetup({
-            beforeSend: function(xhr, settings) {
-                if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+            beforeSend: function (xhr, settings) {
+                if (!/^https?:/.test(settings.url)) {
                     // Only send the token to relative URLs i.e. locally.
                     xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
                 }
@@ -37,7 +46,49 @@
             $(this).on('click', (event) => {
                 delete_document(event.target.id)
             });
-        })
+        });
+
+        function saveDraft() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                minute: $minute.val(),
+                next_interview_goal: $nextGoal.val(),
+                timestamp: $.now()
+            }));
+        }
+
+        function isExpired(data) {
+            return $.now() - data.timestamp > MAX_AGE;
+        }
+
+        function loadDraft() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) {
+                return;
+            }
+
+            const data = JSON.parse(saved);
+            $minute.val(data.minute);
+            $nextGoal.val(data.next_interview_goal);
+        }
+
+        function cleanupOldDrafts() {
+            const keys = $.grep(Object.keys(localStorage), function (key) {
+                return key.indexOf(STORAGE_PREFIX) === 0;
+            });
+
+            $.each(keys, function (_, key) {
+                try {
+                    if (isExpired(JSON.parse(localStorage.getItem(key)))) {
+                        localStorage.removeItem(key);
+                    }
+                } catch (e) {}
+            });
+        }
+
+        $form.on('submit', saveDraft);
+
+        cleanupOldDrafts();
+        loadDraft();
     });
 </script>
 {% endblock %}
