@@ -1,5 +1,5 @@
 {% load i18n %}
-{% if user not in record.interviewers.all %}
+{% if user not in record.interviewers.all and not perms.interview.frontend_can_plan_interview %}
     {% if record.planned_date %}
         {{ record.planned_date }}
     {% else %}

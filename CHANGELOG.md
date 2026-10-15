@@ -1,4 +1,5 @@
 # v1.24.0 (XXXX-XX-XX)
+- Added `frontend_can_plan_interview` permission to allow users to change the date of any interview
 - Implemented cache busting for prod by using ManifestStaticFilesStorage to handle static files
 - Changed pivotable and js/css dependencies to static loading instead of cdn
 - Allow multiple file uploads when creating/editing candidate

@@ -9,6 +9,7 @@ import random
 import dateutil.relativedelta
 import pytz
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.contrib.auth.models import Permission
 from django.core import mail
 from django.core.management import call_command
 from django.core.files.base import ContentFile
@@ -67,6 +68,46 @@ class InterviewTestCase(TestCase):
         i1.state = Interview.GO
         i1.save()
         self.assertEqual(Interview.GO, i1.state)
+
+
+class InterviewPlanPermissionTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.interviewer = PyouPyouUserFactory(company=self.subsidiary)
+        self.other_user = PyouPyouUserFactory(company=self.subsidiary)
+
+        self.process = ProcessFactory(subsidiary=self.subsidiary)
+        self.interview = InterviewFactory(process=self.process)
+        self.interview.interviewers.set([self.interviewer])
+
+        self.plan_permission = Permission.objects.get(
+            codename="frontend_can_plan_interview", content_type__app_label="interview"
+        )
+
+    def get_url(self, url_name):
+        return reverse(url_name, kwargs={"process_id": self.process.id, "interview_id": self.interview.id})
+
+    def test_non_interviewer_without_permission_gets_404(self):
+        self.client.force_login(self.other_user)
+        for url_name in ["interview-plan", "interview-planning-request"]:
+            with self.subTest(url_name=url_name):
+                response = self.client.get(self.get_url(url_name))
+                self.assertEqual(response.status_code, 404)
+
+    def test_non_interviewer_with_permission_can_plan(self):
+        self.other_user.user_permissions.add(self.plan_permission)
+        self.client.force_login(self.other_user)
+        for url_name in ["interview-plan", "interview-planning-request"]:
+            with self.subTest(url_name=url_name):
+                response = self.client.get(self.get_url(url_name))
+                self.assertEqual(response.status_code, 200)
+
+    def test_interviewer_without_permission_can_plan(self):
+        self.client.force_login(self.interviewer)
+        for url_name in ["interview-plan", "interview-planning-request"]:
+            with self.subTest(url_name=url_name):
+                response = self.client.get(self.get_url(url_name))
+                self.assertEqual(response.status_code, 200)
 
 
 class AccessRestrictionDateTestCase(TestCase):
