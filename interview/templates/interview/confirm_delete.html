@@ -1,0 +1,45 @@
+{% extends "interview/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% load static %}
+{% block title %}{% trans "Delete" %} {{ obj_type }} {% endblock %}
+{% block content %}
+    <div class="container">
+    <div class="lead page-header">
+        <h1>{% trans "Delete"%} {{ obj_type }}</h1>
+    </div>
+    <div class="panel">
+    <p>{% trans "Are you sure you want to delete" %}
+        <a href="{{ object.get_absolute_url }}">{{ object_str }}</a>
+        {{ obj_str_details }} {% if related_obj_deleted %} {% trans "and its" %} {{ related_obj_deleted }} {% endif %} {% trans "from pyoupyou ?" %}
+    </p>
+            <ul>
+        {% if processes %}{% for process, interviews in processes.items %}
+        <li><a href="{{ process.get_absolute_url }}">{% trans "Process" %}</a> {{ process.subsidiary.name }} - ({% trans "started" %} {{ process.start_date|date:"d/m/Y" }})</li>
+            <ul>
+            {% for interview, interviewers in interviews.items %}
+            <li>Interview {{ interview.rank }} - {{ interviewers }}{% if interview.planned_date %} - ({{ interview.planned_date.date|date:"d/m/Y"}}){% endif %}</li>
+        {% endfor %}
+            </ul>
+        {% endfor %}
+            {% elif interviews %}
+            {% for interview, interviewers in interviews.items %}
+            <li>Interview {{ interview.rank }} - {{ interviewers }}{% if interview.planned_date %} - ({{ interview.planned_date.date|date:"d/m/Y"}}){% endif %}</li>
+        {% endfor %}
+             {% endif %}
+</ul>
+    </div>
+    <form method="post">{% csrf_token %}
+    <div class="">
+    <input type="hidden" name="post" value="yes">
+        <div class="row">
+    <div class="col-md-4">
+    {{ form.confirmation|as_crispy_field }}
+           </div>
+</div>
+    <input type="submit" value="{% trans 'Delete' %}" id="submit-btn" class="btn btn-danger">
+    <a href="{{ cancel_url }}" class="btn btn-cancel">{% trans 'Cancel' %}</a>
+    </div>
+    </form>
+    </div>
+{% endblock %}
