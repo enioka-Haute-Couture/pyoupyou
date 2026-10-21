@@ -1,0 +1,18 @@
+{% load i18n %}
+<div class="alert alert-danger" role="alert">
+    <p>{% trans "Please correct the following errors:" %}</p>
+    <ul class="mb-0">
+        {% for form in forms %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li><strong>{{ field.label }}</strong> : {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        {% endfor %}
+    </ul>
+</div>
+
+<span hx-swap-oob="innerHTML:#submit-id-summit">{% trans "Save" %}</span>
