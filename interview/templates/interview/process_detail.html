@@ -96,7 +96,8 @@
                         <dd>
                     <ul>
                     {% for d in documents %}
-                        <li> <a href="{{ d.content.url }}" > {{ d.get_document_type_display }}</a></li>
+                        <li> <a href="{{ d.content.url }}" > {{ d.get_document_type_display }}</a>
+                        ({% blocktranslate with date=d.created_date|date:"SHORT_DATE_FORMAT" %}added on {{ date }}{% endblocktranslate %})
                     {% endfor %}
                     </ul>
                 </dd>

@@ -54,6 +54,9 @@ class ProcessReuseCandidateForm(ProcessCandidateForm):
         for changed_data in self.changed_data:
             # When reusing a candidate, data object keys for which a value if blank are removed
             # Instance data override are kept if data changed but keys don't exist
+            # Skip fields that are not in the model instance (like candidate_documents which is a form-only field)
+            if changed_data not in self.instance.__dict__:
+                continue
             if changed_data not in self.data and self.instance.__dict__[changed_data] is not None:
                 cleaned_data[changed_data] = self.instance.__dict__[changed_data]
 

@@ -19,6 +19,7 @@ urlpatterns = [
     ),
     re_path(r"^interviews/$", views.interviews_list, name="interviews-list"),
     re_path(r"^candidate/$", views.new_candidate, name="candidate-new"),
+    re_path(r"^candidate/candidate-submit/$", views.submit_candidate, name="candidate-submit"),
     re_path(
         r"^webhook/" + settings.FORM_WEB_HOOK_PREFIX + r"/(?P<subsidiary_id>\d+)/(?P<source_id>\d+)$",
         views.process_from_cognito_form,
@@ -63,7 +64,6 @@ urlpatterns = [
     re_path(r"^reports/pivotable/interviews/$", views.interviews_pivotable, name="interviews-pivotable"),
     re_path(r"^reports/pivotable/processes/$", views.processes_pivotable, name="processes-pivotable"),
     re_path(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
-    re_path(r"^candidate-reuse/(?P<candidate_id>\d+)/$", views.reuse_candidate, name="reuse_candidate"),
     re_path(r"^create_source/$", views.create_source_ajax, name="create_source"),
     re_path(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),
     re_path(r"^create_account/$", views.create_account, name="create_acount"),
