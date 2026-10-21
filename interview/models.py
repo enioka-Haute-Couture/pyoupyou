@@ -771,10 +771,13 @@ class Interview(models.Model):
 
     def generate_ics_file(self):
         candidate = self.process.candidate
+        itwer_participants = self.get_ics_participants()
+        if not itwer_participants:
+            return None
 
         cal = Calendar()
 
-        with open("pyproject.toml", "rb") as f:
+        with open(settings.BASE_DIR / "pyproject.toml", "rb") as f:
             project_params = tomllib.load(f)
         project_name = project_params.get("project", {}).get("name")
         project_version = project_params.get("project", {}).get("version")
@@ -791,11 +794,10 @@ class Interview(models.Model):
             )
         )
         event.add("uid", uid)
+        event.add("dtstamp", now())
 
-        title = _(
-            "Interview {rank} - {candidate} - {interview_kind}".format(
-                rank=self.rank, candidate=candidate.name, interview_kind=self.kind_of_interview.name
-            )
+        title = _("Interview {rank} - {candidate} - {interview_kind}").format(
+            rank=self.rank, candidate=candidate.name, interview_kind=self.kind_of_interview.name
         )
         itwer_participants = self.get_ics_participants()
         candidate_participant = (
@@ -822,7 +824,7 @@ class Interview(models.Model):
         for idx, itw in enumerate(self.interviewers.all()):
             email = f"mailto:{itw.email}"
             parameters = {
-                "ROLE": "ORGANIZER" if idx == 0 else "REQ-PARTICIPANT",
+                "ROLE": "CHAIR" if idx == 0 else "REQ-PARTICIPANT",
                 "PARTSTAT": "ACCEPTED" if idx == 0 else "NEEDS-ACTION",
                 "CN": itw.full_name,
                 "RSVP": "TRUE" if idx != 0 else "FALSE",
