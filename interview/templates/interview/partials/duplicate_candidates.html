@@ -1,0 +1,24 @@
+{% load i18n %}
+
+<input type="hidden" name="force_new" value="true">
+
+{% trans "Candidate(s) that can be reused:" %}
+{% regroup duplicates by candidate as dups %}
+<ul>
+    {% for candidate, processes in dups %}
+        <li>
+            {{ candidate.display_name }}
+            <button type="button"
+                    class="btn btn-success"
+                    hx-post="{% url 'candidate-submit' %}"
+                    hx-encoding="multipart/form-data"
+                    hx-include="#process-candidate-form"
+                    hx-target="#duplicates-container"
+                    hx-vals='{"reuse_candidate_id": "{{ candidate.id }}"}'>
+                <i class="fa fa-envelope-open" aria-hidden="true"></i> {% trans "Reuse this candidate" %}
+            </button>
+        </li>
+    {% endfor %}
+</ul>
+
+<span hx-swap-oob="innerHTML:#submit-id-summit">{% trans "New Candidate" %}</span>

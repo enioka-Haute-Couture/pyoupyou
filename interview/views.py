@@ -480,6 +480,25 @@ def processes(request):
     return render(request, "interview/list_processes.html", context)
 
 
+def restrict_forms_for_user(user, process_form, interviewers_form):
+    if user.is_external:
+        process_form.fields.pop("sources", None)
+        field = interviewers_form.fields["interviewers"]
+        field.queryset = field.queryset.filter(user=user)
+
+
+def build_candidate_forms(request, candidate=None, process=None, reusing=False):
+    if reusing:
+        cdata = {k: v for k, v in request.POST.items() if v}
+        candidate_form = ProcessReuseCandidateForm(data=cdata, files=request.FILES, instance=candidate)
+    else:
+        candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES, instance=candidate)
+    process_form = ProcessForm(data=request.POST, instance=process)
+    interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
+    restrict_forms_for_user(request.user, process_form, interviewers_form)
+    return candidate_form, process_form, interviewers_form
+
+
 @require_http_methods(["POST"])
 @privilege_level_check(
     authorised_level=[
@@ -488,59 +507,92 @@ def processes(request):
         PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
-def reuse_candidate(request, candidate_id):
-    return new_candidate(request, candidate_id)
+def submit_candidate(request):
+    """
+    Single HTMX endpoint:
+    - edit         : process_id in POST
+    - reuse   : reuse_candidate_id in POST
+    - forced creation : force_new in POST
+    - creation        : with duplicate finding
+    """
+    existing_process = None
+    candidate = None
+    process_id = request.POST.get("process_id")
+    if process_id:
+        try:
+            existing_process = Process.objects.select_related("candidate").get(id=process_id)
+        except Process.DoesNotExist:
+            raise HttpResponseNotFound()
+        candidate = existing_process.candidate
+    creating = existing_process is None
+
+    reusing = creating and bool(request.POST.get("reuse_candidate_id"))
+    if reusing:
+        try:
+            candidate = Candidate.objects.get(id=request.POST["reuse_candidate_id"])
+        except Candidate.DoesNotExist:
+            raise HttpResponseNotFound()
+
+    forms = build_candidate_forms(request, candidate, existing_process, reusing)
+
+    results = [f.is_valid() for f in forms]
+    if not all(results):
+        return render(request, "interview/partials/form_errors.html", {"forms": forms})
+
+    if creating and not reusing and "force_new" not in request.POST:
+        candidate_form = forms[0]
+        duplicates = candidate_form.save(commit=False).find_duplicates()
+        if duplicates:
+            return render(
+                request,
+                "interview/partials/duplicate_candidates.html",
+                {
+                    "duplicates": Process.objects.filter(candidate__in=duplicates).distinct(),
+                },
+            )
+
+    existing_process = save_candidate_and_process(request, *forms, creating=creating, reusing=reusing)
+    response = HttpResponse()
+    response["HX-Redirect"] = existing_process.get_absolute_url()
+    return response
 
 
-def new_candidate_POST_handler(
-    request,
-    candidate_form,
-    process_form,
-    interviewers_form,
-    past_candidate_id=None,
-):
-    duplicate_processes = None
-    duplicates = None
-
+@transaction.atomic
+def save_candidate_and_process(request, candidate_form, process_form, interviewers_form, *, creating, reusing):
     candidate = candidate_form.save(commit=False)
-    # check for duplicates unless it has already been processed (re-used or ignored)
-    if not ("new-candidate" in request.POST) and not past_candidate_id:
-        duplicates = candidate.find_duplicates()
-        duplicate_processes = Process.objects.distinct().filter(candidate__in=duplicates)
+    if reusing:
+        candidate.anonymized = False
+    candidate.save()
+    log_action(creating and not reusing, candidate, request.user, save_candidate_and_process)
 
-    if not duplicates:
-        # reusing already existing candidate, update anonymized value
-        if past_candidate_id:
-            candidate.anonymized = False
+    for file, doctype in zip(request.FILES.getlist("candidate_documents"), request.POST.getlist("doctypes")):
+        Document.objects.create(document_type=doctype, content=file, candidate=candidate)
 
-        candidate.save()
-        log_action(True, candidate, request.user, new_candidate)
+    existing_process = process_form.save(commit=False)
+    existing_process.candidate = candidate
+    if creating:
+        existing_process.creator = request.user
+    else:
+        to_delete = Document.objects.filter(
+            candidate=candidate,
+            id__in=request.POST.getlist("documents_to_delete"),
+        )
+        files = [(d.content.storage, d.content.name) for d in to_delete if d.content]
+        to_delete.delete()
+        transaction.on_commit(lambda: [storage.delete(name) for storage, name in files])
+    if request.user.limited_to_source:
+        existing_process.sources = request.user.limited_to_source
+    existing_process.save()
+    log_action(creating, existing_process, request.user, save_candidate_and_process)
 
-        content = request.FILES.getlist("candidate_documents", [])
-        doctypes = request.POST.getlist("doctypes", [])
+    if creating and interviewers_form.cleaned_data["interviewers"]:
+        interview = interviewers_form.save(commit=False)
+        interview.process = existing_process
+        interview.save()
+        interviewers_form.save_m2m()
+        log_action(True, interview, request.user, save_candidate_and_process)
 
-        for (file, doctype) in zip(content, doctypes):
-            Document.objects.create(document_type=doctype, content=file, candidate=candidate)
-
-        process = process_form.save(commit=False)
-        process.candidate = candidate
-        process.creator = PyouPyouUser.objects.get(id=request.user.id)
-        if request.user.limited_to_source:
-            process.sources = request.user.limited_to_source
-        process.save()
-        log_action(True, process, request.user, new_candidate)
-
-        if interviewers_form.cleaned_data["interviewers"]:
-            interview = interviewers_form.save(commit=False)
-            interview.process = process
-            interview.save()
-            log_action(True, interview, request.user, new_candidate)
-            interviewers_form.save_m2m()
-
-        return True, HttpResponseRedirect(process.get_absolute_url())
-
-    # we found duplicates
-    return False, duplicate_processes
+    return existing_process
 
 
 @privilege_level_check(
@@ -550,65 +602,32 @@ def new_candidate_POST_handler(
         PyouPyouUser.PrivilegeLevel.EXTERNAL_FULL,
     ]
 )
-def new_candidate(request, past_candidate_id=None):
-    duplicate_processes = None
-    candidate = None
-
-    if request.method == "POST":
-        candidate_form = ProcessCandidateForm(data=request.POST, files=request.FILES)
-        process_form = ProcessForm(data=request.POST)
-        interviewers_form = InterviewersForm(prefix="interviewers", data=request.POST)
-
-        #  clicked on "reuse this candidate"
-        if "reuse-candidate" in request.POST and past_candidate_id:
-            candidate = Candidate.objects.get(id=past_candidate_id)
-            # prevent original field override on save call if the form values are blank
-            post_data = {key: value for key, value in request.POST.copy().items() if value}
-            # Init form with the existing candidate
-            candidate_form = ProcessReuseCandidateForm(data=post_data, instance=candidate)
-
-        # we want to try and save our candidate
-        if candidate_form.is_valid() and process_form.is_valid() and interviewers_form.is_valid():
-            success, response = new_candidate_POST_handler(
-                request, candidate_form, process_form, interviewers_form, past_candidate_id=past_candidate_id
-            )
-
-            if success:
-                return response  # HttpRedirect(process.url)
-
-            # duplicates were found and it was not already handled
-            duplicate_processes = response
-    else:
-        candidate_form = ProcessCandidateForm()
-        process_form = ProcessForm()
-        interviewers_form = InterviewersForm(prefix="interviewers")
+def new_candidate(request, process_id=None):
+    existing_process = None
+    if process_id:
+        try:
+            existing_process = Process.objects.get(id=process_id)
+        except Process.DoesNotExist:
+            raise HttpResponseNotFound()
+    candidate_form = ProcessCandidateForm(instance=existing_process.candidate if existing_process else None)
+    process_form = ProcessForm(instance=existing_process)
+    interviewers_form = InterviewersForm(prefix="interviewers")
+    if not existing_process:
         process_form.fields["subsidiary"].initial = request.user.company.id
+    restrict_forms_for_user(request.user, process_form, interviewers_form)
 
-    if request.user.is_external:
-        process_form.fields.pop("sources")
-
-        # restrict available interviewers to process creator
-        interviewers_form.fields["interviewers"].widget.queryset = interviewers_form.fields[
-            "interviewers"
-        ].queryset.filter(user=request.user)
-
-    source_form = SourceForm(prefix="source")
-    offer_form = OfferForm(prefix="offer")
-
-    doctypes = dict(Document.DOCUMENT_TYPE)
     return render(
         request,
         "interview/new_candidate.html",
         {
             "candidate_form": candidate_form,
             "process_form": process_form,
-            "source_form": source_form,
-            "offer_form": offer_form,
             "interviewers_form": interviewers_form,
-            "duplicates": duplicate_processes,
-            "candidate": candidate,
+            "process": existing_process,
+            "source_form": SourceForm(prefix="source"),
+            "offer_form": OfferForm(prefix="offer"),
             "subsidiaries": Subsidiary.objects.all(),
-            "document_types": doctypes,
+            "document_types": dict(Document.DOCUMENT_TYPE),
         },
     )
 
