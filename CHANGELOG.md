@@ -8,6 +8,9 @@
 - Send mail to process responsible when based on rules
 - Add new closed state CLOSED_STATE: PROFILE_NOT_RELEVANT
 - Deactivate mails on script create_dev_dataset
+- Introduces client aync calls to improve UX on candidate form submission
+    - when new_candidate submission finds duplicates, page is not reloaded, attached documents are kept in form
+    - when reusing a candidate, page is not reloaded, attached documents are kept in form
 - Fix the document upload on interview form
 
 # v1.23.1 (2025-02-23)
