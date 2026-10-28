@@ -1,9 +1,11 @@
 import django_filters
+from django import forms
 
 from interview.models import Process, Interview, Sources, Offer
 
 from ref.models import PyouPyouUser
 from django.utils.translation import gettext_lazy as _
+from django.db.models import OuterRef, Subquery
 
 
 class ProcessFilter(django_filters.FilterSet):
@@ -22,10 +24,20 @@ class KanbanProcessFilter(django_filters.FilterSet):
 
     sources = django_filters.ModelChoiceFilter(queryset=Sources.objects.filter(archived=False), field_name="sources")
     offer = django_filters.ModelChoiceFilter(queryset=Offer.objects.filter(archived=False), field_name="offer")
+    hide_prequalification = django_filters.BooleanFilter(
+        label=_("Hide prequalifications"),
+        method="filter_hide_prequalification",
+        widget=forms.CheckboxInput,
+    )
+
+    def filter_hide_prequalification(self, queryset, _name, value):
+        if not value:
+            return queryset
+        return Process.objects.exclude_prequalification(queryset)
 
     class Meta:
         model = Process
-        fields = ["contract_type", "sources", "offer"]
+        fields = ["contract_type", "sources", "offer", "hide_prequalification"]
 
 
 class ProcessSummaryFilter(django_filters.FilterSet):

@@ -12,6 +12,7 @@
     - when new_candidate submission finds duplicates, page is not reloaded, attached documents are kept in form
     - when reusing a candidate, page is not reloaded, attached documents are kept in form
 - Fix the document upload on interview form
+- Add filter to Kanban view to hide prequalification processes
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
