@@ -1992,3 +1992,76 @@ class SeeLinkedProcessCreatedBeforeUserJoinedTestCase(TestCase):
         open_processes = response.context["open_processes_table"].data
         self.assertEqual(len(open_processes), 1)
         self.assertTrue(older_process in open_processes)
+
+
+class ExcludePrequalificationTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+
+        self.prequal_process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=self.prequal_process, prequalification=True)
+
+        self.regular_process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=self.regular_process, prequalification=False)
+
+        self.past_prequal_process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=self.past_prequal_process, prequalification=True)
+        InterviewFactory(process=self.past_prequal_process, prequalification=False)
+
+        self.no_interview_process = ProcessFactory(subsidiary=self.subsidiary)
+
+    def get_result(self):
+        return list(Process.objects.exclude_prequalification(Process.objects.all()))
+
+    def test_process_currently_in_prequalification_is_excluded(self):
+        self.assertNotIn(self.prequal_process, self.get_result())
+
+    def test_process_with_regular_interview_is_kept(self):
+        self.assertIn(self.regular_process, self.get_result())
+
+    def test_process_past_its_prequalification_is_kept(self):
+        self.assertIn(self.past_prequal_process, self.get_result())
+
+    def test_process_without_interview_is_kept(self):
+        self.assertIn(self.no_interview_process, self.get_result())
+
+    def test_keeps_filters_of_the_given_queryset(self):
+        other_subsidiary_process = ProcessFactory(subsidiary=SubsidiaryFactory())
+        queryset = Process.objects.filter(subsidiary=self.subsidiary)
+        result = list(Process.objects.exclude_prequalification(queryset))
+        self.assertNotIn(other_subsidiary_process, result)
+        self.assertIn(self.regular_process, result)
+
+
+class KanbanHidePrequalificationTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+
+        self.prequal_process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=self.prequal_process, prequalification=True)
+
+        self.regular_process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=self.regular_process, prequalification=False)
+
+        self.client.force_login(self.user)
+
+    def get_displayed_processes(self, params=None):
+        response = self.client.get(reverse(views.kanban), params or {})
+        self.assertEqual(response.status_code, 200)
+        return list(response.context["filter"].qs)
+
+    def test_checkbox_is_displayed_and_unchecked_by_default(self):
+        response = self.client.get(reverse(views.kanban))
+        self.assertContains(response, 'name="hide_prequalification"')
+        self.assertNotContains(response, 'name="hide_prequalification" checked')
+
+    def test_unchecked_shows_prequalifications(self):
+        processes = self.get_displayed_processes()
+        self.assertIn(self.prequal_process, processes)
+        self.assertIn(self.regular_process, processes)
+
+    def test_checked_hides_prequalifications(self):
+        processes = self.get_displayed_processes({"hide_prequalification": "on"})
+        self.assertNotIn(self.prequal_process, processes)
+        self.assertIn(self.regular_process, processes)

@@ -10,9 +10,9 @@ import itertools
 from django.conf import settings
 from django.core import mail
 from django.db import models
-from django.db.models import Q, CharField, Count
+from django.db.models import Q, CharField, Count, OuterRef, Subquery, Value
 from django.db.models.signals import m2m_changed
-from django.db.models.functions import Lower
+from django.db.models.functions import Lower, Coalesce
 from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.utils.text import slugify
@@ -238,6 +238,14 @@ class ProcessManager(models.Manager):
             .annotate(current_rank=Count("interview", distinct=True))
         )
         return qs
+
+    def exclude_prequalification(self, queryset):
+        last_interview_prequalification = (
+            Interview.objects.filter(process=OuterRef("pk")).order_by("-rank").values("prequalification")[:1]
+        )
+        return queryset.annotate(
+            last_interview_prequalification=Coalesce(Subquery(last_interview_prequalification), Value(False))
+        ).exclude(last_interview_prequalification=True)
 
 
 class Process(models.Model):
