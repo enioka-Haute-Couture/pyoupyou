@@ -1,0 +1,6 @@
+{% load i18n %}
+<li>
+    {% blocktranslate with rank=interview.rank %}Interview {{ rank }}{% endblocktranslate %} -
+    {% for interviewer in interview.interviewers.all %}{{ interviewer.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    {% if interview.planned_date %}({{ interview.planned_date|date:"SHORT_DATE_FORMAT" }}){% endif %}
+</li>

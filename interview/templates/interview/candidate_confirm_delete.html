@@ -1,0 +1,15 @@
+{% extends "interview/confirm_delete.html" %}
+{% load i18n %}
+{% block title %}{% translate "Delete candidate" %}{% endblock %}
+{% block delete_title %}{% translate "Delete candidate" %}{% endblock %}
+{% block delete_question %}
+    {% blocktranslate with name=object.name %}Are you sure you want to delete the candidate {{ name }} and all their processes?{% endblocktranslate %}
+{% endblock %}
+{% block related_objects %}
+    {% for process in processes %}
+        <li><a href="{{ process.get_absolute_url }}">{{ process.subsidiary.name }}</a>
+            ({% blocktranslate with date=process.start_date|date:"SHORT_DATE_FORMAT" %}started on {{ date }}{% endblocktranslate %})
+            <ul>{% for interview in process.interview_set.all %}{% include "interview/partials/interview_item.html" %}{% endfor %}</ul>
+        </li>
+    {% endfor %}
+{% endblock %}
