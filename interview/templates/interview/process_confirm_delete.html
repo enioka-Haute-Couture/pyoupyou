@@ -1,0 +1,10 @@
+{% extends "interview/confirm_delete.html" %}
+{% load i18n %}
+{% block title %}{% translate "Delete process" %}{% endblock %}
+{% block delete_title %}{% translate "Delete process" %}{% endblock %}
+{% block delete_question %}
+    {% blocktranslate with name=object.candidate.name date=object.start_date|date:"SHORT_DATE_FORMAT" subsidiary=object.subsidiary.name %}Are you sure you want to delete the process for {{ name }}, started on {{ date }} ({{ subsidiary }}), and its interviews?{% endblocktranslate %}
+{% endblock %}
+{% block related_objects %}
+    {% for interview in interviews %}{% include "interview/partials/interview_item.html" %}{% endfor %}
+{% endblock %}

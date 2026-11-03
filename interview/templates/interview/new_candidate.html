@@ -90,8 +90,13 @@
 
         <div id="duplicates-container"></div>
 
-<button type="submit" name="summit" value="summit"
-        class="btn btn-primary" id="submit-id-summit">{% trans "Save" %}</button>
+        <button type="submit" name="summit" value="summit"
+            class="btn btn-primary" id="submit-id-summit">{% trans "Save" %}</button>
+        {% if perms.interview.frontend_can_delete_candidate and process.candidate.id %}
+            <a href="{% url 'candidate-delete' pk=process.candidate.id %}" class="btn btn-danger">
+                <i class="fa fa-trash" aria-hidden="true"></i> {% trans "Delete candidate" %}
+            </a>
+        {% endif %}
     </form>
     <div id="create-source" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">

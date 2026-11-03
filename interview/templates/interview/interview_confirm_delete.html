@@ -1,0 +1,10 @@
+{% extends "interview/confirm_delete.html" %}
+{% load i18n %}
+{% block title %}{% translate "Delete interview" %}{% endblock %}
+{% block delete_title %}{% translate "Delete interview" %}{% endblock %}
+{% block delete_question %}
+    {% blocktranslate with name=object.process.candidate.name %}Are you sure you want to delete this interview for {{ name }}?{% endblocktranslate %}
+{% endblock %}
+{% block related_objects %}
+    {% include "interview/partials/interview_item.html" with interview=object %}
+{% endblock %}

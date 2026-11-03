@@ -1,0 +1,27 @@
+{% extends "interview/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+{% block title %}{% trans "Delete" %} {{ obj_type }} {% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="lead page-header">
+            <h1>{% block delete_title %}{% translate "Delete" %}{% endblock %}</h1>
+        </div>
+        <div class="panel">
+            <p>{% block delete_question %}{% endblock %}</p>
+            <ul>
+                {% block related_objects %}{% endblock %}
+            </ul>
+        </div>
+        <form method="post">{% csrf_token %}
+            <input type="hidden" name="post" value="yes">
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form.confirmation|as_crispy_field }}
+                </div>
+            </div>
+            <input type="submit" value="{% translate 'Delete' %}" id="submit-btn" class="btn btn-danger">
+            <a href="{{ cancel_url }}" class="btn btn-cancel">{% translate "Cancel" %}</a>
+        </form>
+    </div>
+{% endblock %}
