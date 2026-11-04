@@ -129,12 +129,7 @@ class ProcessTable(tables.Table):
     responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html_join(
-            ", ",
-            '<span title="{}">{}</span>',
-            ((c.full_name, c.trigramme) for c in value.all()
-            )
-        )
+        return format_html_join(", ", '<span title="{}">{}</span>', ((c.full_name, c.trigramme) for c in value.all()))
 
     class Meta:
         model = Process
@@ -940,7 +935,7 @@ def edit_candidate(request, process_id):
 
             content = request.FILES.getlist("candidate_documents", [])
             doctypes = request.POST.getlist("doctypes", [])
-            for (doc, doctype) in zip(content, doctypes):
+            for doc, doctype in zip(content, doctypes):
                 Document.objects.create(document_type=doctype, content=doc, candidate=candidate)
             ids_documents_to_delete = request.POST.getlist("documents_to_delete", [])
             related_documents = Document.objects.filter(candidate=candidate)  # security

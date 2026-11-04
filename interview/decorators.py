@@ -4,7 +4,6 @@ from django.contrib.auth.views import redirect_to_login
 
 from ref.models import PyouPyouUser
 
-
 # Strongly inspired by django's user_passes_test decorator
 
 

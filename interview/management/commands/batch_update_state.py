@@ -7,7 +7,6 @@ from email.utils import parsedate_to_datetime
 
 from interview.models import Interview, Process
 
-
 logger = logging.getLogger("pyoupyou.batch")
 
 

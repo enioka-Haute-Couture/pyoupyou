@@ -354,7 +354,9 @@ class Process(models.Model):
         PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_processes"
     )
 
-    def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
+    def save(
+        self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True
+    ):
         is_new = False if self.id else True
         if is_new:
             self.last_state_change = now()
@@ -616,7 +618,9 @@ class Interview(models.Model):
         interviewers = ", ".join(i.trigramme for i in self.interviewers.all())
         return "#{rank} - {process} - {itws}".format(rank=self.rank, process=self.process, itws=interviewers)
 
-    def save(self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
+    def save(
+        self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True
+    ):
         is_new = self.id is None
 
         if self.rank is None:

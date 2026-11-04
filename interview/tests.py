@@ -937,7 +937,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                 "candidate_documents": files,
                 "doctypes": chosen_doctypes,
             },
-            headers={"hx-request": "true"}
+            headers={"hx-request": "true"},
         )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -957,7 +957,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                     "subsidiary": self.subsidiary.id,
                     "documents_to_delete": list(documents.values_list("id", flat=True)),
                 },
-                headers={"hx-request": "true"}
+                headers={"hx-request": "true"},
             )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -990,7 +990,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         documents = Document.objects.filter(candidate=candidate).order_by("id")
         self.assertEqual(documents.count(), len(chosen_doctypes))
 
-        for (document, doctype) in zip(documents, chosen_doctypes):
+        for document, doctype in zip(documents, chosen_doctypes):
             self.assertEqual(document.document_type, doctype)
 
     def test_process_creation_not_logged_in(self):
@@ -1060,7 +1060,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                 "force_new": "true",
                 "contract_type": contract_type.id,
             },
-            headers={"hx-request": "true"}
+            headers={"hx-request": "true"},
         )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -1179,11 +1179,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         self.assertEqual(response["HX-Redirect"], p.get_absolute_url())
 
         # same call
-        response = self.client.post(
-            path=reverse("candidate-submit"),
-            data=data,
-            headers={"hx-request": "true"}
-        )
+        response = self.client.post(path=reverse("candidate-submit"), data=data, headers={"hx-request": "true"})
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("HX-Redirect", response)
@@ -1277,9 +1273,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
 
         # name (candidate form) and subsidiary (process form) are both missing
         response = self.client.post(
-            path=reverse("candidate-submit"),
-            data={"email": "jean@mail.com"},
-            headers={"hx-request": "true"}
+            path=reverse("candidate-submit"), data={"email": "jean@mail.com"}, headers={"hx-request": "true"}
         )
 
         # HTMX only swaps 2xx responses, and nothing must be saved
@@ -1313,7 +1307,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         response = self.client.post(
             path=reverse("candidate-submit"),
             data={"process_id": p.id, "name": "", "subsidiary": self.subsidiary.id},
-            headers={"hx-request": "true"}
+            headers={"hx-request": "true"},
         )
 
         self.assertTemplateUsed(response, "interview/partials/form_errors.html")
