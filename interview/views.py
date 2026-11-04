@@ -231,12 +231,12 @@ class InterviewDetailTable(InterviewTable):
         sequence = (
             "rank",
             "needs_attention",
-            "process.subsidiary",
+            "process__subsidiary",
             "process_detail",
             "interviewers",
             "planned_date",
             "state",
-            "process.offer",
+            "process__offer",
             "kind_of_interview",
         )
         fields = sequence

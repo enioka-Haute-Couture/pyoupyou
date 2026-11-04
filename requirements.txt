@@ -6,7 +6,7 @@ certifi==2025.1.31
     # via requests
 charset-normalizer==3.4.1
     # via requests
-django==5.1.6
+django==5.2.19
     # via
     #   django-appconf
     #   django-bleach
