@@ -31,7 +31,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware, now
-from django.utils.html import format_html
+from django.utils.html import format_html_join
 from django.utils.translation import gettext as _t, gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
@@ -96,17 +96,16 @@ def get_global_filter(request):
 
 
 def log_action(added, object, user, view):
-    LogEntry.objects.log_action(
+    LogEntry.objects.log_actions(
         user_id=user.pk,
-        content_type_id=get_content_type_for_model(object).pk,
-        object_id=object.pk,
-        object_repr=str(object),
+        queryset=[object],
         action_flag=ADDITION if added else CHANGE,
         change_message=(
             f"{object} has been Added through {view.__name__}"
             if added
             else f"{object} has been updated through {view.__name__}"
         ),
+        single_object=True,
     )
 
 
@@ -130,12 +129,10 @@ class ProcessTable(tables.Table):
     responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(
-            ", ".join(
-                [
-                    '<span title="{fullname}">{trigramme}</span>'.format(fullname=c.full_name, trigramme=c.trigramme)
-                    for c in value.all()
-                ]
+        return format_html_join(
+            ", ",
+            '<span title="{}">{}</span>',
+            ((c.full_name, c.trigramme) for c in value.all()
             )
         )
 

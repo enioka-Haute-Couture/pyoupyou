@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from ref.models import Subsidiary, PyouPyouUser
 
 
+@admin.register(PyouPyouUser)
 class PyouPyouUserAdmin(UserAdmin):
     fieldsets = (
         (_("Personal info"), {"fields": ("full_name", "trigramme", "password", "email", "company")}),
@@ -33,4 +34,3 @@ class PyouPyouUserAdmin(UserAdmin):
 
 
 admin.site.register(Subsidiary)
-admin.site.register(PyouPyouUser, PyouPyouUserAdmin)
