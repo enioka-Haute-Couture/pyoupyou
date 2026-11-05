@@ -2,20 +2,21 @@ import json
 
 import datetime
 import hashlib
+from unittest.mock import patch
 
-from django.contrib.auth.models import Permission
 from django.db.utils import IntegrityError
 import os
 import random
 
 import dateutil.relativedelta
 import pytz
+import tempfile
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.auth.models import Permission
 from django.core import mail
 from django.core.management import call_command
 from django.core.files.base import ContentFile
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, override_settings
 from django.urls import reverse
 
 from interview.models import Candidate, ResponsibleRule
@@ -2189,3 +2190,57 @@ class InterviewDeleteViewTestCase(DeleteViewsTestMixin, TestCase):
         self.give_permission("frontend_can_delete_interview")
         response = self.client.get(self.get_url())
         self.assertEqual(response.status_code, 200)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class CognitoWebhookTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.source = SourcesFactory(category=SourcesCategoryFactory())
+        self.url = reverse(
+            "import-new-process-from-cognito-form",
+            kwargs={"subsidiary_id": self.subsidiary.id, "source_id": self.source.id},
+        )
+
+    def post(self, **extra):
+        payload = {"Name": "Jean Dupont", "Email": "jean.dupont@example.com", "Motivation": "Very motivated"}
+        payload.update(extra)
+        return self.client.post(self.url, payload, content_type="application/json")
+
+    def test_creates_candidate_and_process(self):
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+
+        candidate = Candidate.objects.get(email="jean.dupont@example.com")
+        self.assertEqual(candidate.name, "Jean Dupont")
+        process = Process.objects.get(candidate=candidate)
+        self.assertEqual(process.subsidiary, self.subsidiary)
+        self.assertEqual(process.sources, self.source)
+        self.assertEqual(process.other_informations, "Very motivated")
+
+    def test_invalid_email_is_rejected(self):
+        response = self.post(Email="not-an-email")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Candidate.objects.filter(name="Jean Dupont").exists())
+
+    def test_invalid_linkedin_url_is_ignored(self):
+        response = self.post(Linkedin="not a url")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Candidate.objects.get(email="jean.dupont@example.com").linkedin_url, "")
+
+    def test_links_offer_when_provided(self):
+        offer = OfferFactory(subsidiary=self.subsidiary)
+        response = self.post(Offer_Value=offer.id)
+        self.assertEqual(response.status_code, 200)
+        process = Process.objects.get(candidate__email="jean.dupont@example.com")
+        self.assertEqual(process.offer, offer)
+
+    @patch("interview.serializers.requests.get")
+    def test_downloads_documents(self, mock_get):
+        mock_get.return_value.content = b"%PDF-1.4 fake cv"
+        response = self.post(Document=[{"File": "https://example.com/cv.pdf", "Name": "cv.pdf"}])
+        self.assertEqual(response.status_code, 200)
+
+        mock_get.assert_called_once_with("https://example.com/cv.pdf", stream=True)
+        candidate = Candidate.objects.get(email="jean.dupont@example.com")
+        self.assertEqual(candidate.document_set.count(), 1)
