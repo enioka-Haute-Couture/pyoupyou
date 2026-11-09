@@ -6,10 +6,14 @@ certifi==2026.10.23
     # via requests
 charset-normalizer==3.4.1
     # via requests
+crispy-bootstrap3==2024.1
+    # via pyoupyou
 django==5.2.19
     # via
+    #   crispy-bootstrap3
     #   django-appconf
     #   django-bleach
+    #   django-crispy-forms
     #   django-extensions
     #   django-filter
     #   django-ical
@@ -24,8 +28,10 @@ django-bleach==3.1.0
     # via pyoupyou
 django-bootstrap-static==3.3.7.2
     # via pyoupyou
-django-crispy-forms==1.14.0
-    # via pyoupyou
+django-crispy-forms==2.7
+    # via
+    #   crispy-bootstrap3
+    #   pyoupyou
 django-extensions==4.1
     # via pyoupyou
 django-filter==26.2

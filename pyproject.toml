@@ -12,7 +12,8 @@ requires-python = ">= 3.12, <3.15"
 readme = "README.md"
 dependencies = [
     "django-bootstrap-static>=3.3.7,<3.4",
-    "django-crispy-forms==1.14.0",
+    "django-crispy-forms==2.7",
+    "crispy-bootstrap3==2024.1",
     "django-select2==8.4.8",
     "django-extensions==4.1",
     "django-tables2==3.0.1",

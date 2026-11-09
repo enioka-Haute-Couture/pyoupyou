@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "django_bleach",
     "crispy_forms",
+    "crispy_bootstrap3",
     "django_tables2",
     "bootstrap",
     "fontawesome",
@@ -100,6 +101,8 @@ USE_I18N = True
 USE_TZ = True
 
 LOCALE_PATHS = (BASE_DIR / "locale/",)
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap3"
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
