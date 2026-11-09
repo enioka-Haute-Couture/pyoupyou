@@ -34,6 +34,7 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
+from interview.templatetags.commonmark import commonmark
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from interview.models import Process, Document, Interview, Offer, document_path
@@ -2262,3 +2263,30 @@ class UserContentSanitizationTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, '<script>alert("xss")</script>', html=False)
         self.assertContains(response, "<strong>bold</strong>")
+
+
+class CommonmarkFilterTestCase(TestCase):
+    def test_renders_markdown_like_before(self):
+        source = (
+            "# Titre\n"
+            "\n"
+            "Un **gras**, un *italique* et du `code`.\n"
+            "\n"
+            "- point 1\n"
+            "- point 2\n"
+            "\n"
+            "1. premier\n"
+            "2. second\n"
+            "\n"
+            "> une citation\n"
+            "\n"
+            "Un [lien](https://example.com).\n"
+            "Ligne suivante sans ligne vide.\n"
+        )
+        expected = '<h1>Titre</h1>\n<p>Un <strong>gras</strong>, un <em>italique</em> et du <code>code</code>.</p>\n<ul>\n<li>point 1</li>\n<li>point 2</li>\n</ul>\n<ol>\n<li>premier</li>\n<li>second</li>\n</ol>\n<blockquote>\n<p>une citation</p>\n</blockquote>\n<p>Un <a href="https://example.com">lien</a>.\nLigne suivante sans ligne vide.</p>\n'
+        self.assertEqual(commonmark(source), expected)
+
+    def test_dangerous_link_is_not_rendered(self):
+        html = commonmark("[clic](javascript:alert(1))")
+        self.assertNotIn("<a", html)
+        self.assertNotIn('href="javascript:', html)
