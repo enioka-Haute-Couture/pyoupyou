@@ -23,7 +23,7 @@ dependencies = [
     "django-filter==25.1",
     "plotly==4.8.2",
     "numpy>=2.2.3",
-    "pytz==2025.1",
+    "pytz==2026.6",
     "pandas>=2.2.3",
     "django==5.2.*",
     "urllib3==2.8.0",

@@ -34,13 +34,13 @@ django-ical==1.9.2
     # via pyoupyou
 django-recurrence==1.11.1
     # via django-ical
-django-select2==8.3.0
+django-select2==8.4.8
     # via pyoupyou
 django-split-settings==1.2.0
     # via pyoupyou
 django-tables2==2.7.5
     # via pyoupyou
-djangorestframework==3.15.2
+djangorestframework==3.18.3
     # via pyoupyou
 icalendar==6.1.1
     # via django-ical
@@ -63,7 +63,7 @@ python-dateutil==2.9.0.post0
     #   django-recurrence
     #   icalendar
     #   pandas
-pytz==2025.1
+pytz==2026.6
     # via
     #   pandas
     #   pyoupyou
