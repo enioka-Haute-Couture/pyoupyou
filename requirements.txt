@@ -50,7 +50,7 @@ markdown-it-py==3.0.0
     # via pyoupyou
 mdurl==0.1.2
     # via markdown-it-py
-numpy==2.2.3
+numpy==2.5.4
     # via
     #   pandas
     #   pyoupyou
