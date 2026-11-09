@@ -28,7 +28,7 @@ django-crispy-forms==1.14.0
     # via pyoupyou
 django-extensions==3.2.3
     # via pyoupyou
-django-filter==25.1
+django-filter==26.2
     # via pyoupyou
 django-ical==1.9.2
     # via pyoupyou
