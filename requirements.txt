@@ -46,7 +46,7 @@ icalendar==6.1.1
     # via django-ical
 idna==3.20
     # via requests
-markdown-it-py==3.0.0
+markdown-it-py==4.2.0
     # via pyoupyou
 mdurl==0.1.2
     # via markdown-it-py
