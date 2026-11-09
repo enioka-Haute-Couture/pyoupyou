@@ -2244,3 +2244,21 @@ class CognitoWebhookTestCase(TestCase):
         mock_get.assert_called_once_with("https://example.com/cv.pdf", stream=True)
         candidate = Candidate.objects.get(email="jean.dupont@example.com")
         self.assertEqual(candidate.document_set.count(), 1)
+
+
+class UserContentSanitizationTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+        self.process = ProcessFactory(subsidiary=self.subsidiary)
+        self.client.force_login(self.user)
+
+    def test_script_in_process_other_informations_is_not_rendered(self):
+        self.process.other_informations = '**bold** <script>alert("xss")</script>'
+        self.process.save()
+
+        response = self.client.get(self.process.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<script>alert("xss")</script>', html=False)
+        self.assertContains(response, "<strong>bold</strong>")
