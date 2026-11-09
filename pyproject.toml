@@ -39,8 +39,7 @@ target-version = ["py312"]
 dev = [
     "black==26.10.1",
     "django-debug-toolbar==4.1.0",
-    "factory-boy==3.1.0",
-    "tzlocal",
+    "factory-boy==3.3.3",
     "coverage",
     "django-debug-toolbar-user-panel==2.0.0",
 ]
