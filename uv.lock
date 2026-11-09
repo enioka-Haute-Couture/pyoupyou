@@ -310,11 +310,11 @@ wheels = [
 
 [[package]]
 name = "django-split-settings"
-version = "1.2.0"
+version = "1.3.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ad/80/f8369aae26acea272e1aa96e7fdb202aebedd788467893312c1306b1b16a/django-split-settings-1.2.0.tar.gz", hash = "sha256:31415a618256b54c5cee8662cbaa72a890683b8b7465d64ba88fdd3affdd6c60", size = 5879, upload-time = "2022-09-27T12:53:10.918Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/b9/1c13089454afd7a42d492b8aa8a0c7e49eeca58c0f2ad331f361a067c876/django_split_settings-1.3.2.tar.gz", hash = "sha256:d3975aa3601e37f65c59b9977b6bcb1de8bc27496930054078589c7d56998a9d", size = 5751, upload-time = "2024-07-05T14:30:05.997Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/94/1d/19c43d2e2c0b0ceb074bdd543a209720f36d68611e04afdac9e2daaf2db7/django_split_settings-1.2.0-py3-none-any.whl", hash = "sha256:4b3be146776d49c61bd9dcf89fad40edb1544f13ab27a87a0b1aecf5a0d636f4", size = 5966, upload-time = "2022-09-27T12:53:12.888Z" },
+    { url = "https://files.pythonhosted.org/packages/63/69/d94db8dac55bcfb6b3243578a3096cfda6c42ea5da292c36919768152ec6/django_split_settings-1.3.2-py3-none-any.whl", hash = "sha256:72bd7dd9f12602585681074d1f859643fb4f6b196b584688fab86bdd73a57dff", size = 6435, upload-time = "2024-07-05T14:29:59.756Z" },
 ]
 
 [[package]]
@@ -587,7 +587,7 @@ requires-dist = [
     { name = "django-filter", specifier = "==25.1" },
     { name = "django-ical", specifier = "==1.9.2" },
     { name = "django-select2", specifier = "==8.4.8" },
-    { name = "django-split-settings", specifier = "==1.2.0" },
+    { name = "django-split-settings", specifier = "==1.3.2" },
     { name = "django-tables2", specifier = "==2.7.5" },
     { name = "djangorestframework", specifier = "==3.18.3" },
     { name = "markdown-it-py", specifier = "==3.0.0" },
