@@ -66,6 +66,7 @@ urlpatterns = [
     path("reports/pivotable/interviews/", views.interviews_pivotable, name="interviews-pivotable"),
     path("reports/pivotable/processes/", views.processes_pivotable, name="processes-pivotable"),
     path("candidate/<int:process_id>/", views.edit_candidate, name="candidate"),
+    path("candidate/<int:pk>/delete/", views.CandidateDeleteView.as_view(), name="candidate-delete"),
     path("create_source/", views.create_source_ajax, name="create_source"),
     path("create_offer/", views.create_offer_ajax, name="create_offer"),
     path("create_account/", views.create_account, name="create_acount"),
