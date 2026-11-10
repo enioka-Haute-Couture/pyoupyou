@@ -15,6 +15,11 @@
     - when reusing a candidate, page is not reloaded, attached documents are kept in form
 - Fix the document upload on interview form
 - Add filter to Kanban view to hide prequalification processes
+- Upgrade to Django 6.1 (via 5.2 and 6.0)
+- Drop Python 3.11 support, add Python 3.13 and 3.14
+- Upgrade dependencies (security fixes in requests, urllib3, sqlparse, django-select2, djangorestframework)
+- Replace removed plotly `create_gantt` with `px.timeline`
+- Upgrade django-crispy-forms to 2.7 (adds crispy-bootstrap3)
 
 # v1.23.1 (2025-02-23)
 - Improve kanban view
