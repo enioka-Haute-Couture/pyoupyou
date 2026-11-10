@@ -5,6 +5,7 @@ import hashlib
 from unittest.mock import patch
 
 from django.db.utils import IntegrityError
+from django.utils import timezone
 import os
 import random
 
@@ -2290,3 +2291,26 @@ class CommonmarkFilterTestCase(TestCase):
         html = commonmark("[clic](javascript:alert(1))")
         self.assertNotIn("<a", html)
         self.assertNotIn('href="javascript:', html)
+
+
+class ReportsPagesTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+
+        process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=process, planned_date=timezone.now()).interviewers.set([self.user])
+
+        ProcessFactory(subsidiary=self.subsidiary, contract_type=ContractTypeFactory(has_duration=False))
+
+        self.client.force_login(self.user)
+
+    def test_activity_summary_renders_chart(self):
+        response = self.client.get(reverse(views.activity_summary))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["plot_div"])
+
+    def test_gantt_renders_chart(self):
+        response = self.client.get(reverse(views.gantt))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("plotly", str(response.context["gantt"]))

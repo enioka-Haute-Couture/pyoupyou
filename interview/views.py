@@ -1317,24 +1317,27 @@ def search(request):
 
     return render(request, "interview/single_table.html", context)
 
+
 DJANGO_TO_D3_DATE_FORMAT = {
-    "d": "%d",   # day, 2 digits (01-31)
+    "d": "%d",  # day, 2 digits (01-31)
     "j": "%-d",  # day, no leading zero (1-31)
-    "m": "%m",   # month, 2 digits (01-12)
+    "m": "%m",  # month, 2 digits (01-12)
     "n": "%-m",  # month, no leading zero (1-12)
-    "Y": "%Y",   # year, 4 digits
-    "y": "%y",   # year, 2 digits
-    "b": "%b",   # month, abbreviated name (lowercase in Django)
-    "M": "%b",   # month, abbreviated name
-    "F": "%B",   # month, full name
-    "D": "%a",   # weekday, abbreviated name
-    "l": "%A",   # weekday, full name
+    "Y": "%Y",  # year, 4 digits
+    "y": "%y",  # year, 2 digits
+    "b": "%b",  # month, abbreviated name (lowercase in Django)
+    "M": "%b",  # month, abbreviated name
+    "F": "%B",  # month, full name
+    "D": "%a",  # weekday, abbreviated name
+    "l": "%A",  # weekday, full name
 }
+
 
 def short_date_format_for_plotly():
     """SHORT_DATE_FORMAT of the active language, converted to plotly's (d3) syntax."""
     django_format = get_format("SHORT_DATE_FORMAT")
     return "".join(DJANGO_TO_D3_DATE_FORMAT.get(char, char) for char in django_format)
+
 
 @login_required
 @require_http_methods(["GET"])
@@ -1718,7 +1721,8 @@ def activity_summary(request):
 
     chart = None
     if len(df) > 0:
-        df = df.replace(Interview.ALL_STATE_VALUES, translated_values)
+        state_labels = dict(zip(Interview.ALL_STATE_VALUES, translated_values))
+        df["state"] = df["state"].map(state_labels).fillna(df["state"])
         df["subsidiary_state"] = df["process__subsidiary__name"] + " " + df["state"]
         df = df.sort_values("subsidiary_state")
 
