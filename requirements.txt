@@ -64,7 +64,7 @@ numpy==2.5.4
     #   pyoupyou
 packaging==26.3
     # via plotly
-pandas==2.3.3
+pandas==3.1.1
     # via pyoupyou
 plotly==7.1.0
     # via pyoupyou
@@ -74,9 +74,7 @@ python-dateutil==2.9.0.post0
     #   icalendar
     #   pandas
 pytz==2026.6
-    # via
-    #   pandas
-    #   pyoupyou
+    # via pyoupyou
 requests==2.34.2
     # via pyoupyou
 six==1.17.0
