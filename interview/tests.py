@@ -1336,7 +1336,7 @@ class NoMailToDeactivatedUsersTestCase(TestCase):
         interview = InterviewFactory(process=process)
         interview.interviewers.add(self.active_interviewer)
         interview.interviewers.add(self.inactive_interviewer)
-        interview.planned_date = datetime.datetime.now() + datetime.timedelta(days=1)
+        interview.planned_date = timezone.now() + datetime.timedelta(days=1)
         interview.save()
         all_recipients = []
         for message in mail.outbox:

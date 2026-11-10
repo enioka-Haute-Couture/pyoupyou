@@ -12,11 +12,11 @@ resolution-markers = [
 
 [[package]]
 name = "asgiref"
-version = "3.8.1"
+version = "3.13.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/29/38/b3395cc9ad1b56d2ddac9970bc8f4141312dbaec28bc7c218b0dfafd0f42/asgiref-3.8.1.tar.gz", hash = "sha256:c343bd80a0bec947a9860adb4c432ffa7db769836c64238fc34bdc3fec84d590", size = 35186, upload-time = "2024-03-22T14:39:36.863Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6b/90/f5fce14e95fccf53b58e8e2c47cd84d40d105d64073ae1ac75166db150e0/asgiref-3.13.0.tar.gz", hash = "sha256:034cc8cbf72d00553b4be256703ac545120b4e50af13b49dec99da899aeeecb4", size = 52941, upload-time = "2026-10-23T08:13:14.715Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/e3/893e8757be2612e6c266d9bb58ad2e3651524b5b40cf56761e985a28b13e/asgiref-3.8.1-py3-none-any.whl", hash = "sha256:3e1e3ecc849832fe52ccf2cb6686b7a55f82bb1d6aee72a58826471390335e47", size = 23828, upload-time = "2024-03-22T14:39:34.521Z" },
+    { url = "https://files.pythonhosted.org/packages/2e/b0/ec211e1f7966247cb6469158d856bac9aa4c2fe13621bd6a352e4f850453/asgiref-3.13.0-py3-none-any.whl", hash = "sha256:f9596a2434512686473d50f96ff6207fbba49ae1a785dfac614df4aeb085674d", size = 27593, upload-time = "2026-10-23T08:13:13.394Z" },
 ]
 
 [[package]]
@@ -226,16 +226,16 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "5.2.19"
+version = "6.0.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "sqlparse" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/02/29/a487a108caa76430c8b616aa90a6d09cf431306112c14093e6f0a7454e17/django-5.2.19.tar.gz", hash = "sha256:ad03d8abc51dbff95ebf34b27123cf0c26a3b62db7ba0cd520783686362533d1", size = 10969285, upload-time = "2026-11-03T15:22:09.468Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fb/6a/9dd67bd0d1e3c610faf3d1fab5b233adca77735397807c7e4f438201a140/django-6.0.10.tar.gz", hash = "sha256:6005d030df924f85088454c18bd35dcf082b058aa355ad3df520d8de9aef9f41", size = 11007536, upload-time = "2026-11-03T15:21:49.768Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3c/fb/65b4e897d1268288a46457493d9aec6541be8be08e0093a93cc101c03ab2/django-5.2.19-py3-none-any.whl", hash = "sha256:5965d974a5218a2b68a11dd1276434707f23886525c23f0598eccedaf4f4ca00", size = 8319631, upload-time = "2026-11-03T15:22:03.67Z" },
+    { url = "https://files.pythonhosted.org/packages/fc/55/ee40b1865bd0ba5fc4e2d747a1a753c1122047137a17b852667287c057a6/django-6.0.10-py3-none-any.whl", hash = "sha256:2a6fe22f319d71fd0ea1e70cded76c6449225cb9903234f8992ee3d21eded5e8", size = 8380913, upload-time = "2026-11-03T15:21:43.691Z" },
 ]
 
 [[package]]
@@ -676,7 +676,7 @@ mysql = [
 [package.metadata]
 requires-dist = [
     { name = "crispy-bootstrap3", specifier = "==2024.1" },
-    { name = "django", specifier = "==5.2.*" },
+    { name = "django", specifier = "==6.0.*" },
     { name = "django-bleach", specifier = "==3.1.0" },
     { name = "django-bootstrap-static", specifier = ">=3.3.7,<3.4" },
     { name = "django-crispy-forms", specifier = "==2.7" },
