@@ -354,7 +354,9 @@ class Process(models.Model):
         PyouPyouUser, verbose_name=_("Subscribers"), blank=True, related_name="subscribed_processes"
     )
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
+    def save(
+        self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True
+    ):
         is_new = False if self.id else True
         if is_new:
             self.last_state_change = now()
@@ -362,7 +364,7 @@ class Process(models.Model):
             old = Process.objects.get(id=self.id)
             if old.state != self.state:
                 self.last_state_change = now()
-        super().save(force_insert, force_update, using, update_fields)
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
         self.responsible.clear()
         default_responsible = self.compute_responsable()
 
@@ -616,7 +618,9 @@ class Interview(models.Model):
         interviewers = ", ".join(i.trigramme for i in self.interviewers.all())
         return "#{rank} - {process} - {itws}".format(rank=self.rank, process=self.process, itws=interviewers)
 
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True):
+    def save(
+        self, *, force_insert=False, force_update=False, using=None, update_fields=None, trigger_notification=True
+    ):
         is_new = self.id is None
 
         if self.rank is None:
@@ -639,7 +643,7 @@ class Interview(models.Model):
         elif self.state == self.PLANNED and self.planned_date is None:
             self.state = self.WAITING_PLANIFICATION
 
-        super(Interview, self).save(force_insert, force_update, using, update_fields)
+        super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
         if is_new or (Interview.objects.filter(process=self.process).last() == self and self.process.is_open()):
             if self.state == self.WAITING_PLANIFICATION:
                 self.process.state = Process.WAITING_INTERVIEW_PLANIFICATION

@@ -1,27 +1,27 @@
 from django.conf import settings
-from django.urls import re_path, include
+from django.urls import include, path, re_path
 from django.contrib import admin
 
 from interview import views, feeds
 
 urlpatterns = [
     re_path(r"^admin/dump_data", views.dump_data),
-    re_path(r"^admin/", admin.site.urls),
-    re_path(r"^$", views.dashboard, name="dashboard"),
-    re_path(r"^processes/$", views.processes, name="process-list"),
-    re_path(r"^processes/closed$", views.closed_processes, name="process-closed-list"),
-    re_path(r"^processes/source/(?P<source_id>\d+)$", views.processes_for_source, name="process-list-source"),
-    re_path(r"^processes/offer/(?P<offer_id>\d+)$", views.processes_for_offer, name="process-list-offer"),
-    re_path(
-        r"^switch_offer_subscription/(?P<offer_id>\d+)/$",
+    path("admin/", admin.site.urls),
+    path("", views.dashboard, name="dashboard"),
+    path("processes/", views.processes, name="process-list"),
+    path("processes/closed", views.closed_processes, name="process-closed-list"),
+    path("processes/source/<int:source_id>", views.processes_for_source, name="process-list-source"),
+    path("processes/offer/<int:offer_id>", views.processes_for_offer, name="process-list-offer"),
+    path(
+        "switch_offer_subscription/<int:offer_id>/",
         views.switch_offer_subscription_ajax,
         name="switch-offer-subscription",
     ),
-    re_path(r"^interviews/$", views.interviews_list, name="interviews-list"),
-    re_path(r"^candidate/$", views.new_candidate, name="candidate-new"),
-    re_path(r"^candidate/candidate-submit/$", views.submit_candidate, name="candidate-submit"),
-    re_path(
-        r"^webhook/" + settings.FORM_WEB_HOOK_PREFIX + r"/(?P<subsidiary_id>\d+)/(?P<source_id>\d+)$",
+    path("interviews/", views.interviews_list, name="interviews-list"),
+    path("candidate/", views.new_candidate, name="candidate-new"),
+    path("candidate/candidate-submit/", views.submit_candidate, name="candidate-submit"),
+    path(
+        f"webhook/{settings.FORM_WEB_HOOK_PREFIX}/<int:subsidiary_id>/<int:source_id>",
         views.process_from_cognito_form,
         name="import-new-process-from-cognito-form",
     ),
@@ -29,69 +29,63 @@ urlpatterns = [
     re_path(
         r"^process/(?P<pk>\d+)(?P<slug_info>(\w-?)*)/delete/$", views.ProcessDeleteView.as_view(), name="process-delete"
     ),
-    re_path(
-        r"^switch_process_subscription/(?P<process_id>\d+)/$",
+    path(
+        "switch_process_subscription/<int:process_id>/",
         views.switch_process_subscription_ajax,
         name="switch-process-subscription",
     ),
-    re_path(r"^process/(?P<process_id>\d+)/close/$", views.close_process, name="process-close"),
-    re_path(r"^process/(?P<process_id>\d+)/reopen/$", views.reopen_process, name="process-reopen"),
-    re_path(
-        r"^process/(?P<process_id>\d+)/interview/$", views.interview, {"action": "edit"}, name="process-new-interview"
-    ),
-    re_path(
-        r"^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/plan$",
+    path("process/<int:process_id>/close/", views.close_process, name="process-close"),
+    path("process/<int:process_id>/reopen/", views.reopen_process, name="process-reopen"),
+    path("process/<int:process_id>/interview/", views.interview, {"action": "edit"}, name="process-new-interview"),
+    path(
+        "process/<int:process_id>/interview/<int:interview_id>/plan",
         views.interview,
         {"action": "plan"},
         name="interview-plan",
     ),
-    re_path(
-        r"^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/planning-request$",
+    path(
+        "process/<int:process_id>/interview/<int:interview_id>/planning-request",
         views.interview,
         {"action": "planning-request"},
         name="interview-planning-request",
     ),
-    re_path(
-        r"^process/(?P<process_id>\d+)/interview/(?P<interview_id>\d+)/edit$",
+    path(
+        "process/<int:process_id>/interview/<int:interview_id>/edit",
         views.interview,
         {"action": "edit"},
         name="interview-edit",
     ),
     re_path(r"^interview/(?P<interview_id>\d+)(?P<slug_info>(\w-?)*)/minute/$", views.minute, name="interview-minute"),
-    re_path(r"^interview/(?P<interview_id>\d+)/minute/edit/$", views.minute_edit, name="interview-minute-edit"),
-    re_path(
-        r"^interview/(?P<pk>\d+)/delete$",
-        views.InterviewDeleteView.as_view(),
-        name="interview-delete",
-    ),
-    re_path(r"^delete_document_interview_minute$", views.delete_document_minute_ajax, name="delete-document-minute"),
-    re_path(r"^reports/interviewers-load/$", views.interviewers_load, name="interviewers-load"),
-    re_path(r"^reports/active-sources/$", views.active_sources, name="active-sources"),
-    re_path(r"^reports/offers/$", views.offers, name="offers"),
-    re_path(r"^reports/activity-summary/$", views.activity_summary, name="activity_summary"),
-    re_path(r"^reports/pivotable/interviews/$", views.interviews_pivotable, name="interviews-pivotable"),
-    re_path(r"^reports/pivotable/processes/$", views.processes_pivotable, name="processes-pivotable"),
-    re_path(r"^candidate/(?P<process_id>\d+)/$", views.edit_candidate, name="candidate"),
-    re_path(r"^candidate/(?P<pk>\d+)/delete/$", views.CandidateDeleteView.as_view(), name="candidate-delete"),
-    re_path(r"^create_source/$", views.create_source_ajax, name="create_source"),
-    re_path(r"^create_offer/$", views.create_offer_ajax, name="create_offer"),
-    re_path(r"^create_account/$", views.create_account, name="create_acount"),
+    path("interview/<int:interview_id>/minute/edit/", views.minute_edit, name="interview-minute-edit"),
+    path("interview/<int:pk>/delete", views.InterviewDeleteView.as_view(), name="interview-delete"),
+    path("delete_document_interview_minute", views.delete_document_minute_ajax, name="delete-document-minute"),
+    path("reports/interviewers-load/", views.interviewers_load, name="interviewers-load"),
+    path("reports/active-sources/", views.active_sources, name="active-sources"),
+    path("reports/offers/", views.offers, name="offers"),
+    path("reports/activity-summary/", views.activity_summary, name="activity_summary"),
+    path("reports/pivotable/interviews/", views.interviews_pivotable, name="interviews-pivotable"),
+    path("reports/pivotable/processes/", views.processes_pivotable, name="processes-pivotable"),
+    path("candidate/<int:process_id>/", views.edit_candidate, name="candidate"),
+    path("candidate/<int:pk>/delete/", views.CandidateDeleteView.as_view(), name="candidate-delete"),
+    path("create_source/", views.create_source_ajax, name="create_source"),
+    path("create_offer/", views.create_offer_ajax, name="create_offer"),
+    path("create_account/", views.create_account, name="create_acount"),
     re_path(r"^delete_account/(?P<trigramme>[a-z]{3})$", views.delete_account, name="delete_acount"),
-    re_path(r"^feed/(?P<token>.+)/pyoupyou_full.ics$", feeds.FullInterviewFeed(), name="calendar_full"),
-    re_path(
-        r"^feed/(?P<token>.+)/subsidiary/(?P<subsidiary_id>\d+)/pyoupyou_interviews.ics$",
+    path("feed/<path:token>/pyoupyou_full.ics", feeds.FullInterviewFeed(), name="calendar_full"),
+    path(
+        "feed/<path:token>/subsidiary/<int:subsidiary_id>/pyoupyou_interviews.ics",
         feeds.SubsidiaryInterviewFeed(),
         name="calendar_subsidiary",
     ),
-    re_path(
-        r"^feed/(?P<token>.+)/user/(?P<user_id>\d+)/pyoupyou_interviews.ics$",
+    path(
+        "feed/<path:token>/user/<int:user_id>/pyoupyou_interviews.ics",
         feeds.PyouPyouUserInterviewFeed(),
         name="calendar_user",
     ),
-    re_path(r"^select2/", include("django_select2.urls")),
-    re_path(r"^search/", views.search, name="search"),
-    re_path(r"^gantt/", views.gantt, name="gantt"),
-    re_path(r"^kanban/", views.kanban, name="kanban"),
+    path("select2/", include("django_select2.urls")),
+    path("search/", views.search, name="search"),
+    path("gantt/", views.gantt, name="gantt"),
+    path("kanban/", views.kanban, name="kanban"),
 ]
 
 if settings.DEBUG:
@@ -103,4 +97,4 @@ if settings.DEBUG:
 if settings.HAS_DDT:
     import debug_toolbar
 
-    urlpatterns = [re_path(r"^__debug__/", include(debug_toolbar.urls))] + urlpatterns
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns

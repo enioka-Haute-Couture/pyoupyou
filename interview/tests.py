@@ -2,20 +2,22 @@ import json
 
 import datetime
 import hashlib
+from unittest.mock import patch
 
-from django.contrib.auth.models import Permission
 from django.db.utils import IntegrityError
+from django.utils import timezone
 import os
 import random
 
 import dateutil.relativedelta
 import pytz
+import tempfile
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.contrib.auth.models import Permission
 from django.core import mail
 from django.core.management import call_command
 from django.core.files.base import ContentFile
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, override_settings
 from django.urls import reverse
 
 from interview.models import Candidate, ResponsibleRule
@@ -33,6 +35,7 @@ from interview.factory import (
     InterviewKindFactory,
     SourcesCategoryFactory,
 )
+from interview.templatetags.commonmark import commonmark
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from interview.models import Process, Document, Interview, Offer, document_path
@@ -53,7 +56,7 @@ class CandidateSubmitMixin:
 
     def _submit_candidate(self, data):
         """POST on submit_candidate and assert it succeeded (HX-Redirect present)."""
-        response = self.client.post(path=reverse(self.submit_url_name), data=data, HTTP_HX_REQUEST="true")
+        response = self.client.post(path=reverse(self.submit_url_name), data=data, headers={"hx-request": "true"})
         self.assertEqual(response.status_code, 200)
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
         return response
@@ -937,7 +940,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                 "candidate_documents": files,
                 "doctypes": chosen_doctypes,
             },
-            HTTP_HX_REQUEST="true",
+            headers={"hx-request": "true"},
         )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -957,7 +960,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                     "subsidiary": self.subsidiary.id,
                     "documents_to_delete": list(documents.values_list("id", flat=True)),
                 },
-                HTTP_HX_REQUEST="true",
+                headers={"hx-request": "true"},
             )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -990,7 +993,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         documents = Document.objects.filter(candidate=candidate).order_by("id")
         self.assertEqual(documents.count(), len(chosen_doctypes))
 
-        for (document, doctype) in zip(documents, chosen_doctypes):
+        for document, doctype in zip(documents, chosen_doctypes):
             self.assertEqual(document.document_type, doctype)
 
     def test_process_creation_not_logged_in(self):
@@ -1060,7 +1063,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
                 "force_new": "true",
                 "contract_type": contract_type.id,
             },
-            HTTP_HX_REQUEST="true",
+            headers={"hx-request": "true"},
         )
         self.assertIn("HX-Redirect", response, msg=response.content.decode())
 
@@ -1179,11 +1182,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         self.assertEqual(response["HX-Redirect"], p.get_absolute_url())
 
         # same call
-        response = self.client.post(
-            path=reverse("candidate-submit"),
-            data=data,
-            HTTP_HX_REQUEST="true",
-        )
+        response = self.client.post(path=reverse("candidate-submit"), data=data, headers={"hx-request": "true"})
 
         self.assertEqual(response.status_code, 200)
         self.assertNotIn("HX-Redirect", response)
@@ -1277,9 +1276,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
 
         # name (candidate form) and subsidiary (process form) are both missing
         response = self.client.post(
-            path=reverse("candidate-submit"),
-            data={"email": "jean@mail.com"},
-            HTTP_HX_REQUEST="true",
+            path=reverse("candidate-submit"), data={"email": "jean@mail.com"}, headers={"hx-request": "true"}
         )
 
         # HTMX only swaps 2xx responses, and nothing must be saved
@@ -1313,7 +1310,7 @@ class ProcessCreationViewTestCase(CandidateSubmitMixin, TestCase):
         response = self.client.post(
             path=reverse("candidate-submit"),
             data={"process_id": p.id, "name": "", "subsidiary": self.subsidiary.id},
-            HTTP_HX_REQUEST="true",
+            headers={"hx-request": "true"},
         )
 
         self.assertTemplateUsed(response, "interview/partials/form_errors.html")
@@ -1339,7 +1336,7 @@ class NoMailToDeactivatedUsersTestCase(TestCase):
         interview = InterviewFactory(process=process)
         interview.interviewers.add(self.active_interviewer)
         interview.interviewers.add(self.inactive_interviewer)
-        interview.planned_date = datetime.datetime.now() + datetime.timedelta(days=1)
+        interview.planned_date = timezone.now() + datetime.timedelta(days=1)
         interview.save()
         all_recipients = []
         for message in mail.outbox:
@@ -2195,3 +2192,125 @@ class InterviewDeleteViewTestCase(DeleteViewsTestMixin, TestCase):
         self.give_permission("frontend_can_delete_interview")
         response = self.client.get(self.get_url())
         self.assertEqual(response.status_code, 200)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class CognitoWebhookTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.source = SourcesFactory(category=SourcesCategoryFactory())
+        self.url = reverse(
+            "import-new-process-from-cognito-form",
+            kwargs={"subsidiary_id": self.subsidiary.id, "source_id": self.source.id},
+        )
+
+    def post(self, **extra):
+        payload = {"Name": "Jean Dupont", "Email": "jean.dupont@example.com", "Motivation": "Very motivated"}
+        payload.update(extra)
+        return self.client.post(self.url, payload, content_type="application/json")
+
+    def test_creates_candidate_and_process(self):
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+
+        candidate = Candidate.objects.get(email="jean.dupont@example.com")
+        self.assertEqual(candidate.name, "Jean Dupont")
+        process = Process.objects.get(candidate=candidate)
+        self.assertEqual(process.subsidiary, self.subsidiary)
+        self.assertEqual(process.sources, self.source)
+        self.assertEqual(process.other_informations, "Very motivated")
+
+    def test_invalid_email_is_rejected(self):
+        response = self.post(Email="not-an-email")
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(Candidate.objects.filter(name="Jean Dupont").exists())
+
+    def test_invalid_linkedin_url_is_ignored(self):
+        response = self.post(Linkedin="not a url")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Candidate.objects.get(email="jean.dupont@example.com").linkedin_url, "")
+
+    def test_links_offer_when_provided(self):
+        offer = OfferFactory(subsidiary=self.subsidiary)
+        response = self.post(Offer_Value=offer.id)
+        self.assertEqual(response.status_code, 200)
+        process = Process.objects.get(candidate__email="jean.dupont@example.com")
+        self.assertEqual(process.offer, offer)
+
+    @patch("interview.serializers.requests.get")
+    def test_downloads_documents(self, mock_get):
+        mock_get.return_value.content = b"%PDF-1.4 fake cv"
+        response = self.post(Document=[{"File": "https://example.com/cv.pdf", "Name": "cv.pdf"}])
+        self.assertEqual(response.status_code, 200)
+
+        mock_get.assert_called_once_with("https://example.com/cv.pdf", stream=True)
+        candidate = Candidate.objects.get(email="jean.dupont@example.com")
+        self.assertEqual(candidate.document_set.count(), 1)
+
+
+class UserContentSanitizationTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+        self.process = ProcessFactory(subsidiary=self.subsidiary)
+        self.client.force_login(self.user)
+
+    def test_script_in_process_other_informations_is_not_rendered(self):
+        self.process.other_informations = '**bold** <script>alert("xss")</script>'
+        self.process.save()
+
+        response = self.client.get(self.process.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<script>alert("xss")</script>', html=False)
+        self.assertContains(response, "<strong>bold</strong>")
+
+
+class CommonmarkFilterTestCase(TestCase):
+    def test_renders_markdown_like_before(self):
+        source = (
+            "# Titre\n"
+            "\n"
+            "Un **gras**, un *italique* et du `code`.\n"
+            "\n"
+            "- point 1\n"
+            "- point 2\n"
+            "\n"
+            "1. premier\n"
+            "2. second\n"
+            "\n"
+            "> une citation\n"
+            "\n"
+            "Un [lien](https://example.com).\n"
+            "Ligne suivante sans ligne vide.\n"
+        )
+        expected = '<h1>Titre</h1>\n<p>Un <strong>gras</strong>, un <em>italique</em> et du <code>code</code>.</p>\n<ul>\n<li>point 1</li>\n<li>point 2</li>\n</ul>\n<ol>\n<li>premier</li>\n<li>second</li>\n</ol>\n<blockquote>\n<p>une citation</p>\n</blockquote>\n<p>Un <a href="https://example.com">lien</a>.\nLigne suivante sans ligne vide.</p>\n'
+        self.assertEqual(commonmark(source), expected)
+
+    def test_dangerous_link_is_not_rendered(self):
+        html = commonmark("[clic](javascript:alert(1))")
+        self.assertNotIn("<a", html)
+        self.assertNotIn('href="javascript:', html)
+
+
+class ReportsPagesTestCase(TestCase):
+    def setUp(self):
+        self.subsidiary = SubsidiaryFactory()
+        self.user = PyouPyouUserFactory(company=self.subsidiary)
+
+        process = ProcessFactory(subsidiary=self.subsidiary)
+        InterviewFactory(process=process, planned_date=timezone.now()).interviewers.set([self.user])
+
+        ProcessFactory(subsidiary=self.subsidiary, contract_type=ContractTypeFactory(has_duration=False))
+
+        self.client.force_login(self.user)
+
+    def test_activity_summary_renders_chart(self):
+        response = self.client.get(reverse(views.activity_summary))
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context["plot_div"])
+
+    def test_gantt_renders_chart(self):
+        response = self.client.get(reverse(views.gantt))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("plotly", str(response.context["gantt"]))

@@ -11,17 +11,13 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.auth.views import redirect_to_login
 from django.views.generic import DeleteView
 from plotly.offline import plot
-import plotly.figure_factory as ff
 import plotly.express as px
 
 import pandas as pd
 
 import django_tables2 as tables
-import requests
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.core.files import File
-from django.core.files.temp import NamedTemporaryFile
 from django.core.management import call_command
 from django.db import transaction
 from django.db.models import Q, Prefetch, F, Max
@@ -30,13 +26,13 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponseNotFound
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.timezone import make_aware, now
-from django.utils.html import format_html
+from django.utils.formats import get_format
+from django.utils.timezone import now
+from django.utils.html import format_html_join
 from django.utils.translation import gettext as _t, gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django_tables2 import RequestConfig
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 from django.db.models import Count
 from rest_framework.decorators import api_view
@@ -70,7 +66,6 @@ from interview.models import (
     Document,
     Interview,
     Sources,
-    SourcesCategory,
     Candidate,
     Offer,
     DocumentInterview,
@@ -96,17 +91,16 @@ def get_global_filter(request):
 
 
 def log_action(added, object, user, view):
-    LogEntry.objects.log_action(
+    LogEntry.objects.log_actions(
         user_id=user.pk,
-        content_type_id=get_content_type_for_model(object).pk,
-        object_id=object.pk,
-        object_repr=str(object),
+        queryset=[object],
         action_flag=ADDITION if added else CHANGE,
         change_message=(
             f"{object} has been Added through {view.__name__}"
             if added
             else f"{object} has been updated through {view.__name__}"
         ),
+        single_object=True,
     )
 
 
@@ -130,14 +124,7 @@ class ProcessTable(tables.Table):
     responsible = tables.Column(verbose_name=_("Responsible"), orderable=False)
 
     def render_responsible(self, value):
-        return format_html(
-            ", ".join(
-                [
-                    '<span title="{fullname}">{trigramme}</span>'.format(fullname=c.full_name, trigramme=c.trigramme)
-                    for c in value.all()
-                ]
-            )
-        )
+        return format_html_join(", ", '<span title="{}">{}</span>', ((c.full_name, c.trigramme) for c in value.all()))
 
     class Meta:
         model = Process
@@ -239,12 +226,12 @@ class InterviewDetailTable(InterviewTable):
         sequence = (
             "rank",
             "needs_attention",
-            "process.subsidiary",
+            "process__subsidiary",
             "process_detail",
             "interviewers",
             "planned_date",
             "state",
-            "process.offer",
+            "process__offer",
             "kind_of_interview",
         )
         fields = sequence
@@ -943,7 +930,7 @@ def edit_candidate(request, process_id):
 
             content = request.FILES.getlist("candidate_documents", [])
             doctypes = request.POST.getlist("doctypes", [])
-            for (doc, doctype) in zip(content, doctypes):
+            for doc, doctype in zip(content, doctypes):
                 Document.objects.create(document_type=doctype, content=doc, candidate=candidate)
             ids_documents_to_delete = request.POST.getlist("documents_to_delete", [])
             related_documents = Document.objects.filter(candidate=candidate)  # security
@@ -1331,6 +1318,27 @@ def search(request):
     return render(request, "interview/single_table.html", context)
 
 
+DJANGO_TO_D3_DATE_FORMAT = {
+    "d": "%d",  # day, 2 digits (01-31)
+    "j": "%-d",  # day, no leading zero (1-31)
+    "m": "%m",  # month, 2 digits (01-12)
+    "n": "%-m",  # month, no leading zero (1-12)
+    "Y": "%Y",  # year, 4 digits
+    "y": "%y",  # year, 2 digits
+    "b": "%b",  # month, abbreviated name (lowercase in Django)
+    "M": "%b",  # month, abbreviated name
+    "F": "%B",  # month, full name
+    "D": "%a",  # weekday, abbreviated name
+    "l": "%A",  # weekday, full name
+}
+
+
+def short_date_format_for_plotly():
+    """SHORT_DATE_FORMAT of the active language, converted to plotly's (d3) syntax."""
+    django_format = get_format("SHORT_DATE_FORMAT")
+    return "".join(DJANGO_TO_D3_DATE_FORMAT.get(char, char) for char in django_format)
+
+
 @login_required
 @require_http_methods(["GET"])
 @user_passes_test(lambda u: not u.is_external)
@@ -1395,12 +1403,38 @@ def gantt(request):
         if not process["Finish"]:
             process["Finish"] = max_end_date
 
-    fig = ff.create_gantt(
-        processes_dict, index_col="ContractType", show_colorbar=True, showgrid_x=True, showgrid_y=True, colors=cmap
+    df = pd.DataFrame(processes_dict)
+    df["Start"] = pd.to_datetime(df["Start"])
+    df["Finish"] = pd.to_datetime(df["Finish"])
+
+    date_format = "|" + short_date_format_for_plotly()
+    fig = px.timeline(
+        df,
+        x_start="Start",
+        x_end="Finish",
+        y="Task",
+        color="ContractType",
+        color_discrete_map=cmap,
+        labels={
+            "Start": _t("Début"),
+            "Finish": _t("Fin"),
+            "Task": _t("Processus"),
+            "ContractType": _t("Type de contrat"),
+        },
+        hover_data={
+            "Start": date_format,
+            "Finish": date_format,
+            "Task": False,
+            "ContractType": False,
+        },
     )
+    fig.update_xaxes(showgrid=True)
+    fig.update_yaxes(showgrid=True, autorange="reversed", title=None)
     fig.layout.update(
         {
             "title": {"text": _t("Contracts")},
+            "height": max(400, 30 * len(df)),
+            "bargap": 0.7,
             "xaxis": {"rangeslider": {"visible": False}, "rangeselector": None, "fixedrange": True},
             "yaxis": {"fixedrange": True},
         }
@@ -1687,7 +1721,8 @@ def activity_summary(request):
 
     chart = None
     if len(df) > 0:
-        df = df.replace(Interview.ALL_STATE_VALUES, translated_values)
+        state_labels = dict(zip(Interview.ALL_STATE_VALUES, translated_values))
+        df["state"] = df["state"].map(state_labels).fillna(df["state"])
         df["subsidiary_state"] = df["process__subsidiary__name"] + " " + df["state"]
         df = df.sort_values("subsidiary_state")
 

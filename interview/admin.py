@@ -74,10 +74,9 @@ class SourcesAdmin(admin.ModelAdmin):
     list_filter = ("category", "archived")
     search_fields = ("name",)
 
+    @admin.display(description="URL")
     def processes_list_url(self, obj):
         return format_html("<a href='{url}'>🔗</a>", url=reverse("process-list-source", args=[str(obj.id)]))
-
-    processes_list_url.short_description = "URL"
 
 
 @admin.register(Offer)
@@ -86,10 +85,9 @@ class OfferAdmin(admin.ModelAdmin):
     list_filter = ("subsidiary", "archived")
     search_fields = ("name",)
 
+    @admin.display(description="URL")
     def processes_list_url(self, obj):
         return format_html("<a href='{url}'>🔗</a>", url=reverse("process-list-offer", args=[str(obj.id)]))
-
-    processes_list_url.short_description = "URL"
 
 
 @admin.register(InterviewKind)

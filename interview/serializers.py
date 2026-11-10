@@ -34,7 +34,7 @@ class CognitoWebHookSerializer(serializers.Serializer):
             candidate=candidate,
             sources=Sources.objects.get(id=validated_data["sources"]),
             subsidiary=Subsidiary.objects.get(id=validated_data["subsidiary"]),
-            offer=Offer.objects.filter(id=validated_data["Offer_Value"]).first(),
+            offer=Offer.objects.filter(id=validated_data.get("Offer_Value")).first(),
             contract_start_date=validated_data.get("Availability"),
             other_informations=validated_data.get("Motivation") or "",
         )
