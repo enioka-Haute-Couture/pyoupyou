@@ -5,7 +5,7 @@ from interview.models import Process, Interview, Sources, Offer
 
 from ref.models import PyouPyouUser
 from django.utils.translation import gettext_lazy as _
-from django.db.models import OuterRef, Subquery
+from django_select2.forms import Select2Widget
 
 
 class ProcessFilter(django_filters.FilterSet):
@@ -22,8 +22,16 @@ class KanbanProcessFilter(django_filters.FilterSet):
         if subsidiary:
             self.filters["offer"].queryset = self.filters["offer"].queryset.filter(subsidiary=subsidiary)
 
-    sources = django_filters.ModelChoiceFilter(queryset=Sources.objects.filter(archived=False), field_name="sources")
-    offer = django_filters.ModelChoiceFilter(queryset=Offer.objects.filter(archived=False), field_name="offer")
+    sources = django_filters.ModelChoiceFilter(
+        queryset=Sources.objects.filter(archived=False),
+        field_name="sources",
+        widget=Select2Widget(),
+    )
+    offer = django_filters.ModelChoiceFilter(
+        queryset=Offer.objects.filter(archived=False).select_related("subsidiary"),
+        field_name="offer",
+        widget=Select2Widget(),
+    )
     hide_prequalification = django_filters.BooleanFilter(
         label=_("Hide prequalifications"),
         method="filter_hide_prequalification",

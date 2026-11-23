@@ -79,3 +79,16 @@
 .form-group{
     margin-right:10px ;
 }
+
+/* Make select2 fields look like Bootstrap */
+.forms .form-inline .select2-container--default .select2-selection--single {
+    height: 34px;
+}
+
+.forms .form-inline .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 32px;
+}
+
+.forms .form-inline .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 32px;
+}

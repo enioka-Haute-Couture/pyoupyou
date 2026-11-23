@@ -11,7 +11,7 @@ th.asc .sort-icon::before {
 }
 
 /* responsive select2 add important to prevent use of width in the element style */
-.select2-container {
+form:not(.form-inline) .select2-container {
     width: 100% !important;
 }
 
